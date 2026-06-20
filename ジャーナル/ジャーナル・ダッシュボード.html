@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ジャーナル・ダッシュボード 2013–2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#faf9f5; --surface:#ffffff; --ink:#26251f; --muted:#76746b; --line:rgba(0,0,0,.10);
+  --accent:#534ab7;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#1a1915; --surface:#23221d; --ink:#ece9df; --muted:#a3a094; --line:rgba(255,255,255,.12); --accent:#9089e0; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Helvetica Neue",Arial,sans-serif;
+  line-height:1.7;padding:32px 20px 64px;}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:24px;font-weight:600;margin:0 0 4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 28px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:32px}
+.card{background:var(--surface);border:.5px solid var(--line);border-radius:12px;padding:14px 16px}
+.card .lab{font-size:12px;color:var(--muted);margin-bottom:4px}
+.card .val{font-size:26px;font-weight:600;letter-spacing:-.5px}
+.card .val small{font-size:13px;font-weight:400;color:var(--muted)}
+section{background:var(--surface);border:.5px solid var(--line);border-radius:12px;padding:18px 18px 20px;margin-bottom:20px}
+h2{font-size:16px;font-weight:600;margin:0 0 2px}
+.note{font-size:13px;color:var(--muted);margin:0 0 14px}
+.chartbox{position:relative;width:100%}
+.toggles{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.toggles button{font-size:12px;padding:5px 11px;border-radius:20px;border:.5px solid var(--line);
+  background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:6px}
+.toggles button .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+.toggles button.off{opacity:.38;text-decoration:line-through}
+.foot{color:var(--muted);font-size:12px;text-align:center;margin-top:28px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>📔 ジャーナル・ダッシュボード</h1>
+<p class="sub">2013年7月 – 2026年6月 ／ 全924エントリの可視化</p>
+
+<div class="cards" id="cards"></div>
+
+<section>
+  <h2>毎月の執筆ペース</h2>
+  <p class="note">13年間の月別エントリ数。2021–2022年の空白がはっきり見えます。</p>
+  <div class="chartbox" style="height:240px"><canvas id="timeline"></canvas></div>
+</section>
+
+<section>
+  <h2>テーマの移り変わり</h2>
+  <p class="note">関連語の年間出現回数。凡例をクリックで表示/非表示。教会・説教中心から、近年ポケカ・AIへ。</p>
+  <div class="toggles" id="themeToggles"></div>
+  <div class="chartbox" style="height:300px"><canvas id="themes"></canvas></div>
+</section>
+
+<section>
+  <h2>何時に書いていたか</h2>
+  <p class="note">エントリのタイムスタンプを時刻別に集計。夕方〜夜、そして説教を仕上げる早朝に山。</p>
+  <div class="chartbox" style="height:220px"><canvas id="hours"></canvas></div>
+</section>
+
+<section>
+  <h2>体重の記録</h2>
+  <p class="note">日記に書かれた体重（kg）。73〜85kgを行き来し続けた13年。</p>
+  <div class="chartbox" style="height:230px"><canvas id="weight"></canvas></div>
+</section>
+
+<section>
+  <h2>映画の採点</h2>
+  <p class="note">「○点」と記録した映画評の分布。298本、平均71.5点。70点台がいちばん多い。</p>
+  <div class="chartbox" style="height:220px"><canvas id="movies"></canvas></div>
+</section>
+
+<section>
+  <h2>記録された気温と場所</h2>
+  <p class="note">日記の天気欄の気温分布（左）と、位置情報の市区町村トップ（右）。</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="chartbox" style="height:230px"><canvas id="temps"></canvas></div>
+    <div class="chartbox" style="height:230px"><canvas id="locs"></canvas></div>
+  </div>
+</section>
+
+<p class="foot">このファイルはブラウザで開くとインタラクティブに動きます。データは日記本文から自動抽出したものです。</p>
+</div>
+
+<script>
+const D = {"years": [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2023, 2024, 2025, 2026], "entriesPerYear": [2, 142, 165, 150, 80, 95, 128, 12, 12, 67, 46, 25], "charsPerYear": [36, 12007, 18449, 22647, 23122, 30955, 38079, 4309, 6251, 59415, 34769, 13449], "months": ["2013-01", "2013-02", "2013-03", "2013-04", "2013-05", "2013-06", "2013-07", "2013-08", "2013-09", "2013-10", "2013-11", "2013-12", "2014-01", "2014-02", "2014-03", "2014-04", "2014-05", "2014-06", "2014-07", "2014-08", "2014-09", "2014-10", "2014-11", "2014-12", "2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10", "2026-11", "2026-12"], "monthCounts": [0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 25, 23, 23, 31, 22, 28, 21, 19, 11, 14, 9, 13, 10, 13, 9, 9, 9, 7, 14, 15, 14, 25, 16, 11, 14, 7, 9, 8, 10, 11, 6, 7, 5, 7, 6, 8, 6, 8, 5, 4, 7, 4, 5, 8, 6, 9, 10, 7, 7, 11, 9, 10, 9, 8, 4, 7, 9, 15, 12, 14, 12, 11, 15, 10, 11, 9, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 6, 3, 11, 8, 6, 6, 6, 2, 7, 4, 4, 7, 2, 4, 7, 3, 2, 6, 3, 4, 4, 3, 2, 6, 3, 3, 4, 4, 2, 4, 7, 4, 0, 0, 0, 0, 0, 0], "hourCounts": [17, 22, 16, 6, 6, 8, 33, 70, 50, 54, 37, 32, 44, 28, 35, 25, 35, 30, 65, 100, 85, 52, 39, 35], "weekdayCounts": [156, 129, 166, 142, 138, 115, 78], "weight": [["2014-07-17", 80.0], ["2014-07-17", 80.0], ["2014-12-11", 79.5], ["2015-08-06", 75.0], ["2015-08-06", 75.0], ["2015-11-18", 78.0], ["2016-04-20", 82.0], ["2016-05-03", 78.9], ["2016-10-19", 75.3], ["2016-11-07", 75.0], ["2017-01-04", 74.0], ["2017-02-25", 78.5], ["2018-05-30", 80.0], ["2019-04-15", 80.0], ["2019-04-19", 81.0], ["2019-04-23", 79.6], ["2019-04-24", 79.0], ["2019-06-18", 78.4], ["2019-06-24", 78.5], ["2019-07-18", 78.0], ["2019-08-02", 79.0], ["2019-10-23", 80.7], ["2020-02-14", 82.0], ["2023-10-22", 73.0], ["2023-10-24", 72.0], ["2023-10-28", 74.0], ["2023-11-02", 73.0], ["2023-11-15", 75.0], ["2024-01-05", 77.0], ["2024-02-02", 78.0], ["2024-02-02", 76.0], ["2024-02-02", 78.0], ["2024-02-02", 76.0], ["2024-02-11", 79.0], ["2024-04-01", 79.0], ["2024-08-07", 72.0], ["2024-08-07", 77.0], ["2024-08-07", 75.0], ["2024-08-18", 80.0], ["2024-09-20", 69.0], ["2024-09-20", 75.0], ["2024-10-28", 79.9], ["2024-12-01", 80.0], ["2024-12-13", 83.0], ["2024-12-19", 83.0], ["2025-01-03", 83.0], ["2025-01-10", 85.0], ["2025-01-27", 80.0], ["2025-04-17", 82.4], ["2025-12-01", 81.0], ["2026-01-07", 82.0], ["2026-04-21", 77.0], ["2026-04-27", 77.0], ["2026-06-12", 78.0]], "tempBuckets": {"-5": 6, "0": 40, "5": 107, "10": 100, "15": 132, "20": 141, "25": 79, "30": 30, "35": 1}, "movieScores": {"0": 3, "10": 2, "20": 3, "30": 4, "40": 10, "50": 13, "60": 56, "70": 117, "80": 68, "90": 12, "100": 10}, "movieCount": 298, "movieAvg": 71.5, "locations": [["成田市", 556], ["八千代市", 152], ["印旛郡酒々井町", 5], ["印西市", 4], ["並木町", 4], ["佐倉市", 3], ["山武市", 3], ["松戸市", 3]], "themeTrends": {"教会": [0, 16, 40, 48, 34, 44, 60, 4, 7, 95, 85, 34], "説教・釈義": [0, 53, 77, 77, 46, 32, 58, 5, 11, 101, 72, 21], "筋トレ・運動": [0, 21, 31, 47, 3, 25, 30, 2, 8, 73, 15, 7], "映画": [0, 32, 46, 42, 34, 68, 114, 16, 11, 64, 32, 8], "音楽": [0, 5, 9, 8, 18, 39, 94, 13, 4, 66, 15, 5], "ゲーム": [0, 0, 9, 3, 6, 2, 7, 1, 2, 11, 5, 1], "ポケカ": [0, 1, 0, 0, 2, 6, 4, 4, 0, 4, 98, 28], "AI": [0, 0, 0, 0, 0, 0, 0, 0, 4, 11, 2, 6]}, "totals": {"entries": 924, "chars": 263488, "photos": 601, "days": 4721}};
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const ink = isDark ? '#ece9df' : '#26251f';
+const muted = isDark ? '#a3a094' : '#76746b';
+const grid = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+Chart.defaults.color = muted;
+Chart.defaults.font.family = '-apple-system,"Hiragino Sans",sans-serif';
+Chart.defaults.font.size = 11;
+
+const fmt = n => n.toLocaleString('ja-JP');
+const t = D.totals;
+const cards = [
+  ['エントリ数', fmt(t.entries)+'<small> 日分</small>'],
+  ['期間', '13<small> 年</small>'],
+  ['総文字数', Math.round(t.chars/1000)+'<small> 千字</small>'],
+  ['写真', fmt(t.photos)+'<small> 枚</small>'],
+  ['映画評 平均', D.movieAvg+'<small> 点</small>'],
+];
+document.getElementById('cards').innerHTML = cards.map(c=>
+  `<div class="card"><div class="lab">${c[0]}</div><div class="val">${c[1]}</div></div>`).join('');
+
+const grids = {grid:{color:grid},ticks:{color:muted}};
+
+new Chart(timeline,{type:'bar',
+  data:{labels:D.months,datasets:[{data:D.monthCounts,backgroundColor:'#534ab7',borderRadius:1,barPercentage:1,categoryPercentage:.92}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+    tooltip:{callbacks:{title:i=>i[0].label,label:c=>c.parsed.y+' 件'}}},
+    scales:{x:{grid:{display:false},ticks:{color:muted,maxRotation:0,autoSkip:true,maxTicksLimit:14,
+      callback:function(v){const l=this.getLabelForValue(v);return l.endsWith('-01')?l.slice(0,4):''}}},
+      y:{...grids,beginAtZero:true}}}});
+
+const themeColors={'教会':'#534ab7','説教・釈義':'#378add','筋トレ・運動':'#639922','映画':'#d85a30','音楽':'#1d9e75','ゲーム':'#ba7517','ポケカ':'#d4537e','AI':'#e24b4a'};
+const themeDS=Object.keys(D.themeTrends).map(k=>({label:k,data:D.themeTrends[k],borderColor:themeColors[k],
+  backgroundColor:themeColors[k],tension:.35,borderWidth:2,pointRadius:2,pointHoverRadius:4}));
+const themeChart=new Chart(themes,{type:'line',data:{labels:D.years,datasets:themeDS},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:muted}},y:{...grids,beginAtZero:true}}}});
+document.getElementById('themeToggles').innerHTML=Object.keys(themeColors).map((k,i)=>
+  `<button data-i="${i}"><span class="dot" style="background:${themeColors[k]}"></span>${k}</button>`).join('');
+document.querySelectorAll('#themeToggles button').forEach(b=>b.onclick=()=>{
+  const i=+b.dataset.i;const meta=themeChart.getDatasetMeta(i);meta.hidden=!meta.hidden;
+  b.classList.toggle('off',meta.hidden);themeChart.update();});
+
+new Chart(hours,{type:'bar',
+  data:{labels:[...Array(24).keys()].map(h=>h+'時'),datasets:[{data:D.hourCounts,
+    backgroundColor:D.hourCounts.map((_,h)=>(h>=4&&h<7)?'#d85a30':'#534ab7'),borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+    tooltip:{callbacks:{label:c=>c.parsed.y+' 件'}}},scales:{x:{grid:{display:false},ticks:{color:muted,maxTicksLimit:12}},y:{...grids,beginAtZero:true}}}});
+
+const wpts=D.weight.map(w=>({x:w[0],y:w[1]}));
+new Chart(weight,{type:'line',
+  data:{datasets:[{data:wpts,borderColor:'#1d9e75',backgroundColor:'#1d9e75',
+    pointRadius:3,pointHoverRadius:5,tension:.2,borderWidth:1.5}]},
+  options:{responsive:true,maintainAspectRatio:false,parsing:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>i[0].raw.x,label:c=>c.raw.y+' kg'}}},
+    scales:{x:{type:'category',labels:[...new Set(D.weight.map(w=>w[0]))],grid:{display:false},
+      ticks:{color:muted,maxTicksLimit:8,callback:function(v){const l=this.getLabelForValue(v);return l?l.slice(0,7):''}}},
+      y:{...grids,suggestedMin:68,suggestedMax:86,ticks:{color:muted,callback:v=>v+'kg'}}}}});
+
+const ms=D.movieScores;const msLabels=Object.keys(ms).map(k=>k+'点台');
+new Chart(movies,{type:'bar',data:{labels:msLabels,datasets:[{data:Object.values(ms),
+  backgroundColor:'#d85a30',borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+    tooltip:{callbacks:{label:c=>c.parsed.y+' 本'}}},scales:{x:{grid:{display:false},ticks:{color:muted,maxRotation:45}},y:{...grids,beginAtZero:true}}}});
+
+const tb=D.tempBuckets;
+new Chart(temps,{type:'bar',data:{labels:Object.keys(tb).map(k=>k+'℃〜'),datasets:[{data:Object.values(tb),
+  backgroundColor:Object.keys(tb).map(k=>+k<10?'#378add':+k<25?'#639922':'#d85a30'),borderRadius:3}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'気温の分布',color:muted},
+    tooltip:{callbacks:{label:c=>c.parsed.y+' 日'}}},scales:{x:{grid:{display:false},ticks:{color:muted,maxRotation:45}},y:{...grids,beginAtZero:true}}}});
+
+new Chart(locs,{type:'bar',data:{labels:D.locations.map(l=>l[0]),datasets:[{data:D.locations.map(l=>l[1]),
+  backgroundColor:'#534ab7',borderRadius:3}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'場所トップ8',color:muted},
+    tooltip:{callbacks:{label:c=>c.parsed.x+' 回'}}},scales:{x:{...grids,beginAtZero:true},y:{grid:{display:false},ticks:{color:ink}}}}});
+</script>
+</body>
+</html>

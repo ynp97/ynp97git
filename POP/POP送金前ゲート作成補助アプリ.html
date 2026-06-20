@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POP送金前ゲート作成補助アプリ v0.0.5</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-2: #f0f3f7;
+      --line: #d6dce5;
+      --line-strong: #aeb8c6;
+      --text: #1c2430;
+      --muted: #667386;
+      --blue: #2563eb;
+      --green: #15803d;
+      --amber: #b45309;
+      --red: #b91c1c;
+      --ink: #0f172a;
+      --shadow: 0 10px 30px rgba(15, 23, 42, .08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Yu Gothic UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    button,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .topbar {
+      width: min(1280px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 18px 0 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .title-block {
+      min-width: 0;
+    }
+
+    .kicker {
+      margin: 0 0 2px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 8px 11px;
+      min-height: 38px;
+      font-weight: 700;
+    }
+
+    .button:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .button.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .button.danger {
+      border-color: #fecaca;
+      color: var(--red);
+    }
+
+    main {
+      width: min(1280px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 18px 0 32px;
+      display: grid;
+      grid-template-columns: 278px minmax(0, 1fr) 380px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel,
+    .gate-button,
+    .question-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    .panel-title {
+      margin: 0 0 10px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.35;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .gate-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .gate-button {
+      width: 100%;
+      padding: 12px;
+      text-align: left;
+      color: var(--text);
+    }
+
+    .gate-button.active {
+      border-color: var(--blue);
+      box-shadow: inset 4px 0 0 var(--blue), var(--shadow);
+    }
+
+    .gate-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    .gate-name {
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .gate-date {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .progress-track {
+      height: 8px;
+      margin: 10px 0 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--surface-2);
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--green);
+      transition: width .18s ease;
+    }
+
+    .gate-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .deadline-box {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      background: #fffbeb;
+    }
+
+    .deadline-box strong {
+      display: block;
+      color: var(--amber);
+      font-size: 13px;
+    }
+
+    .deadline-box span {
+      color: #78350f;
+      font-size: 12px;
+    }
+
+    .question-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .question-row {
+      padding: 9px 10px;
+      box-shadow: none;
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      gap: 8px;
+      align-items: start;
+      border-radius: 6px;
+      background: #fbfcfd;
+    }
+
+    .question-row.current {
+      border-color: var(--blue);
+      background: #eff6ff;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      margin-top: 7px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: var(--surface);
+    }
+
+    .status-dot.done {
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    .question-row button {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .work-panel {
+      min-width: 0;
+    }
+
+    .work-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .gate-label {
+      margin: 0 0 4px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .question-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 3px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--surface-2);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .choice-button {
+      min-height: 72px;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+      color: var(--text);
+      text-align: left;
+    }
+
+    .choice-button.active {
+      border-color: var(--blue);
+      background: #eff6ff;
+    }
+
+    .choice-button strong {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .choice-button span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .prompt {
+      margin: 0 0 10px;
+      padding: 12px;
+      border-left: 4px solid var(--blue);
+      border-radius: 6px;
+      background: #eff6ff;
+      color: #1e3a8a;
+    }
+
+    .hint {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--surface);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    textarea:focus {
+      outline: 3px solid rgba(37, 99, 235, .18);
+      border-color: var(--blue);
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .draft-output {
+      display: grid;
+      gap: 10px;
+    }
+
+    .draft-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .tab-button {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfd;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tab-button.active {
+      border-color: var(--green);
+      background: #ecfdf5;
+      color: var(--green);
+    }
+
+    .draft-area {
+      min-height: 420px;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .readiness {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .readiness-item {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+    }
+
+    .readiness-item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .readiness-item span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .save-state {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 1080px) {
+      main {
+        grid-template-columns: 250px minmax(0, 1fr);
+      }
+
+      .output-panel {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .topbar,
+      main {
+        width: min(100% - 20px, 1280px);
+      }
+
+      .topbar,
+      main,
+      .work-header {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        justify-content: stretch;
+      }
+
+      .top-actions .button {
+        flex: 1;
+      }
+
+      .choice-grid,
+      .readiness,
+      .draft-tabs {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="topbar">
+        <div class="title-block">
+          <p class="kicker">POP送金前ゲート作成補助 v0.0.5</p>
+          <h1>説明責任の家庭ゲートと資金性質ゲートを作る</h1>
+          <p class="subtitle">たたき台を全項目に入れてあります。違うところを直すだけでObsidian用の下書きになります。</p>
+        </div>
+        <div class="top-actions">
+          <button class="button" id="copyDraftButton" type="button">下書きをコピー</button>
+          <button class="button primary" id="downloadButton" type="button">Markdown保存</button>
+          <button class="button danger" id="resetButton" type="button">たたき台に戻す</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <aside class="panel">
+        <h2 class="panel-title">ゲート</h2>
+        <div class="gate-list" id="gateList">
+          <div class="question-row">
+            <span class="status-dot"></span>
+            <span>ブラウザで開くと、家庭ゲートと資金性質ゲートが表示されます。</span>
+          </div>
+        </div>
+        <div class="deadline-box">
+          <strong id="nextDeadline">締切を確認中</strong>
+          <span id="deadlineHelp">未回答の多いゲートから進めます。</span>
+        </div>
+        <h2 class="panel-title" style="margin-top: 16px;">質問一覧</h2>
+        <div class="question-list" id="questionList">
+          <div class="question-row">
+            <span class="status-dot"></span>
+            <span>JavaScriptを有効にして使います。</span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel work-panel">
+        <div class="work-header">
+          <div>
+            <p class="gate-label" id="gateLabel">読み込み中</p>
+            <h2 class="question-title" id="questionTitle">質問を準備しています</h2>
+          </div>
+          <span class="pill" id="questionCounter"></span>
+        </div>
+
+        <div class="choice-grid" id="choiceGrid">
+          <button class="choice-button active" data-mode="quick" type="button">
+            <strong>5分</strong>
+            <span>一行だけ置く</span>
+          </button>
+          <button class="choice-button" data-mode="deep" type="button">
+            <strong>前進</strong>
+            <span>理由まで書く</span>
+          </button>
+          <button class="choice-button" data-mode="organize" type="button">
+            <strong>整理</strong>
+            <span>未決を分ける</span>
+          </button>
+        </div>
+
+        <p class="prompt" id="activePrompt"></p>
+        <p class="hint" id="activeHint"></p>
+
+        <textarea id="answerInput" spellcheck="true"></textarea>
+
+        <div class="editor-actions">
+          <span class="save-state" id="saveState">自動保存します</span>
+          <div class="nav-actions">
+            <button class="button" id="prevButton" type="button">前へ</button>
+            <button class="button" id="nextBlankButton" type="button">次の未回答</button>
+            <button class="button primary" id="nextButton" type="button">次へ</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel output-panel">
+        <h2 class="panel-title">下書き</h2>
+        <div class="readiness" id="readiness"></div>
+        <div class="draft-tabs">
+          <button class="tab-button active" data-draft="family" type="button">家庭</button>
+          <button class="tab-button" data-draft="funding" type="button">資金</button>
+          <button class="tab-button" data-draft="all" type="button">全体</button>
+        </div>
+        <textarea class="draft-area" id="draftOutput" readonly></textarea>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "pop_gate_builder_v0";
+
+    const gates = [
+      {
+        id: "family",
+        label: "家庭ゲート",
+        version: "家庭ゲート v0.1",
+        deadline: "2026-06-18T23:00:00+09:00",
+        deadlineLabel: "6月18日 夜",
+        purpose: "尚子さんへ説明責任を果たすための材料をそろえる。許可取り中心ではなく、いい加減ではないこと、最大リスク、同じ口座から教会債返済も回す前提での資金見通し、150万円を超えるビジョンを説明し切れる状態を作る。",
+        note: "前提: フィリピンという方向は、もともと家庭の会話の中にもあった。この事実は説明の中心にしすぎず、尚子さんを外側の反対者として扱わないための背景として置く。",
+        questions: [
+          {
+            id: "gate_definition",
+            title: "家庭ゲートを一言で定義する",
+            quick: "家庭ゲートを一行で書く。",
+            deep: "許可取りではなく、説明責任として何を果たすゲートなのかを書く。",
+            organize: "説明し切ること、確認したいこと、まだ未決のことを分ける。",
+            hint: "この一行があると、文章作成や送金実務へ早く進みすぎるのを防げる。"
+          },
+          {
+            id: "born_from_150",
+            title: "この150万円で何が生まれるのか",
+            quick: "この150万円で生まれるものを一つ書く。",
+            deep: "現地、子供達、教会、学校事業、長期構想に何が生まれるかを書く。",
+            organize: "すぐ生まれるもの、2027年3月に見えるもの、長期的に育つものを分ける。",
+            hint: "お金の回収だけでなく、説明すべき重層的な価値をここに集める。"
+          },
+          {
+            id: "church_return",
+            title: "教会に何が還元されるのか",
+            quick: "教会に返る価値を一言で書く。",
+            deep: "教会に返る価値を、信仰・証・若い世代・世界への開きの観点から書く。",
+            organize: "まだ言い切れない点と、あとで確認する点を分ける。",
+            hint: "献金額そのものではなく、教会が何を見られるようになるかに寄せる。"
+          },
+          {
+            id: "kg_value",
+            title: "KG・教育事業に返る価値",
+            quick: "KGや教育事業に返る価値を一言で書く。",
+            deep: "生徒、保護者、学校事業、フリースクールにどうポジティブかを書く。",
+            organize: "直接の価値と、将来の発信・物語としての価値を分ける。",
+            hint: "世界とつながる学び、実際に動く大人の姿、事業の物語として考える。"
+          },
+          {
+            id: "beyond_150",
+            title: "なぜ150万円を超える価値と言えるのか",
+            quick: "150万円以上の価値があると思う理由を一行で書く。",
+            deep: "お金の回収だけでなく、教会・教育・家族・POP全体への価値として書く。",
+            organize: "現金で返る価値と、現金以外で返る価値を分ける。",
+            hint: "ここは家庭ゲートの中心。説得ではなく、自分が何を見ているかを書く。"
+          },
+          {
+            id: "family_island",
+            title: "家庭の会話にもあったフィリピンという方向",
+            quick: "フィリピンという方向を、説明の背景として一行で書く。",
+            deep: "家庭の会話にもフィリピンという方向があったことを、押し切る材料にせずどう扱うかを書く。",
+            organize: "説明に出すこと、口調の背景に留めること、今は言わないことを分ける。",
+            hint: "説明の中心にはしすぎず、尚子さんを外側の反対者として扱わないための背景にする。"
+          },
+          {
+            id: "not_random",
+            title: "いい加減な思いつきではない根拠",
+            quick: "思いつきではない根拠を一つ書く。",
+            deep: "信仰、教育、事業、フィリピン渡航、ジーやデニスとの関係から書く。",
+            organize: "事実として言えることと、まだ思いに近いことを分ける。",
+            hint: "長年の流れの中にあることを短く言えるようにする。"
+          },
+          {
+            id: "max_loss",
+            title: "最大損失と上限",
+            quick: "最大で何を失う可能性があるかを書く。",
+            deep: "150万円、追加費用、渡航費、時間、気持ちの負担を分けて書く。",
+            organize: "確定している支出と、まだ未確定の支出を分ける。",
+            hint: "不安を消すのではなく、上限を見えるようにする。"
+          },
+          {
+            id: "money_boundary",
+            title: "同じ口座から教会債返済も回す前提の資金見通し",
+            quick: "150万円送金後も教会債返済へ回せる見込みを一行で書く。",
+            deep: "現在残高、6月末入金見込み、150万円送金後残高、300万円程度を回せる見込みを書く。",
+            organize: "分かっている数字、不明な費用、後で確認する数字を分ける。",
+            hint: "別枠扱いせず、同じ口座の資金繰りとして見る。"
+          },
+          {
+            id: "extra_stop",
+            title: "追加費用が出たときの止め方",
+            quick: "追加費用が出たらどこで止めるかを書く。",
+            deep: "いくら以上なら一度止まり、何を報告・確認するかを書く。",
+            organize: "送金前に決めることと、8月現地で判断することを分ける。",
+            hint: "進む覚悟と、止まるルールを両方置く。"
+          },
+          {
+            id: "explain_order",
+            title: "尚子さんに説明する順番",
+            quick: "最初に何から話すかを書く。",
+            deep: "最初に不安と資金見通しへ答え、その後で進む方針とビジョンを報告する流れを書く。",
+            organize: "最初に言うこと、後で渡すこと、聞くことを分ける。",
+            hint: "文章そのものではなく、説明順の骨格だけでよい。"
+          }
+        ]
+      },
+      {
+        id: "funding",
+        label: "資金性質ゲート",
+        version: "資金性質ゲート v0.1",
+        deadline: "2026-06-20T23:00:00+09:00",
+        deadlineLabel: "6月20日 夜",
+        purpose: "150万円を何として出すのか、暫定方針を置く",
+        questions: [
+          {
+            id: "money_type",
+            title: "150万円は何に近いか",
+            quick: "投資・貸付・出資・寄付のどれに近いかを書く。",
+            deep: "なぜその性質に近いと思うのか、戻る可能性も含めて書く。",
+            organize: "自分の感覚と、税理士に確認すべき点を分ける。",
+            hint: "ここは暫定でよい。最終判断は税理士等に確認する。"
+          },
+          {
+            id: "no_return",
+            title: "戻らない可能性の扱い",
+            quick: "戻らない可能性をどう受け止めるか書く。",
+            deep: "回収できない場合でも残る価値と、会計上の扱いを分けて書く。",
+            organize: "気持ちの整理と会計処理を分ける。",
+            hint: "投資の意味と、損失リスクを同時に扱う。"
+          },
+          {
+            id: "profit_return",
+            title: "利益が出た場合の扱い",
+            quick: "利益が出たらどう戻すかを書く。",
+            deep: "デニスとの利益折半、KG・家庭・POP再投資の可能性を書く。",
+            organize: "決まっていることと、デニスに確認することを分ける。",
+            hint: "利益の定義が曖昧なら、曖昧なまま書いてよい。"
+          },
+          {
+            id: "kg_record",
+            title: "KG通帳から出す場合の記録",
+            quick: "KG通帳から出す場合に残す記録を一つ書く。",
+            deep: "送金日、金額、レート、手数料、使途、受領確認をどう残すか書く。",
+            organize: "自分で決められることと、税理士に聞くことを分ける。",
+            hint: "あとで説明できる形にするのが目的。"
+          },
+          {
+            id: "tax_questions",
+            title: "税理士等に聞く質問",
+            quick: "税理士に聞く質問を一つ書く。",
+            deep: "最低3つの質問を箇条書きで書く。",
+            organize: "会計、税務、証拠、戻った利益の4分類に分ける。",
+            hint: "質問にできれば前進。答えまで出さなくてよい。"
+          },
+          {
+            id: "dennis_explain",
+            title: "デニスへどう説明するか",
+            quick: "デニスに伝える資金の意味を一行で書く。",
+            deep: "管理や回収ではなく、誤解防止として伝える表現を書く。",
+            organize: "送金前に伝えることと、8月に話せばよいことを分ける。",
+            hint: "資金の性質がぶれるとデニス確認もぶれる。"
+          }
+        ]
+      }
+    ];
+
+    const aiDraftAnswers = {
+      family: {
+        gate_definition: "家庭ゲートとは、150万円送金の許可を取るためだけの場ではなく、POPが思いつきではないこと、家庭・教会・教育事業への責任を軽く扱っていないこと、最大リスクと同じ口座から教会債返済も回す前提での資金見通しを見た上で進もうとしていることを、尚子さんへ隠さず説明し切れる状態を作るゲートである。",
+        born_from_150: "この150万円から、シキホールに小さなカフェ事業が生まれ、デニスとの協働、現地の若者の働く経験、2027年3月の日本側チーム営業、POPを人に説明できる実例と素材が生まれる。お金そのものの回収だけではなく、子供達に「夢を語る大人が実際に動く姿」を見せ、教会には信仰が世界へ届く具体例を残し、KG・南十字舎には世界とつながる学びの物語を加える投資になる。",
+        church_return: "教会には、牧師が語ってきた信仰を自分の資金・時間・体力を使って実際に行動へ移す証が残る。教会が内向きに閉じず、フィリピンの牧師・教会・若者とつながり、祈り、献金、参加、紹介という形で世界に関われる入口が生まれる。ただし教会債返済を軽く扱わず、12月までは大きく公に広げず、準備と記録を中心にする。",
+        kg_value: "KG・教育事業には、生徒や保護者へ「世界とつながる学び」と「実際に動く大人の姿」を見せられる価値が返る。学校を選んでくれている信頼に対して、単なる言葉ではなく、現実のプロジェクト・失敗も含めた挑戦・AIを使った計画と記録を見せられる。フリースクールの生徒にとっても、日本だけで完結しない別の場所・別の役割・別の可能性を示す材料になる。",
+        beyond_150: "150万円を超える価値があると言える理由は、これが単なるカフェ建設費ではなく、POP第一期の実証、教会の証、教育事業の物語、将来の仲間づくり、いい人システムの足がかりを同時に生む投資だからである。現金としてすぐ戻る保証はないが、8月の建設参加、3月の一週間営業、4月の報告まで進めば、今後1500万円規模の構想を人に説明するための実例と素材が残る。",
+        family_island: "フィリピンという方向は、もともと家庭の会話の中にもあった。だから、尚子さんを外側の反対者として扱うのではなく、勝手に外で決めないために、きちんと説明する。ただし、この話を家庭の夢として押し切るのではなく、あくまで口調の背景に留める。",
+        not_random: "POPは急な思いつきではない。ジーから川を渡って通学する子どもたちの話を聞いたこと、2023年に構想文を送ったこと、2024年以降に複数回フィリピンへ渡航したこと、デニスとの関係ができたこと、シキホールで共同経営カフェが具体化したことが積み重なっている。神学校時代からの学校・カフェ・働く場所を作りたい思いともつながっている。",
+        max_loss: "最大損失としては、まず150万円が戻らない可能性がある。加えて、送金手数料、為替差、8月渡航費、2027年3月の再渡航費、材料費、追加工事費、時間と体力、尚子さんへの精神的負担がありうる。現時点では、150万円以外の追加費用は自動的に出さず、追加支出が必要になった時点で一度止まり、金額・理由・出どころを確認する。",
+        money_boundary: "教会債返済も同じ口座から回す予定なので、POP送金を別枠扱いして説明しない。KG通帳には2026年6月16日時点で4,554,790円あり、6月末に約50万円入る見込みなので、単純合計は約5,054,790円。150万円送金後の単純残高は約3,554,790円になる見込みで、教会債返済に向けて300万円程度を回せる見込みはある。ただし、税金、渡航費、追加費用、予備費を差し引いた資金表を作る必要がある。",
+        extra_stop: "追加費用が出た場合は、その場の勢いで払わない。たとえば10万円を超える追加支出、または継続的な支出が発生する場合は一度止まり、尚子さんへの説明、会計・税務上の扱い、デニスとの確認、手元資金への影響を見てから判断する。8月現地で分かる追加工事や備品は、すぐ決めずに一覧化して帰国後に判断する。",
+        explain_order: "説明の順番は、最初に『隠さず報告しておきたい』と伝え、次に最大リスク、同じ口座から教会債返済も回す前提での資金見通し、追加費用を勝手に増やさないことを話す。その後で、POPが思いつきではなく、教会・KG・教育事業に返る価値があることを説明する。最後に、反対や不安は自然なものとして受け止めるが、今回は責任を持って進める方針として伝える。"
+      },
+      funding: {
+        money_type: "現時点の感覚では、150万円は単純な寄付ではなく、事業投資または出資に近い。ただし、海外の共同経営カフェであり、法的・税務的にどの名目が適切かは未確認なので、税理士等に確認する必要がある。デニスとの関係上は、管理や回収を前面に出すより、共同でカフェを始めるための建設資金として、誤解が起きないように記録を残す。",
+        no_return: "戻らない可能性は現実にあるものとして扱う。戻らない場合でも、カフェ建設、現地との関係、2027年3月の営業実証、発信用素材、教会・教育事業への説明材料が残る。ただし、会計上は『戻らなくてもよい』と感情だけで処理せず、貸付・出資・寄付・事業投資のどれに近い扱いかを確認し、損失になった場合の処理も税理士に聞く。",
+        profit_return: "利益が出た場合は、基本前提としてデニスと南雲で半分ずつと考えている。ただし、利益の定義はまだ曖昧なので、売上から何を引いたものを利益とするのか、通常営業と日本側一週間営業を分けるのか、戻った利益をKG・家庭・POP再投資のどこに入れるのかは確認が必要。最初は月次の売上・支出・残額を簡単に記録する形から始めたい。",
+        kg_record: "KG通帳から出す場合は、送金日、送金額、為替レート、手数料、送金サービス名、受取人、デニスの受領確認、使途予定、デニス側の支出記録を残す。あわせて、KGの事業資金から出すことが会計上適切か、個人支出や貸付として処理すべきか、税理士に確認する。スクリーンショット、送金控え、LINE等のやり取りは保存する。",
+        tax_questions: "税理士等に聞く質問:\n- KG通帳からフィリピンの共同経営カフェへ150万円を送る場合、会計上は出資・貸付・寄付・事業投資・個人支出のどれに近い扱いが適切か。\n- 海外送金の証憑として、送金控え、受領確認、使途報告、写真、領収書など、最低限何を残すべきか。\n- 将来利益が戻った場合、または戻らなかった場合、それぞれどのように記録・処理するのがよいか。\n- KG事業の通帳から出す場合、家庭への説明や税務上の問題を避けるために分けておくべき記録は何か。",
+        dennis_explain: "デニスには、これは信頼して一緒にカフェを始めるための建設資金であり、後で誤解が起きないように、お金の使い道、記録、利益の考え方だけ簡単に確認したいと伝える。管理したいからではなく、長く良い協力関係を続けるための確認として伝える。送金前は資金の性質、受領確認、使途記録、追加費用が出た場合の相談方法だけに絞り、細かい運営は8月に話す。"
+      }
+    };
+
+    const defaultState = {
+      activeGateId: "family",
+      questionIndex: 0,
+      mode: "quick",
+      answers: structuredClone(aiDraftAnswers),
+      draftTab: "family",
+      updatedAt: null
+    };
+
+    let state = loadState();
+
+    const gateListEl = document.getElementById("gateList");
+    const questionListEl = document.getElementById("questionList");
+    const gateLabelEl = document.getElementById("gateLabel");
+    const questionTitleEl = document.getElementById("questionTitle");
+    const questionCounterEl = document.getElementById("questionCounter");
+    const activePromptEl = document.getElementById("activePrompt");
+    const activeHintEl = document.getElementById("activeHint");
+    const answerInputEl = document.getElementById("answerInput");
+    const saveStateEl = document.getElementById("saveState");
+    const draftOutputEl = document.getElementById("draftOutput");
+    const readinessEl = document.getElementById("readiness");
+    const nextDeadlineEl = document.getElementById("nextDeadline");
+    const deadlineHelpEl = document.getElementById("deadlineHelp");
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        const parsed = JSON.parse(raw);
+        return {
+          ...structuredClone(defaultState),
+          ...parsed,
+          answers: mergeAiDraftAnswers(parsed.answers || {})
+        };
+      } catch {
+        return structuredClone(defaultState);
+      }
+    }
+
+    function mergeAiDraftAnswers(savedAnswers) {
+      const merged = structuredClone(aiDraftAnswers);
+      Object.entries(savedAnswers || {}).forEach(([gateId, answers]) => {
+        if (!merged[gateId]) merged[gateId] = {};
+        Object.entries(answers || {}).forEach(([questionId, value]) => {
+          if (typeof value === "string" && value.trim()) {
+            merged[gateId][questionId] = value;
+          }
+        });
+      });
+      return merged;
+    }
+
+    function saveState() {
+      state.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const time = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+      saveStateEl.textContent = `${time} に保存済み`;
+    }
+
+    function activeGate() {
+      return gates.find((gate) => gate.id === state.activeGateId) || gates[0];
+    }
+
+    function activeQuestion() {
+      const gate = activeGate();
+      return gate.questions[state.questionIndex] || gate.questions[0];
+    }
+
+    function answerFor(gateId, questionId) {
+      return state.answers?.[gateId]?.[questionId] || "";
+    }
+
+    function setAnswer(gateId, questionId, value) {
+      if (!state.answers[gateId]) state.answers[gateId] = {};
+      state.answers[gateId][questionId] = value;
+      saveState();
+      render();
+    }
+
+    function countAnswered(gate) {
+      return gate.questions.filter((question) => answerFor(gate.id, question.id).trim().length > 0).length;
+    }
+
+    function readinessPercent(gate) {
+      return Math.round((countAnswered(gate) / gate.questions.length) * 100);
+    }
+
+    function daysUntil(deadline) {
+      const diff = new Date(deadline).getTime() - Date.now();
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      if (days < 0) return "期限超過";
+      if (days === 0) return "今日が締切";
+      return `あと${days}日`;
+    }
+
+    function renderGateList() {
+      gateListEl.innerHTML = "";
+      gates.forEach((gate) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `gate-button${gate.id === state.activeGateId ? " active" : ""}`;
+        button.innerHTML = `
+          <div class="gate-head">
+            <span class="gate-name">${gate.label}</span>
+            <span class="gate-date">${gate.deadlineLabel}</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${readinessPercent(gate)}%"></div></div>
+          <div class="gate-meta">
+            <span>${countAnswered(gate)} / ${gate.questions.length} 回答</span>
+            <span>${daysUntil(gate.deadline)}</span>
+          </div>
+        `;
+        button.addEventListener("click", () => {
+          state.activeGateId = gate.id;
+          state.questionIndex = 0;
+          saveState();
+          render();
+        });
+        gateListEl.appendChild(button);
+      });
+    }
+
+    function renderQuestionList() {
+      const gate = activeGate();
+      questionListEl.innerHTML = "";
+      gate.questions.forEach((question, index) => {
+        const row = document.createElement("div");
+        const done = answerFor(gate.id, question.id).trim().length > 0;
+        row.className = `question-row${index === state.questionIndex ? " current" : ""}`;
+        row.innerHTML = `
+          <span class="status-dot${done ? " done" : ""}"></span>
+          <button type="button">${index + 1}. ${question.title}</button>
+        `;
+        row.querySelector("button").addEventListener("click", () => {
+          state.questionIndex = index;
+          saveState();
+          render();
+        });
+        questionListEl.appendChild(row);
+      });
+    }
+
+    function renderEditor() {
+      const gate = activeGate();
+      const question = activeQuestion();
+      const answer = answerFor(gate.id, question.id);
+      gateLabelEl.textContent = `${gate.label} / ${gate.deadlineLabel}`;
+      questionTitleEl.textContent = question.title;
+      questionCounterEl.textContent = `${state.questionIndex + 1} / ${gate.questions.length}`;
+      activePromptEl.textContent = question[state.mode] || question.quick;
+      activeHintEl.textContent = question.hint;
+      if (document.activeElement !== answerInputEl) {
+        answerInputEl.value = answer;
+      }
+      document.querySelectorAll(".choice-button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.mode === state.mode);
+      });
+    }
+
+    function renderReadiness() {
+      readinessEl.innerHTML = "";
+      gates.forEach((gate) => {
+        const item = document.createElement("div");
+        item.className = "readiness-item";
+        item.innerHTML = `
+          <strong>${readinessPercent(gate)}%</strong>
+          <span>${gate.label}: ${countAnswered(gate)} / ${gate.questions.length}</span>
+        `;
+        readinessEl.appendChild(item);
+      });
+      const nextGate = gates.find((gate) => readinessPercent(gate) < 100) || gates[gates.length - 1];
+      nextDeadlineEl.textContent = `${nextGate.label}: ${nextGate.deadlineLabel}`;
+      deadlineHelpEl.textContent = `${daysUntil(nextGate.deadline)}。未回答を埋める。`;
+    }
+
+    function formatAnswer(gate, question) {
+      const value = answerFor(gate.id, question.id).trim();
+      return value ? value : "未記入";
+    }
+
+    function makeDraft(gate) {
+      const answered = countAnswered(gate);
+      const lines = [
+        `# ${gate.version} 下書き`,
+        "",
+        `作成日: ${new Date().toLocaleDateString("ja-JP")}`,
+        `目的: ${gate.purpose}`,
+        `締切: ${gate.deadlineLabel}`,
+        `回答状況: ${answered} / ${gate.questions.length}`,
+        "",
+      ];
+      if (gate.note) {
+        lines.push("## 前提");
+        lines.push("");
+        lines.push(gate.note);
+        lines.push("");
+      }
+      lines.push(
+        "## 下書き",
+        ""
+      );
+      gate.questions.forEach((question, index) => {
+        lines.push(`### ${index + 1}. ${question.title}`);
+        lines.push("");
+        lines.push(formatAnswer(gate, question));
+        lines.push("");
+      });
+      lines.push("## 未回答");
+      lines.push("");
+      const blanks = gate.questions.filter((question) => !answerFor(gate.id, question.id).trim());
+      if (blanks.length === 0) {
+        lines.push("- なし");
+      } else {
+        blanks.forEach((question) => lines.push(`- ${question.title}`));
+      }
+      lines.push("");
+      return lines.join("\n");
+    }
+
+    function makeAllDraft() {
+      return gates.map(makeDraft).join("\n---\n\n");
+    }
+
+    function renderDraft() {
+      let text = "";
+      if (state.draftTab === "all") {
+        text = makeAllDraft();
+      } else {
+        text = makeDraft(gates.find((gate) => gate.id === state.draftTab) || activeGate());
+      }
+      draftOutputEl.value = text;
+      document.querySelectorAll(".tab-button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.draft === state.draftTab);
+      });
+    }
+
+    function render() {
+      renderGateList();
+      renderQuestionList();
+      renderEditor();
+      renderReadiness();
+      renderDraft();
+    }
+
+    function goToQuestion(delta) {
+      const gate = activeGate();
+      const nextIndex = Math.min(Math.max(state.questionIndex + delta, 0), gate.questions.length - 1);
+      state.questionIndex = nextIndex;
+      saveState();
+      render();
+      answerInputEl.focus();
+    }
+
+    function goToNextBlank() {
+      const gate = activeGate();
+      const start = state.questionIndex + 1;
+      const ordered = [...gate.questions.slice(start), ...gate.questions.slice(0, start)];
+      const target = ordered.find((question) => !answerFor(gate.id, question.id).trim());
+      if (target) {
+        state.questionIndex = gate.questions.findIndex((question) => question.id === target.id);
+      } else {
+        const gateIndex = gates.findIndex((gateItem) => gateItem.id === gate.id);
+        const nextGate = gates[(gateIndex + 1) % gates.length];
+        state.activeGateId = nextGate.id;
+        const blankIndex = nextGate.questions.findIndex((question) => !answerFor(nextGate.id, question.id).trim());
+        state.questionIndex = blankIndex >= 0 ? blankIndex : 0;
+      }
+      saveState();
+      render();
+      answerInputEl.focus();
+    }
+
+    async function copyDraft() {
+      const text = draftOutputEl.value;
+      try {
+        await navigator.clipboard.writeText(text);
+        saveStateEl.textContent = "下書きをコピーしました";
+      } catch {
+        draftOutputEl.focus();
+        draftOutputEl.select();
+        saveStateEl.textContent = "選択した下書きをコピーしてください";
+      }
+    }
+
+    function downloadDraft() {
+      const blob = new Blob([makeAllDraft()], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "POP送金前ゲート下書き.md";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function resetAll() {
+      const ok = confirm("保存済みの回答をすべて消して、たたき台に戻しますか？");
+      if (!ok) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state = structuredClone(defaultState);
+      render();
+      saveStateEl.textContent = "たたき台に戻しました";
+    }
+
+    answerInputEl.addEventListener("input", () => {
+      const gate = activeGate();
+      const question = activeQuestion();
+      setAnswer(gate.id, question.id, answerInputEl.value);
+    });
+
+    document.querySelectorAll(".choice-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.mode = button.dataset.mode;
+        saveState();
+        render();
+      });
+    });
+
+    document.querySelectorAll(".tab-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.draftTab = button.dataset.draft;
+        saveState();
+        render();
+      });
+    });
+
+    document.getElementById("prevButton").addEventListener("click", () => goToQuestion(-1));
+    document.getElementById("nextButton").addEventListener("click", () => goToQuestion(1));
+    document.getElementById("nextBlankButton").addEventListener("click", goToNextBlank);
+    document.getElementById("copyDraftButton").addEventListener("click", copyDraft);
+    document.getElementById("downloadButton").addEventListener("click", downloadDraft);
+    document.getElementById("resetButton").addEventListener("click", resetAll);
+
+    render();
+  </script>
+</body>
+</html>

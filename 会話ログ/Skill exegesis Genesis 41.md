@@ -1,0 +1,25 @@
+---
+種別: 会話ログ
+セッションタイトル: "Skill exegesis Genesis 41"
+取り込み日: 2026-06-13
+---
+
+## Session transcript
+
+**[assistant]** (called TaskUpdate)
+**[assistant]** (called Read)
+**[assistant]** Word文書に変換します。
+**[assistant]** (called mcp__workspace__bash)
+**[assistant]** (called mcp__workspace__bash)
+**[assistant]** (called mcp__workspace__bash)
+**[assistant]** (called mcp__workspace__bash)
+**[assistant]** (called TaskUpdate)
+**[assistant]** (called mcp__cowork__present_files)
+
+**[assistant]** 創世記41章の釈義レポート（Word）が完成しました。構成は以下の通りです。
+
+文脈分析・本文批評の後、9段落（夢→献酌官長の想起→穴から宮廷へ→ファラオの再話→解き明かし→進言→登位・改名・結婚→マナセとエフライム→飢饉開始）を原語分析つきで精査。鍵節（41:16ビルアーダイ、41:32二重の夢の解釈原理、41:38ルーアハ・エロヒーム、41:51–52命名の語呂）は特に深掘りしています。
+
+批判的挑戦は資料批評・歴史性（レッドフォード対キッチン）・エティオロジー（マナセ／エフライム命名）・離散ノヴェレ説・エジプト宗教との並行の5点を先回り提示。神学史はクリュソストモス、トマス、ルター、カルヴァン、バルト、フォン・ラート、ブルッゲマン、サルナ、ウェナム他。四層適用は「記憶（ザーハル／ナーシャー）」を縦糸に、各項目に錨の強度と思弁度を明記しました。
+
+注意点：新改訳2017の引用は短い部分引用に留めたので、説教原稿への転載時は印刷本文と字句を照合してください（レポート末尾にも明記）。

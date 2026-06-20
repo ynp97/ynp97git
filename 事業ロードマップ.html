@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>事業ロードマップ ── POPから世界を変えるまで</title>
+<style>
+:root{--bg:#faf9f5;--surface:#fff;--ink:#26251f;--muted:#76746b;--line:rgba(0,0,0,.10);
+ --core:#534ab7;--rev:#1d9e75;--vis:#d85a30;--ret:#378add;--self:#d4537e;
+ --active:#1d9e75;--start:#378add;--concept:#888780;--blocked:#ba7517;}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1915;--surface:#23221d;--ink:#ece9df;--muted:#a3a094;--line:rgba(255,255,255,.12);}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Helvetica Neue",Arial,sans-serif;line-height:1.7;padding:32px 20px 64px}
+.wrap{max-width:960px;margin:0 auto}
+h1{font-size:24px;font-weight:600;margin:0 0 4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 28px}
+h2{font-size:17px;font-weight:600;margin:32px 0 14px}
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+.ms{background:var(--surface);border:.5px solid var(--line);border-top:3px solid var(--core);border-radius:0 0 10px 10px;padding:14px}
+.ms .when{font-size:13px;font-weight:600;color:var(--core);margin-bottom:6px}
+.ms ul{margin:0;padding-left:16px;font-size:13px;color:var(--ink)}
+.ms li{margin-bottom:3px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}
+.filters button{font-size:13px;padding:6px 13px;border-radius:20px;border:.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.filters button.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.proj{background:var(--surface);border:.5px solid var(--line);border-left:4px solid var(--core);border-radius:0 10px 10px 0;padding:15px 16px;cursor:pointer;transition:.15s}
+.proj:hover{border-color:var(--muted)}
+.proj .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.proj .name{font-size:16px;font-weight:600;margin:0}
+.proj .badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px;white-space:nowrap}
+.proj .layer{font-size:11px;color:var(--muted);margin:3px 0 8px}
+.proj .one{font-size:13px;color:var(--ink);margin:0}
+.proj .detail{display:none;margin-top:12px;border-top:.5px solid var(--line);padding-top:10px}
+.proj.open .detail{display:block}
+.proj .dh{font-size:12px;font-weight:600;color:var(--muted);margin:8px 0 4px}
+.proj .detail ul{margin:0;padding-left:16px;font-size:13px}
+.proj .detail li{margin-bottom:3px}
+.proj .blk li{color:var(--blocked)}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin:10px 0 0}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.foot{color:var(--muted);font-size:12px;text-align:center;margin-top:36px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🚀 事業ロードマップ</h1>
+<p class="sub">POPから世界を変えるまで ／ 2026年6月時点の全プロジェクト</p>
+
+<h2>時間軸</h2>
+<div class="timeline" id="timeline"></div>
+<p class="hint">12月の教会債返済が片づくまで、SNS発信とPOP本格始動は控える方針。それまでは動画と素材を撮り溜める期間。</p>
+
+<h2>プロジェクト</h2>
+<div class="filters" id="filters"></div>
+<div class="grid" id="grid"></div>
+<div class="legend" id="legend"></div>
+
+<p class="foot">カードをクリックすると「次の一手」と「障壁」が開きます。データは保管庫のノートから抽出。</p>
+</div>
+<script>
+const STATUS={active:['稼働中','var(--active)'],start:['始動','var(--start)'],concept:['構想','var(--concept)'],blocked:['課題あり','var(--blocked)']};
+const LAYER={core:['思想核','var(--core)'],rev:['収益エンジン','var(--rev)'],vis:['ビジョン事業','var(--vis)'],ret:['還元先','var(--ret)'],self:['創作・自己','var(--self)']};
+const MILESTONES=[
+ {when:'2026年6月（今）',items:['動画の撮り溜め開始','MacBook Pro環境を整備','Fable5でAI釈義（〜22日）','アプリ1本のリリース準備']},
+ {when:'2026年8月',items:['フィリピン訪問','ACTSに証言','クラファンの仕組み検討','POP最初の具体的一手']},
+ {when:'2026年12月',items:['教会債の返済','ここまで発信は自重','返済後にSNS解禁']},
+ {when:'2027年 年頭',items:['新企画を発動','SNS本格展開','クラファンのストーリー始動','失敗も物語に組み込む']},
+];
+const PROJECTS=[
+ {name:'POP',layer:'core',status:'blocked',one:'思想を行動で体現する投資プロジェクト。「いい人システムが世界を変える」を自分の人生で実証する。',
+  next:['投資としての価値を言語化','動画を撮り溜める','クラファンのストーリー構築','8月フィリピンで証する'],blk:['資金不足','妻・尚子の反対','12月の教会債との兼ね合い']},
+ {name:'フィリピン孤児院',layer:'vis',status:'start',one:'POPの源泉。フィリピンの貧困家庭の子どもを支援する孤児院。',
+  next:['8月に現地訪問・ACTS証言','運営費のクラファン検討','継続可能な仕組み作り'],blk:['資金調達スキーム未確定']},
+ {name:'フリースクール南十字舎',layer:'rev',status:'start',one:'最も負荷がかかる教育事業。動き始めた収益エンジン。',
+  next:['チラシ作り直し','サイト再構築','Googleビジネス整備','ボランティア募集の可否調査'],blk:['人数増時のマネジメント未定','スタッフ雇用コスト']},
+ {name:'KG高等学院 八千代台',layer:'rev',status:'active',one:'立ち上げに成功し、事務的に乗りこなせている通信制キャンパス。',
+  next:['安定運営の継続'],blk:[]},
+ {name:'学研',layer:'rev',status:'active',one:'長年継続している安定稼働の学習教室。子どもとの接点の核。',
+  next:['現状維持'],blk:[]},
+ {name:'eBay・ヤフオクツール',layer:'rev',status:'concept',one:'送料・税金計算をAIで自動化し、不用品販売をスケールさせるツール。',
+  next:['まずEPレコードでテスト販売','楽しければポケカ販売へ拡大','軌道に乗ればひかるくんを雇用'],blk:['構想段階','送料・税計算の検証が必要']},
+ {name:'リサイクルセンター構想',layer:'vis',status:'concept',one:'千葉の廃校で、福祉的雇用×通販×共同体。最終的に自律的な村へ。',
+  next:['ビジネスモデルを具体化','廃校の探索','資金計画とスタッフ配置の検討','POPと接続'],blk:['構想段階','資金']},
+ {name:'音楽（2ndアルバム・動画）',layer:'self',status:'start',one:'一般の視聴に耐える作品が長年の目標。メビウス風ビジュアルを獲得。',
+  next:['バシャーモ完成','「68」は捨て石として手放す','配信セットを作る','メビウス風の動画投稿'],blk:['未完成曲が複数','実行のみが残る']},
+ {name:'AI活用',layer:'self',status:'active',one:'Claude／Codex／Fable5を全面活用。可能性に手応え。',
+  next:['シランガナ完成','アプリ1本をリリース（Apple登録）','15インチ併走の運用確立','早天の自動化'],blk:['早天自動化が認証で難航']},
+ {name:'ポケカ',layer:'self',status:'concept',one:'趣味。収集と勝負のドーパミン。生産性への罪悪感を自覚。',
+  next:['やめずに良い方向へ調整','戦術スキル向上','勝率アプリ（確率計算）を開発'],blk:['時間投下と生産性のバランス']},
+ {name:'教会',layer:'ret',status:'blocked',one:'信仰共同体の中心で、利益の還元先。複数課題を抱える。',
+  next:['教会債の返済目処','もう1人牧師を立てる','夕拝の実現','日曜学校の再開'],blk:['12月の教会債返済','後継牧師の人選','活動増やしすぎのリスク']},
+];
+const tl=document.getElementById('timeline');
+tl.innerHTML=MILESTONES.map(m=>`<div class="ms"><div class="when">${m.when}</div><ul>${m.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`).join('');
+const grid=document.getElementById('grid');
+function render(filter){
+ grid.innerHTML=PROJECTS.filter(p=>!filter||p.status===filter||p.layer===filter).map((p,i)=>{
+  const st=STATUS[p.status],ly=LAYER[p.layer];
+  return `<div class="proj" style="border-left-color:${ly[1]}" data-i="${PROJECTS.indexOf(p)}">
+   <div class="top"><p class="name">${p.name}</p><span class="badge" style="background:${st[1]};color:#fff">${st[0]}</span></div>
+   <div class="layer"><span class="dot" style="background:${ly[1]}"></span> ${ly[0]}</div>
+   <p class="one">${p.one}</p>
+   <div class="detail">
+    <div class="dh">次の一手</div><ul>${p.next.map(n=>`<li>${n}</li>`).join('')}</ul>
+    ${p.blk.length?`<div class="dh">障壁</div><ul class="blk">${p.blk.map(b=>`<li>${b}</li>`).join('')}</ul>`:''}
+   </div></div>`;
+ }).join('');
+ document.querySelectorAll('.proj').forEach(el=>el.onclick=()=>el.classList.toggle('open'));
+}
+const filters=[['','すべて'],...Object.entries(STATUS).map(([k,v])=>[k,v[0]]),...Object.entries(LAYER).map(([k,v])=>[k,v[0]])];
+document.getElementById('filters').innerHTML=filters.map((f,i)=>`<button data-f="${f[0]}"${i===0?' class="active"':''}>${f[1]}</button>`).join('');
+document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('#filters button').forEach(x=>x.classList.remove('active'));b.classList.add('active');render(b.dataset.f);});
+document.getElementById('legend').innerHTML='<strong style="color:var(--muted);font-weight:600">層: </strong>'+Object.values(LAYER).map(l=>`<span><span class="dot" style="background:${l[1]}"></span>${l[0]}</span>`).join('');
+render('');
+</script>
+</body>
+</html>

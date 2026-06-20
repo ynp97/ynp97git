@@ -1,0 +1,20 @@
+# === 大容量バイナリ（別途バックアップ前提・gitの肥大化を防ぐ） ===
+media/
+
+# === Obsidian の端末ローカルなキャッシュ／作業状態 ===
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/**/data.json
+
+# === ゴミ箱・一時ファイル ===
+.trash/
+
+# === OS ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
