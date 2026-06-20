@@ -1,0 +1,1575 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>出席簿・月次レポート</title>
+  <style>
+    :root {
+      --ink: #182230;
+      --muted: #667085;
+      --line: #d0d5dd;
+      --soft: #f2f4f7;
+      --paper: #ffffff;
+      --blue: #175cd3;
+      --blue-soft: #eff8ff;
+      --green: #067647;
+      --green-soft: #ecfdf3;
+      --red: #b42318;
+      --red-soft: #fef3f2;
+      --amber: #b54708;
+      --amber-soft: #fffaeb;
+      --shadow: 0 14px 30px rgba(16, 24, 40, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+      background: #f8fafc;
+      color: var(--ink);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 8px;
+      min-height: 38px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+      font-weight: 700;
+    }
+
+    button.danger {
+      color: var(--red);
+      border-color: #fda29b;
+      background: var(--red-soft);
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .month-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .month-controls input,
+    .month-controls select {
+      width: auto;
+      min-width: 86px;
+    }
+
+    .data-save-status {
+      width: 100%;
+      min-height: 16px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 400px) 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 16px 18px 8px;
+      font-size: 18px;
+    }
+
+    .form {
+      padding: 10px 18px 18px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+      padding: 9px 10px;
+      min-height: 38px;
+    }
+
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .date-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .date-note {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .subject-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .subject-row {
+      display: grid;
+      grid-template-columns: 112px 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .subject-remove {
+      width: 38px;
+      min-width: 38px;
+      padding: 0;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .save-status {
+      min-height: 18px;
+      margin-top: 8px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .student-box {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 18px 14px;
+    }
+
+    .student-box .actions {
+      margin-top: 8px;
+    }
+
+    .student-add {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .roster-panel {
+      display: none;
+      margin-top: 18px;
+    }
+
+    body.roster-mode .grid {
+      display: none;
+    }
+
+    body.roster-mode .roster-panel {
+      display: block;
+    }
+
+    .advanced-field {
+      display: none;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      padding: 0 18px 14px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--soft);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 24px;
+    }
+
+    .report-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 18px 14px;
+      flex-wrap: wrap;
+    }
+
+    .print-only-action {
+      display: none;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-top: 1px solid var(--line);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 780px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      background: #f9fafb;
+      color: #344054;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td.small {
+      white-space: nowrap;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-block;
+      min-width: 48px;
+      text-align: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .badge.present { background: var(--green-soft); color: var(--green); }
+    .badge.absent { background: var(--red-soft); color: var(--red); }
+    .badge.late { background: var(--amber-soft); color: var(--amber); }
+    .badge.other { background: var(--blue-soft); color: var(--blue); }
+
+    .empty {
+      color: var(--muted);
+      padding: 28px 18px;
+      text-align: center;
+      border-top: 1px solid var(--line);
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #101828;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .print-heading {
+      display: none;
+    }
+
+    .print-heading h2,
+    .print-heading p {
+      margin: 0;
+    }
+
+    body.a4-preview {
+      background: #e4e7ec;
+    }
+
+    body.a4-preview .shell {
+      max-width: none;
+      min-height: 0;
+      margin: 18px auto;
+      padding: 0 12px 24px;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    body.a4-preview .topbar,
+    body.a4-preview .entry-panel,
+    body.a4-preview #reportTitle {
+      display: none;
+    }
+
+    body.a4-preview .grid {
+      display: block;
+    }
+
+    body.a4-preview .panel {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      padding: 10mm;
+      border: none;
+      box-shadow: 0 18px 44px rgba(16, 24, 40, 0.18);
+    }
+
+    body.a4-preview .print-heading {
+      display: block;
+      color: #000;
+      padding-bottom: 4mm;
+      margin-bottom: 4mm;
+    }
+
+    body.a4-preview .report-actions {
+      position: fixed;
+      top: 12px;
+      right: 18px;
+      z-index: 2;
+      width: auto;
+      margin: 0;
+      padding: 8px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      justify-content: flex-end;
+    }
+
+    body.a4-preview #csvBtn,
+    body.a4-preview #newEntryBtn {
+      display: none;
+    }
+
+    body.a4-preview .print-only-action {
+      display: inline-block;
+    }
+
+    body.a4-preview .summary {
+      display: none;
+    }
+
+    body.a4-preview .print-heading p {
+      display: block;
+      margin-top: 3mm;
+      color: #000;
+      font-size: 11px;
+    }
+
+    body.a4-preview table {
+      min-width: 0;
+      table-layout: fixed;
+    }
+
+    body.a4-preview th,
+    body.a4-preview td {
+      border: none;
+      color: #000;
+      font-size: 10px;
+      line-height: 1.4;
+      padding: 5px 6px 5px 0;
+      word-break: break-word;
+    }
+
+    body.a4-preview th {
+      background: transparent;
+      color: #000;
+      font-weight: 700;
+    }
+
+    body.a4-preview th:nth-child(1),
+    body.a4-preview td:nth-child(1) { width: 24mm; }
+    body.a4-preview th:nth-child(2),
+    body.a4-preview td:nth-child(2) { width: 12mm; }
+    body.a4-preview th:nth-child(3),
+    body.a4-preview td:nth-child(3) { width: 70mm; }
+    body.a4-preview th:nth-child(4),
+    body.a4-preview td:nth-child(4) { width: auto; }
+    body.a4-preview th:nth-child(5),
+    body.a4-preview td:nth-child(5) { display: none; }
+
+    @media (max-width: 880px) {
+      .shell { padding: 14px; }
+      .topbar { align-items: stretch; flex-direction: column; }
+      .grid { grid-template-columns: 1fr; }
+      .summary { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+      .row { grid-template-columns: 1fr; }
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+
+    @media print {
+      html, body {
+        width: 210mm;
+        background: white;
+      }
+
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .shell {
+        max-width: none;
+        padding: 0;
+      }
+
+      .topbar, .entry-panel, .report-actions, .toast, #reportTitle {
+        display: none;
+      }
+
+      .grid { display: block; }
+      .panel { box-shadow: none; border: none; }
+
+      .print-heading {
+        display: block;
+        color: #000;
+        padding-bottom: 4mm;
+        margin-bottom: 4mm;
+      }
+
+      .print-heading h2 {
+        font-size: 18px;
+        line-height: 1.25;
+      }
+
+      .print-heading p {
+        margin-top: 3mm;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #000;
+      }
+
+      .summary {
+        display: none;
+      }
+
+      .empty {
+        border: none;
+        padding: 10mm;
+      }
+
+      .table-wrap {
+        overflow: visible;
+        border-top: none;
+      }
+
+      table {
+        min-width: 0;
+        table-layout: fixed;
+      }
+
+      th {
+        position: static;
+      }
+
+      th, td {
+        border: none;
+        color: #000;
+        font-size: 8.5px;
+        line-height: 1.35;
+        padding: 3px 4px 3px 0;
+        word-break: break-word;
+      }
+
+      th {
+        background: transparent;
+        color: #000;
+        font-weight: 700;
+      }
+
+      th:nth-child(1), td:nth-child(1) { width: 22mm; }
+      th:nth-child(2), td:nth-child(2) { width: 11mm; }
+      th:nth-child(3), td:nth-child(3) { width: 72mm; }
+      th:nth-child(4), td:nth-child(4) { width: auto; }
+      th:nth-child(5), td:nth-child(5) { display: none; }
+
+      .badge {
+        min-width: 0;
+        border-radius: 0;
+        padding: 0;
+        background: transparent !important;
+        color: #182230 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <h1>出席簿・月次レポート</h1>
+      <div class="month-controls">
+        <input id="yearInput" type="number" min="2000" max="2100" aria-label="年" />
+        <select id="monthSelect" aria-label="月"></select>
+        <button id="thisMonthBtn" type="button">今月</button>
+        <button id="saveAllDataBtn" type="button">全データ保存</button>
+        <div id="dataSaveStatus" class="data-save-status" role="status" aria-live="polite"></div>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="panel entry-panel">
+        <h2>1日ごとの入力</h2>
+        <div class="student-box">
+          <div class="field">
+            <label for="schoolSelect">学習施設</label>
+            <select id="schoolSelect"></select>
+          </div>
+          <div class="field">
+            <label for="studentSelect">生徒</label>
+            <select id="studentSelect"></select>
+          </div>
+          <div class="actions">
+            <button id="openRosterBtn" type="button">名簿管理</button>
+          </div>
+        </div>
+        <form id="entryForm" class="form">
+          <input id="entryId" type="hidden" />
+
+          <div class="field">
+            <label for="dateInput">日付</label>
+            <div class="date-row">
+              <input id="dateInput" type="date" required />
+              <button id="todayBtn" type="button">今日</button>
+            </div>
+            <div id="weekdayPreview" class="date-note"></div>
+          </div>
+
+          <div class="row advanced-field">
+            <div class="field">
+              <label for="startTime">開始</label>
+              <select id="startTime"></select>
+            </div>
+            <div class="field">
+              <label for="endTime">終了</label>
+              <select id="endTime"></select>
+            </div>
+          </div>
+
+          <div class="field advanced-field">
+            <label for="statusInput">出席</label>
+            <select id="statusInput">
+              <option value="出席">出席</option>
+              <option value="欠席">欠席</option>
+              <option value="遅刻">遅刻</option>
+              <option value="早退">早退</option>
+              <option value="振替">振替</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>学習内容</label>
+            <div id="subjectRows" class="subject-list"></div>
+            <div class="actions">
+              <button id="addSubjectBtn" type="button">科目を追加</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="learningMemoInput">学習メモ</label>
+            <textarea id="learningMemoInput"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="activityTypeInput">活動内容</label>
+            <select id="activityTypeInput">
+              <option value="">選択</option>
+              <option value="自由活動">自由活動</option>
+              <option value="レクリエーション">レクリエーション</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="activityDetailInput">活動メモ</label>
+            <textarea id="activityDetailInput"></textarea>
+          </div>
+
+          <div class="field advanced-field">
+            <label for="noteInput">備考</label>
+            <textarea id="noteInput" placeholder="連絡事項や補足"></textarea>
+          </div>
+
+          <div class="actions">
+            <button id="saveEntryBtn" class="primary" type="submit">登録</button>
+            <button id="clearBtn" type="button">入力をクリア</button>
+            <button id="deleteBtn" class="danger" type="button" hidden>削除</button>
+          </div>
+          <div id="saveStatus" class="save-status" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="print-heading">
+          <h2 id="printTitle">月次出席レポート</h2>
+          <p id="printSubtitle">月次一覧</p>
+        </div>
+        <h2 id="reportTitle">月のレポート</h2>
+        <div class="summary">
+          <div class="metric"><span>登録日数</span><strong id="totalCount">0</strong></div>
+          <div class="metric"><span>出席</span><strong id="presentCount">0</strong></div>
+          <div class="metric"><span>欠席</span><strong id="absentCount">0</strong></div>
+          <div class="metric"><span>出席率</span><strong id="rateCount">0%</strong></div>
+        </div>
+        <div class="report-actions">
+          <div>
+            <button id="a4PreviewBtn" type="button">レポート確認</button>
+            <button id="printBtn" class="print-only-action" type="button">印刷</button>
+            <button id="csvBtn" type="button">CSV出力</button>
+          </div>
+          <button id="newEntryBtn" type="button">新規入力</button>
+        </div>
+        <div id="emptyState" class="empty">この月の登録はまだありません。</div>
+        <div class="table-wrap" id="tableWrap" hidden>
+          <table>
+            <thead>
+              <tr>
+                <th>日にち</th>
+                <th>曜日</th>
+                <th>学習内容</th>
+                <th>活動内容</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="reportBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel roster-panel">
+      <h2>名簿管理</h2>
+      <div class="form">
+        <div class="row">
+          <div class="field">
+            <label for="rosterSchoolSelect">名簿の学習施設</label>
+            <select id="rosterSchoolSelect"></select>
+          </div>
+          <div class="field">
+            <label for="rosterStudentSelect">編集する生徒</label>
+            <select id="rosterStudentSelect"></select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="newSchoolNameInput">新しい学習施設</label>
+            <input id="newSchoolNameInput" type="text" />
+          </div>
+          <div class="field">
+            <label for="newStudentNameInput">新しい生徒</label>
+            <input id="newStudentNameInput" type="text" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="addSchoolBtn" type="button">施設を追加</button>
+          <button id="addStudentBtn" type="button">生徒を追加</button>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="schoolNameInput">選択中の施設名</label>
+            <input id="schoolNameInput" type="text" />
+          </div>
+          <div class="field">
+            <label for="studentNameInput">選択中の生徒名</label>
+            <input id="studentNameInput" type="text" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="renameSchoolBtn" type="button">施設名を更新</button>
+          <button id="deleteSchoolBtn" class="danger" type="button">施設を削除</button>
+          <button id="renameStudentBtn" type="button">生徒名を更新</button>
+          <button id="deleteStudentBtn" class="danger" type="button">生徒を削除</button>
+        </div>
+        <div class="actions">
+          <button id="closeRosterBtn" class="primary" type="button">入力に戻る</button>
+          <button id="restoreSeenDataBtn" type="button">見えていたデータを復旧</button>
+          <button id="backupDataBtn" type="button">全データ保存</button>
+          <button id="importDataBtn" type="button">バックアップ読込</button>
+          <input id="importDataInput" type="file" accept="application/json" hidden />
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const storageKey = "attendance-form-report:v2";
+    const legacyStorageKey = "attendance-form-report:v1";
+    const subjectNames = ["算数", "国語", "社会", "理科", "英語", "体育", "音楽", "家庭科"];
+    const defaultSchool = { id: "school-default", name: "学習施設1" };
+    const defaultStudent = { id: "student-default", name: "生徒1" };
+    const recoveredEntry = {
+      id: "entry-recovered-2026-06-03",
+      schoolId: defaultSchool.id,
+      studentId: defaultStudent.id,
+      date: "2026-06-03",
+      startTime: "10:00",
+      endTime: "14:00",
+      status: "出席",
+      learning: "漢字練習、計算プリント、英語の音読",
+      activity: "午前：制作活動、午後：発表準備",
+      note: "",
+    };
+    const legacyEntries = JSON.parse(localStorage.getItem(legacyStorageKey) || "[]");
+    const state = JSON.parse(localStorage.getItem(storageKey) || "null") || {
+      schools: [defaultSchool],
+      activeSchoolId: defaultSchool.id,
+      students: [defaultStudent],
+      activeStudentId: defaultStudent.id,
+      entries: legacyEntries.length
+        ? legacyEntries.map((entry) => ({ ...entry, schoolId: defaultSchool.id, studentId: defaultStudent.id }))
+        : [recoveredEntry],
+    };
+    const students = state.students;
+    const schools = state.schools;
+    const entries = state.entries;
+    normalizeState();
+
+    const yearInput = document.getElementById("yearInput");
+    const monthSelect = document.getElementById("monthSelect");
+    const schoolSelect = document.getElementById("schoolSelect");
+    const rosterSchoolSelect = document.getElementById("rosterSchoolSelect");
+    const newSchoolNameInput = document.getElementById("newSchoolNameInput");
+    const schoolNameInput = document.getElementById("schoolNameInput");
+    const studentSelect = document.getElementById("studentSelect");
+    const rosterStudentSelect = document.getElementById("rosterStudentSelect");
+    const newStudentNameInput = document.getElementById("newStudentNameInput");
+    const studentNameInput = document.getElementById("studentNameInput");
+    const entryForm = document.getElementById("entryForm");
+    const entryId = document.getElementById("entryId");
+    const dateInput = document.getElementById("dateInput");
+    const weekdayPreview = document.getElementById("weekdayPreview");
+    const startTime = document.getElementById("startTime");
+    const endTime = document.getElementById("endTime");
+    const statusInput = document.getElementById("statusInput");
+    const subjectRows = document.getElementById("subjectRows");
+    const learningMemoInput = document.getElementById("learningMemoInput");
+    const activityTypeInput = document.getElementById("activityTypeInput");
+    const activityDetailInput = document.getElementById("activityDetailInput");
+    const noteInput = document.getElementById("noteInput");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const reportBody = document.getElementById("reportBody");
+    const emptyState = document.getElementById("emptyState");
+    const tableWrap = document.getElementById("tableWrap");
+    const toast = document.getElementById("toast");
+    const saveStatus = document.getElementById("saveStatus");
+    const dataSaveStatus = document.getElementById("dataSaveStatus");
+    const printTitle = document.getElementById("printTitle");
+    const printSubtitle = document.getElementById("printSubtitle");
+
+    function pad(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function localDateString(date = new Date()) {
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function weekdayName(dateValue) {
+      if (!dateValue) return "";
+      const [year, month, day] = dateValue.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      return ["日", "月", "火", "水", "木", "金", "土"][date.getDay()];
+    }
+
+    function updateWeekdayPreview() {
+      const weekday = weekdayName(dateInput.value);
+      weekdayPreview.textContent = weekday ? `${weekday}曜日` : "";
+    }
+
+    function monthKey(year, month) {
+      return `${year}-${pad(month)}`;
+    }
+
+    function save() {
+      state.schools = schools;
+      state.students = students;
+      state.entries = entries;
+      state.activeSchoolId = schoolSelect.value || schools[0]?.id || defaultSchool.id;
+      state.activeStudentId = studentSelect.value || students.find((student) => student.schoolId === state.activeSchoolId)?.id || defaultStudent.id;
+      localStorage.setItem(storageKey, JSON.stringify(state));
+      saveToDataFile();
+    }
+
+    function normalizeState() {
+      if (!state.schools || !state.schools.length) {
+        schools.splice(0, schools.length, { ...defaultSchool });
+        state.activeSchoolId = defaultSchool.id;
+      }
+      if (!state.students || !state.students.length) {
+        students.splice(0, students.length, { ...defaultStudent, schoolId: schools[0]?.id || defaultSchool.id });
+        state.activeStudentId = defaultStudent.id;
+      }
+      if (!state.entries) state.entries = entries;
+      if (schools.length === 1 && schools[0].id === defaultSchool.id && schools[0].name === "学校1") {
+        schools[0].name = defaultSchool.name;
+      }
+      for (const entry of entries) {
+        if (!entry.schoolId) entry.schoolId = schools[0]?.id || defaultSchool.id;
+        if (!entry.studentId) entry.studentId = students[0]?.id || defaultStudent.id;
+      }
+      for (const student of students) {
+        if (!student.schoolId) student.schoolId = schools[0]?.id || defaultSchool.id;
+      }
+    }
+
+    function applyStoredState(stored) {
+      if (!stored || !Array.isArray(stored.schools) || !Array.isArray(stored.students) || !Array.isArray(stored.entries)) {
+        return false;
+      }
+      schools.splice(0, schools.length, ...stored.schools);
+      students.splice(0, students.length, ...stored.students);
+      entries.splice(0, entries.length, ...stored.entries);
+      state.activeSchoolId = stored.activeSchoolId || schools[0]?.id || defaultSchool.id;
+      state.activeStudentId = stored.activeStudentId || students[0]?.id || defaultStudent.id;
+      normalizeState();
+      return true;
+    }
+
+    async function loadFromDataFile() {
+      if (!location.protocol.startsWith("http")) return false;
+      try {
+        const response = await fetch("api/data", { cache: "no-store" });
+        if (!response.ok) return false;
+        return applyStoredState(await response.json());
+      } catch {
+        return false;
+      }
+    }
+
+    function saveToDataFile() {
+      if (!location.protocol.startsWith("http")) return;
+      fetch("api/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(state),
+      }).catch(() => {});
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function showEntryRegisteredStatus() {
+      const now = new Date();
+      saveStatus.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())} 登録しました`;
+    }
+
+    function showDataSavedStatus() {
+      const now = new Date();
+      dataSaveStatus.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())} 全データを保存しました`;
+    }
+
+    function fillSelects() {
+      for (let m = 1; m <= 12; m += 1) {
+        monthSelect.add(new Option(`${m}月`, String(m)));
+      }
+
+      const blank = new Option("未設定", "");
+      startTime.add(blank.cloneNode(true));
+      endTime.add(blank.cloneNode(true));
+
+      for (let hour = 7; hour <= 22; hour += 1) {
+        for (const minute of [0, 15, 30, 45]) {
+          const value = `${pad(hour)}:${pad(minute)}`;
+          startTime.add(new Option(value, value));
+          endTime.add(new Option(value, value));
+        }
+      }
+    }
+
+    function createSubjectRow(subject = {}) {
+      const row = document.createElement("div");
+      row.className = "subject-row";
+
+      const select = document.createElement("select");
+      select.dataset.subjectSelect = "true";
+      select.add(new Option("科目", ""));
+      for (const name of subjectNames) {
+        select.add(new Option(name, name));
+      }
+      select.value = subject.name || "";
+
+      const detail = document.createElement("input");
+      detail.type = "text";
+      detail.dataset.subjectDetail = "true";
+      detail.value = subject.detail || "";
+
+      const remove = document.createElement("button");
+      remove.className = "subject-remove";
+      remove.type = "button";
+      remove.dataset.removeSubject = "true";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "科目を削除");
+
+      row.append(select, detail, remove);
+      return row;
+    }
+
+    function addSubjectRow(subject = {}) {
+      subjectRows.appendChild(createSubjectRow(subject));
+      updateSubjectRemoveButtons();
+    }
+
+    function updateSubjectRemoveButtons() {
+      const rows = subjectRows.querySelectorAll(".subject-row");
+      for (const button of subjectRows.querySelectorAll("[data-remove-subject]")) {
+        button.disabled = rows.length <= 1;
+      }
+    }
+
+    function renderSubjectInputs() {
+      subjectRows.innerHTML = "";
+      addSubjectRow();
+    }
+
+    function clearSubjectInputs() {
+      subjectRows.innerHTML = "";
+      addSubjectRow();
+    }
+
+    function setSubjectInputs(subjects = []) {
+      subjectRows.innerHTML = "";
+      const usableSubjects = subjects.filter((subject) => subject.name || subject.detail);
+      if (usableSubjects.length) {
+        for (const subject of usableSubjects) addSubjectRow(subject);
+      } else {
+        addSubjectRow();
+      }
+    }
+
+    function readSubjects() {
+      return Array.from(subjectRows.querySelectorAll(".subject-row"))
+        .map((row) => ({
+          name: row.querySelector("[data-subject-select]").value,
+          detail: row.querySelector("[data-subject-detail]").value.trim(),
+        }))
+        .filter((subject) => subject.name);
+    }
+
+    function formatLearning(entry) {
+      const subjects = Array.isArray(entry.subjects) ? entry.subjects.filter((subject) => subject.name) : [];
+      const subjectText = subjects.map((subject) =>
+        subject.detail ? `${subject.name}：${subject.detail}` : subject.name
+      );
+      const memo = String(entry.learningMemo || "").trim();
+      if (subjectText.length && memo) return `${subjectText.join("、")}\n${memo}`;
+      if (subjectText.length) return subjectText.join("、");
+      return memo || entry.learning || "";
+    }
+
+    function formatActivity(entry) {
+      const type = String(entry.activityType || "").trim();
+      const detail = String(entry.activityDetail || "").trim();
+      if (type && detail) return `${type}：${detail}`;
+      if (type) return type;
+      return detail || entry.activity || "";
+    }
+
+    function activeSchool() {
+      return schools.find((school) => school.id === schoolSelect.value) || schools[0];
+    }
+
+    function renderSchools() {
+      const currentId = state.activeSchoolId || schools[0]?.id || defaultSchool.id;
+      schoolSelect.innerHTML = "";
+      rosterSchoolSelect.innerHTML = "";
+      for (const school of schools) {
+        schoolSelect.add(new Option(school.name, school.id));
+        rosterSchoolSelect.add(new Option(school.name, school.id));
+      }
+      schoolSelect.value = schools.some((school) => school.id === currentId) ? currentId : schools[0].id;
+      rosterSchoolSelect.value = schoolSelect.value;
+      schoolNameInput.value = activeSchool()?.name || "";
+      document.getElementById("deleteSchoolBtn").disabled = schools.length <= 1;
+    }
+
+    function activeStudent() {
+      const school = activeSchool();
+      return students.find((student) => student.id === studentSelect.value && student.schoolId === school.id)
+        || students.find((student) => student.schoolId === school.id);
+    }
+
+    function renderStudents() {
+      const school = activeSchool();
+      let schoolStudents = students.filter((student) => student.schoolId === school.id);
+      if (!schoolStudents.length) {
+        const student = { id: crypto.randomUUID(), schoolId: school.id, name: "生徒1" };
+        students.push(student);
+        schoolStudents = [student];
+        state.activeStudentId = student.id;
+      }
+      const currentId = state.activeStudentId || schoolStudents[0]?.id || defaultStudent.id;
+      studentSelect.innerHTML = "";
+      rosterStudentSelect.innerHTML = "";
+      for (const student of schoolStudents) {
+        studentSelect.add(new Option(student.name, student.id));
+        rosterStudentSelect.add(new Option(student.name, student.id));
+      }
+      studentSelect.value = schoolStudents.some((student) => student.id === currentId) ? currentId : schoolStudents[0].id;
+      rosterStudentSelect.value = studentSelect.value;
+      studentNameInput.value = activeStudent()?.name || "";
+      document.getElementById("deleteStudentBtn").disabled = schoolStudents.length <= 1;
+    }
+
+    function selectedMonthEntries() {
+      const key = monthKey(Number(yearInput.value), Number(monthSelect.value));
+      const school = activeSchool();
+      const student = activeStudent();
+      return entries
+        .filter((entry) => entry.schoolId === school.id && entry.studentId === student.id && entry.date.startsWith(key))
+        .sort((a, b) => `${a.date}${a.startTime}`.localeCompare(`${b.date}${b.startTime}`));
+    }
+
+    function badgeClass(status) {
+      if (status === "出席") return "present";
+      if (status === "欠席") return "absent";
+      if (status === "遅刻" || status === "早退") return "late";
+      return "other";
+    }
+
+    function shortDate(dateValue) {
+      const [, month, day] = dateValue.split("-");
+      return `${Number(month)}月${Number(day)}日`;
+    }
+
+    function render() {
+      const list = selectedMonthEntries();
+      const year = Number(yearInput.value);
+      const month = Number(monthSelect.value);
+      const school = activeSchool();
+      const student = activeStudent();
+      document.getElementById("reportTitle").textContent = `${school.name} / ${student.name} / ${year}年${month}月 レポート一覧`;
+      printTitle.textContent = `${school.name}　${student.name}　${year}年${month}月 月次レポート`;
+
+      const present = list.filter((entry) => entry.status === "出席").length;
+      const absent = list.filter((entry) => entry.status === "欠席").length;
+      const attendedLike = list.filter((entry) => ["出席", "遅刻", "早退", "振替"].includes(entry.status)).length;
+      const attendedDates = list
+        .filter((entry) => ["出席", "遅刻", "早退", "振替"].includes(entry.status))
+        .map((entry) => shortDate(entry.date));
+      printSubtitle.textContent = `合計日数：${list.length}日`;
+      document.getElementById("totalCount").textContent = String(list.length);
+      document.getElementById("presentCount").textContent = String(present);
+      document.getElementById("absentCount").textContent = String(absent);
+      document.getElementById("rateCount").textContent = list.length ? `${Math.round((attendedLike / list.length) * 100)}%` : "0%";
+
+      emptyState.hidden = list.length > 0;
+      tableWrap.hidden = list.length === 0;
+      reportBody.innerHTML = "";
+
+      for (const entry of list) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="small">${entry.date}</td>
+          <td class="small">${weekdayName(entry.date)}</td>
+          <td>${escapeHtml(formatLearning(entry))}</td>
+          <td>${escapeHtml(formatActivity(entry))}</td>
+          <td class="small"><button type="button" data-edit="${entry.id}">編集</button></td>
+        `;
+        reportBody.appendChild(tr);
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;")
+        .replaceAll("\n", "<br>");
+    }
+
+    function resetForm() {
+      entryId.value = "";
+      dateInput.value = localDateString();
+      updateWeekdayPreview();
+      startTime.value = "10:00";
+      endTime.value = "14:00";
+      statusInput.value = "出席";
+      clearSubjectInputs();
+      learningMemoInput.value = "";
+      activityTypeInput.value = "";
+      activityDetailInput.value = "";
+      noteInput.value = "";
+      deleteBtn.hidden = true;
+      saveStatus.textContent = "";
+    }
+
+    function syncMonthToDate(dateValue) {
+      if (!dateValue) return;
+      const [year, month] = dateValue.split("-").map(Number);
+      yearInput.value = String(year);
+      monthSelect.value = String(month);
+    }
+
+    function editEntry(id) {
+      const item = entries.find((entry) => entry.id === id);
+      if (!item) return;
+      schoolSelect.value = item.schoolId || schools[0].id;
+      schoolNameInput.value = activeSchool()?.name || "";
+      renderStudents();
+      studentSelect.value = item.studentId || students[0].id;
+      studentNameInput.value = activeStudent()?.name || "";
+      entryId.value = item.id;
+      dateInput.value = item.date;
+      startTime.value = item.startTime || "";
+      endTime.value = item.endTime || "";
+      statusInput.value = item.status;
+      setSubjectInputs(item.subjects || []);
+      learningMemoInput.value = item.learningMemo || (item.subjects?.length ? "" : item.learning || "");
+      activityTypeInput.value = item.activityType || "";
+      activityDetailInput.value = item.activityDetail || (item.activityType ? "" : item.activity || "");
+      noteInput.value = item.note || "";
+      deleteBtn.hidden = false;
+      syncMonthToDate(item.date);
+      updateWeekdayPreview();
+      render();
+      showToast("編集できます");
+    }
+
+    function toCsvValue(value) {
+      return `"${String(value || "").replaceAll('"', '""')}"`;
+    }
+
+    function exportCsv() {
+      const list = selectedMonthEntries();
+      const school = activeSchool();
+      const student = activeStudent();
+      const rows = [
+        ["学習施設", "生徒", "日にち", "曜日", "学習内容", "活動内容"],
+        ...list.map((entry) => [school.name, student.name, entry.date, weekdayName(entry.date), formatLearning(entry), formatActivity(entry)]),
+      ];
+      const csv = rows.map((row) => row.map(toCsvValue).join(",")).join("\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `attendance_${school.name}_${student.name}_${yearInput.value}-${pad(monthSelect.value)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function restoreSeenData() {
+      if (!schools.some((school) => school.id === defaultSchool.id)) {
+        schools.push({ ...defaultSchool });
+      }
+      if (!students.some((student) => student.id === defaultStudent.id)) {
+        students.push({ ...defaultStudent, schoolId: defaultSchool.id });
+      }
+      const exists = entries.some((entry) =>
+        entry.schoolId === recoveredEntry.schoolId &&
+        entry.studentId === recoveredEntry.studentId &&
+        entry.date === recoveredEntry.date &&
+        entry.learning === recoveredEntry.learning &&
+        entry.activity === recoveredEntry.activity
+      );
+      if (!exists) {
+        entries.push({ ...recoveredEntry });
+      }
+      state.activeSchoolId = defaultSchool.id;
+      state.activeStudentId = defaultStudent.id;
+      renderSchools();
+      renderStudents();
+      save();
+      render();
+      showToast(exists ? "復旧済みのデータがあります" : "データを復旧しました");
+    }
+
+    function exportBackup() {
+      save();
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `attendance_backup_${localDateString()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showDataSavedStatus();
+      showToast("全データを保存しました");
+    }
+
+    function importBackupFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = JSON.parse(String(reader.result || ""));
+          if (!Array.isArray(imported.schools) || !Array.isArray(imported.students) || !Array.isArray(imported.entries)) {
+            throw new Error("invalid backup");
+          }
+          applyStoredState(imported);
+          save();
+          showToast("バックアップを読み込みました");
+          setTimeout(() => location.reload(), 400);
+        } catch {
+          showToast("バックアップを読み込めませんでした");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    async function boot() {
+      renderSubjectInputs();
+      fillSelects();
+      const now = new Date();
+      yearInput.value = String(now.getFullYear());
+      monthSelect.value = String(now.getMonth() + 1);
+      await loadFromDataFile();
+      renderSchools();
+      renderStudents();
+      save();
+      resetForm();
+      render();
+    }
+
+    boot();
+
+    document.getElementById("todayBtn").addEventListener("click", () => {
+      dateInput.value = localDateString();
+      syncMonthToDate(dateInput.value);
+      updateWeekdayPreview();
+      render();
+    });
+
+    document.getElementById("thisMonthBtn").addEventListener("click", () => {
+      const today = new Date();
+      yearInput.value = String(today.getFullYear());
+      monthSelect.value = String(today.getMonth() + 1);
+      render();
+    });
+
+    document.getElementById("saveAllDataBtn").addEventListener("click", exportBackup);
+    document.getElementById("clearBtn").addEventListener("click", resetForm);
+    document.getElementById("newEntryBtn").addEventListener("click", resetForm);
+    document.getElementById("openRosterBtn").addEventListener("click", () => {
+      rosterSchoolSelect.value = schoolSelect.value;
+      rosterStudentSelect.value = studentSelect.value;
+      newSchoolNameInput.value = "";
+      newStudentNameInput.value = "";
+      schoolNameInput.value = activeSchool()?.name || "";
+      studentNameInput.value = activeStudent()?.name || "";
+      document.body.classList.add("roster-mode");
+    });
+    document.getElementById("closeRosterBtn").addEventListener("click", () => {
+      document.body.classList.remove("roster-mode");
+      renderSchools();
+      renderStudents();
+      save();
+      render();
+    });
+    document.getElementById("restoreSeenDataBtn").addEventListener("click", restoreSeenData);
+    document.getElementById("backupDataBtn").addEventListener("click", exportBackup);
+    document.getElementById("importDataBtn").addEventListener("click", () => {
+      document.getElementById("importDataInput").click();
+    });
+    document.getElementById("importDataInput").addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (file) importBackupFile(file);
+      event.target.value = "";
+    });
+    schoolSelect.addEventListener("change", () => {
+      schoolNameInput.value = activeSchool()?.name || "";
+      state.activeSchoolId = schoolSelect.value;
+      state.activeStudentId = students.find((student) => student.schoolId === schoolSelect.value)?.id || "";
+      renderStudents();
+      resetForm();
+      save();
+      render();
+    });
+    rosterSchoolSelect.addEventListener("change", () => {
+      schoolSelect.value = rosterSchoolSelect.value;
+      schoolNameInput.value = activeSchool()?.name || "";
+      state.activeSchoolId = schoolSelect.value;
+      state.activeStudentId = students.find((student) => student.schoolId === schoolSelect.value)?.id || "";
+      renderStudents();
+      resetForm();
+      save();
+      render();
+    });
+    studentSelect.addEventListener("change", () => {
+      studentNameInput.value = activeStudent()?.name || "";
+      resetForm();
+      save();
+      render();
+    });
+    rosterStudentSelect.addEventListener("change", () => {
+      studentSelect.value = rosterStudentSelect.value;
+      studentNameInput.value = activeStudent()?.name || "";
+      resetForm();
+      save();
+      render();
+    });
+    document.getElementById("addSchoolBtn").addEventListener("click", () => {
+      const name = newSchoolNameInput.value.trim();
+      if (!name) {
+        showToast("学習施設名を入力してください");
+        return;
+      }
+      const school = { id: crypto.randomUUID(), name };
+      const student = { id: crypto.randomUUID(), schoolId: school.id, name: "生徒1" };
+      schools.push(school);
+      students.push(student);
+      state.activeSchoolId = school.id;
+      state.activeStudentId = student.id;
+      renderSchools();
+      renderStudents();
+      resetForm();
+      newSchoolNameInput.value = "";
+      newStudentNameInput.value = "";
+      save();
+      render();
+      showToast("学習施設を追加しました");
+    });
+    document.getElementById("renameSchoolBtn").addEventListener("click", () => {
+      const school = activeSchool();
+      const name = schoolNameInput.value.trim();
+      if (!school || !name) {
+        showToast("学習施設名を入力してください");
+        return;
+      }
+      school.name = name;
+      state.activeSchoolId = school.id;
+      renderSchools();
+      save();
+      render();
+      showToast("施設名を更新しました");
+    });
+    document.getElementById("deleteSchoolBtn").addEventListener("click", () => {
+      const school = activeSchool();
+      if (!school || schools.length <= 1) return;
+      const ok = window.confirm(`${school.name} と、その施設の生徒・出席記録を削除します。よろしいですか？`);
+      if (!ok) return;
+      for (let i = entries.length - 1; i >= 0; i -= 1) {
+        if (entries[i].schoolId === school.id) entries.splice(i, 1);
+      }
+      for (let i = students.length - 1; i >= 0; i -= 1) {
+        if (students[i].schoolId === school.id) students.splice(i, 1);
+      }
+      const index = schools.findIndex((item) => item.id === school.id);
+      if (index >= 0) schools.splice(index, 1);
+      state.activeSchoolId = schools[0].id;
+      state.activeStudentId = students.find((student) => student.schoolId === schools[0].id)?.id || "";
+      renderSchools();
+      renderStudents();
+      resetForm();
+      save();
+      render();
+      showToast("学習施設を削除しました");
+    });
+    document.getElementById("addStudentBtn").addEventListener("click", () => {
+      const name = newStudentNameInput.value.trim();
+      if (!name) {
+        showToast("生徒名を入力してください");
+        return;
+      }
+      const student = { id: crypto.randomUUID(), schoolId: activeSchool().id, name };
+      students.push(student);
+      state.activeStudentId = student.id;
+      renderStudents();
+      resetForm();
+      newStudentNameInput.value = "";
+      save();
+      render();
+      showToast("生徒を追加しました");
+    });
+    document.getElementById("renameStudentBtn").addEventListener("click", () => {
+      const student = activeStudent();
+      const name = studentNameInput.value.trim();
+      if (!student || !name) {
+        showToast("生徒名を入力してください");
+        return;
+      }
+      student.name = name;
+      state.activeStudentId = student.id;
+      renderStudents();
+      save();
+      render();
+      showToast("名前を更新しました");
+    });
+    document.getElementById("deleteStudentBtn").addEventListener("click", () => {
+      const student = activeStudent();
+      if (!student || students.length <= 1) return;
+      const schoolStudents = students.filter((item) => item.schoolId === activeSchool().id);
+      if (schoolStudents.length <= 1) return;
+      const ok = window.confirm(`${student.name} と、その生徒の出席記録を削除します。よろしいですか？`);
+      if (!ok) return;
+      for (let i = entries.length - 1; i >= 0; i -= 1) {
+        if (entries[i].studentId === student.id) entries.splice(i, 1);
+      }
+      const index = students.findIndex((item) => item.id === student.id);
+      if (index >= 0) students.splice(index, 1);
+      state.activeStudentId = students.find((item) => item.schoolId === activeSchool().id)?.id || "";
+      renderStudents();
+      resetForm();
+      save();
+      render();
+      showToast("生徒を削除しました");
+    });
+    document.getElementById("a4PreviewBtn").addEventListener("click", () => {
+      document.body.classList.toggle("a4-preview");
+      document.getElementById("a4PreviewBtn").textContent = document.body.classList.contains("a4-preview") ? "入力に戻る" : "レポート確認";
+    });
+    document.getElementById("printBtn").addEventListener("click", () => {
+      render();
+      window.print();
+    });
+    document.getElementById("csvBtn").addEventListener("click", exportCsv);
+    document.getElementById("addSubjectBtn").addEventListener("click", () => {
+      addSubjectRow();
+      const rows = subjectRows.querySelectorAll(".subject-row");
+      rows[rows.length - 1].querySelector("[data-subject-select]").focus();
+    });
+    subjectRows.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-remove-subject]");
+      if (!button) return;
+      button.closest(".subject-row").remove();
+      updateSubjectRemoveButtons();
+    });
+
+    yearInput.addEventListener("change", render);
+    monthSelect.addEventListener("change", render);
+    dateInput.addEventListener("change", () => {
+      syncMonthToDate(dateInput.value);
+      updateWeekdayPreview();
+      render();
+    });
+
+    entryForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const id = entryId.value || crypto.randomUUID();
+      const existingIndex = entries.findIndex((entry) => entry.id === id);
+      const subjects = readSubjects();
+      const learningMemo = learningMemoInput.value.trim();
+      const activityType = activityTypeInput.value;
+      const activityDetail = activityDetailInput.value.trim();
+      const entry = {
+        id,
+        schoolId: activeSchool().id,
+        studentId: activeStudent().id,
+        date: dateInput.value,
+        startTime: startTime.value,
+        endTime: endTime.value,
+        status: statusInput.value,
+        subjects,
+        learningMemo,
+        learning: formatLearning({ subjects, learningMemo }),
+        activityType,
+        activityDetail,
+        activity: formatActivity({ activityType, activityDetail }),
+        note: noteInput.value.trim(),
+      };
+
+      if (existingIndex >= 0) {
+        entries[existingIndex] = entry;
+      } else {
+        entries.push(entry);
+      }
+
+      save();
+      syncMonthToDate(entry.date);
+      resetForm();
+      render();
+      showEntryRegisteredStatus();
+      showToast("登録しました");
+    });
+
+    deleteBtn.addEventListener("click", () => {
+      const id = entryId.value;
+      const index = entries.findIndex((entry) => entry.id === id);
+      if (index >= 0) {
+        entries.splice(index, 1);
+        save();
+        resetForm();
+        render();
+        showToast("削除しました");
+      }
+    });
+
+    reportBody.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-edit]");
+      if (button) editEntry(button.dataset.edit);
+    });
+  </script>
+</body>
+</html>

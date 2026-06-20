@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#d9f04f"/>
+  <rect x="182" y="182" width="660" height="660" rx="152" fill="#172126"/>
+  <text
+    x="512"
+    y="680"
+    text-anchor="middle"
+    font-family="-apple-system, Hiragino Sans, Yu Gothic, sans-serif"
+    font-size="430"
+    font-weight="700"
+    fill="#ffffff">読</text>
+</svg>

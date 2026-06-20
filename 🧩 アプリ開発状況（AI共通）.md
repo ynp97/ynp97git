@@ -109,7 +109,9 @@
 
 - 記録: [[2026-06-20_シランガナ開発記録]]
 - 種別: iPhoneアプリ
-- 作業場所: `work/Shirangana/Shirangana.xcodeproj`
+- Git管理コピー: `アプリ本体/Shirangana`
+- 開くもの: `アプリ本体/Shirangana/Shirangana.xcodeproj`
+- 移設元: `/Users/yoshiakinagumo/Documents/Codex/2026-06-09/new-chat/work/Shirangana`
 - Bundle ID: `com.yoshiakinagumo.shirangana`
 - 状態: `BUILD 11` で一旦ストップ。撮影枠・選択枠・ズーム・枠調整・複数OCR候補照合は実装済み。
 
@@ -136,7 +138,8 @@
 - 失敗原因を「枠内画像」「画像補正」「Vision OCR」「辞書照合」「辞書未登録」に分けて判定する。
 
 注意:
-- 現時点の実体コードはVault内ではなく `work/Shirangana` 側にある。別端末から再開するには、このコード一式もGit管理または移行が必要。
+- `DerivedData` と `DerivedDataSimulator` は生成物なのでGit管理しない。
+- 今後は `アプリ本体/Shirangana` をGit管理上の正とする。
 
 ---
 
@@ -144,7 +147,9 @@
 
 - 記録: [[Graveyard of the Black Nebula 作業記録]]
 - 種別: 自分用音源アーカイブ / 編集机
-- 作業場所: `/Users/yoshiakinagumo/Documents/Codex/2026-05-28/new-chat`
+- Git管理コピー: `アプリ本体/Graveyard-of-the-Black-Nebula`
+- 開くもの: `アプリ本体/Graveyard-of-the-Black-Nebula/index.html`
+- 移設元: `/Users/yoshiakinagumo/Documents/Codex/2026-05-28/new-chat`
 - 主なファイル: `index.html`, `styles.css`, `app.js`
 - ローカル確認URL: `http://localhost:4173`
 - 状態: 音源と画像を取り込み、ブラウザ内DBに保存できる試作あり。
@@ -175,7 +180,7 @@
 - 公開用ビューを別ページとして作る。
 
 注意:
-- 実体コードはVault外の `Documents/Codex` 側にある。別端末から再開するには、コード一式をGitHubへ移すか、Vault内に再配置する必要がある。
+- 今後は `アプリ本体/Graveyard-of-the-Black-Nebula` をGit管理上の正とする。
 
 ---
 
@@ -183,9 +188,11 @@
 
 - 記録: [[出席簿アプリ改善ログ_2026-06-20]]
 - 種別: 学習施設用の出席簿 / 月次レポート作成アプリ
-- 現在の配置: `/Applications/出席簿.app`
-- 作業元: `/Users/yoshiakinagumo/Documents/Codex/2026-06-03/7/outputs/出席簿.app`
-- HTML本体: `/Users/yoshiakinagumo/Documents/Codex/2026-06-03/7/outputs/attendance_form_report.html`
+- Git管理コピー: `アプリ本体/出席簿`
+- 現在の実行配置: `/Applications/出席簿.app`
+- 移設元: `/Users/yoshiakinagumo/Documents/Codex/2026-06-03/7/outputs`
+- HTML本体: `アプリ本体/出席簿/attendance_form_report.html`
+- アプリバンドル: `アプリ本体/出席簿/出席簿.app`
 - 状態: 実用試作あり。ただし保存の信頼性が最優先課題。
 
 目的:
@@ -213,7 +220,8 @@
 
 注意:
 - データ復旧より前に、アプリ配置や保存方式を大きく変えない。
-- 実体コードはVault外の `Documents/Codex` と `/Applications` 側にあるため、別端末から再開するにはコードとデータの保管場所を揃える必要がある。
+- 実データやバックアップJSONは個人情報を含む可能性があるため、Git管理しない。
+- 今後は `アプリ本体/出席簿` をGit管理上の正とする。
 
 ---
 
@@ -237,7 +245,7 @@ POP関連については、送金前クリティカルを進める時期。
 2. POP関連: 送金前ゲートと「俺は世界を変える！」の役割を整理する
 3. シランガナ: 薄い文字OCRの失敗原因を見える化する
 4. Graveyard: 自分用アーカイブとして取り込みと整理を安定させる
-5. 各アプリのコードをGitHubで再開可能にするか判断する
+5. 元の作業場所と `アプリ本体/` の役割を整理する
 
 開発では、まず「動くものを増やす」より、「何を実行させたいか」を絞る。
 
@@ -278,7 +286,7 @@ POP第一期ロードマップ
 ### すぐやるなら
 
 - [[🚀 アプリ開発をどこからでも再開する]] を入口にして、新しいチャットで迷わない状態にする。
-- Vault外にある実体コードを、どこまでGitHub管理するか決める。
+- `アプリ本体/` に移した実体コードをGitHubへpushする。
 - 出席簿アプリの保存先を `Application Support` に移し、復旧データを守る。
 - POP送金前ゲート補助アプリの入力項目を、今の状況に合わせて減らす。
 - 「デニス返信待ち」を本体アプリの今日の一歩に反映する。
@@ -288,7 +296,7 @@ POP第一期ロードマップ
 
 ### 少し後でよいもの
 
-- Git/GitHubで、Vaultだけでなく各アプリ本体の変更履歴も残す。
+- 元の作業場所を残すか、`アプリ本体/` 側へ一本化するか決める。
 - 「俺は世界を変える！」本体に、ゲート補助アプリの結果を取り込む。
 - いい人システムの参加台帳・共同ゲージ・結果報告ページを別試作する。
 - スマホで使いやすいUIへ調整する。

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#F0E0B8"/>
+  <rect x="144" y="160" width="752" height="752" fill="#482132"/>
+  <rect x="112" y="128" width="752" height="752" fill="#181B38"/>
+  <rect x="152" y="168" width="672" height="672" fill="#AD202E"/>
+  <rect x="192" y="208" width="592" height="592" fill="#C52B38"/>
+  <path d="M192 352V208H336M640 208H784V352M784 656V800H640M336 800H192V656"
+        fill="none" stroke="#E8AF35" stroke-width="32" stroke-linecap="square"/>
+  <text x="488" y="470" text-anchor="middle"
+        font-family="Hiragino Kaku Gothic ProN, sans-serif"
+        font-size="205" font-weight="900" fill="#FFF7D7">シラン</text>
+  <text x="488" y="690" text-anchor="middle"
+        font-family="Hiragino Kaku Gothic ProN, sans-serif"
+        font-size="230" font-weight="900" fill="#FFF7D7">ガナ</text>
+</svg>

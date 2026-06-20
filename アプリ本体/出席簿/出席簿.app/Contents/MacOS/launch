@@ -1,0 +1,17 @@
+#!/bin/sh
+APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+RESOURCES_DIR="$APP_DIR/Resources"
+PORT=8765
+
+if ! curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
+  PID="$(/usr/sbin/lsof -ti tcp:$PORT -sTCP:LISTEN 2>/dev/null)"
+  if [ -n "$PID" ]; then
+    kill $PID >/dev/null 2>&1
+    sleep 0.3
+  fi
+  cd "$RESOURCES_DIR" || exit 1
+  /usr/bin/python3 "$RESOURCES_DIR/server.py" >/tmp/attendance_report_server.log 2>&1 &
+  sleep 0.5
+fi
+
+open "http://127.0.0.1:$PORT/attendance_form_report.html"

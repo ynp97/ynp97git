@@ -18,3 +18,17 @@ media/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# === アプリ本体の生成物・端末ローカルデータ ===
+アプリ本体/**/DerivedData/
+アプリ本体/**/DerivedDataSimulator/
+アプリ本体/**/.build/
+アプリ本体/**/build/
+アプリ本体/**/xcuserdata/
+アプリ本体/**/UserInterfaceState.xcuserstate
+アプリ本体/**/node_modules/
+アプリ本体/**/dist/
+アプリ本体/**/.vite/
+アプリ本体/**/attendance_data.json
+アプリ本体/**/attendance_backup*.json
+アプリ本体/**/Icon?
