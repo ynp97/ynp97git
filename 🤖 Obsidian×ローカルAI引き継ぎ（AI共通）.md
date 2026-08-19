@@ -243,9 +243,8 @@ LM Studioアプリのチャット欄で設定したSystem Promptが、Copilotか
 - **15インチ側**: 新規SSH鍵（ed25519）を作成し、GitHubの`ynp97`アカウントに「15インチAir」として登録。`git push -f origin master`成功を確認済み（2026-08-19）。
 - **M5側は完了（2026-08-19）**: 既存のSSH鍵（6/20作成、GitHub上は「Mac Obsidian Vault」として登録済み）で認証確認済み。旧`~/Documents/Obsidian Vault`（8/15移行時のまま8/15 22:14で更新停止＝未使用の凍結コピーと確認済み）は`~/Documents/Obsidian Vault_M5旧コピー退避_20260819`へ改名して保全し、同じ場所へ`git clone`で新規取得した。
 - **わかったこと＝Obsidian Gitはインストール済み**。`.obsidian/plugins/obsidian-git/`と`community-plugins.json`の有効化設定は両機とも既にリポジトリに入っている（旧M5コピーの時点で導入済みだったものが引き継がれた）。ただし**per機の設定ファイル`data.json`は`.gitignore`対象で両機とも未作成＝実際にはまだ一度も動かしていない**。
-- **残作業＝両機でObsidianアプリを開いて設定するだけ**（次にこのテーマへ入ったAIはここから）:
-  1. **M5**: Obsidianの「Open folder as vault」で新しい`~/Documents/Obsidian Vault`を開く（`_M5旧コピー退避`ではない方）。コミュニティプラグインの信頼確認が出たら許可。
-  2. **両機共通**: 設定 → コミュニティプラグイン → Git を開き、起動時pull・自動commit＆pushの間隔を設定（両機で同じ間隔にそろえる）。GUI操作のため本人が行う。
+- **完了（最終確認: 2026-08-19）**: M5で新しい`~/Documents/Obsidian Vault`をvaultとして開き、両機のGit設定で「Auto commit-and-sync interval」を**10分**、「Pull on startup」を**オン**に統一。Push/Pull on commit-and-syncはデフォルトのままオン。**GitHub同期の運用がM5・15インチ両方で稼働開始。**
+- 今後の切り分け: 同期が止まった/コンフリクトが出た場合は、まず両機のGit設定（上記2項目）が揃っているかを確認する。次に本ノート「10」冒頭のリポジトリ・鍵の情報へ戻る。
 - **今回わかった制約**: Coworkの端末ブリッジ（マウント経由アクセス）は`rm`/`unlink`ができず、gitの内部ロックファイル（`index.lock`等）が残って操作が止まることがある。`mv`での退避か、ref/HEADファイルを直接上書きする方法で回避した。**Obsidian本体やターミナルから直接触る普段の運用には影響しない**（実ファイルシステムを直接見るため）。
 
 ## 11. 関連する正本・設定
