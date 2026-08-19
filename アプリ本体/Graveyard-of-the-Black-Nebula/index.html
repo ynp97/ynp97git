@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Graveyard of the Black Nebula</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+JP:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=rebuild-1">
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="masthead">
+        <nav class="topline">
+          <a class="brand-mark" href="#top">
+            <span class="brand-orbit"></span>
+            <span>Black Nebula Archive</span>
+          </a>
+          <div class="nav-actions">
+            <button class="icon-button" id="exportButton" type="button" title="JSONを書き出す">⇩</button>
+            <label class="icon-button" title="JSONを読み込む">
+              ⇧
+              <input id="importInput" type="file" accept="application/json">
+            </label>
+          </div>
+        </nav>
+
+        <section class="hero" id="top">
+          <div>
+            <p class="kicker">private archive / working desk</p>
+            <h1>Graveyard of the Black Nebula</h1>
+            <p class="lead">
+              自分用の音源墓場。まず全部入れて、名義、タイトル、ジャケット、メモを整える。
+              公開するものはあとで選ぶ。
+            </p>
+          </div>
+          <div class="hero-wave" aria-hidden="true">
+            <span style="--h:42%;--d:-8deg"></span>
+            <span style="--h:74%;--d:5deg"></span>
+            <span style="--h:54%;--d:-3deg"></span>
+            <span style="--h:88%;--d:8deg"></span>
+            <span style="--h:48%;--d:-6deg"></span>
+            <span style="--h:96%;--d:3deg"></span>
+            <span style="--h:62%;--d:-10deg"></span>
+            <span style="--h:80%;--d:6deg"></span>
+          </div>
+        </section>
+      </header>
+
+      <main>
+        <section class="upload-band">
+          <div class="upload-copy">
+            <p class="section-label">Drop Zone</p>
+            <h2>音源を取り込む</h2>
+            <p>音源、画像、フォルダーをドラッグ&ドロップできます。フォルダー内のサブフォルダーも読みます。</p>
+          </div>
+
+          <div class="dropzone" id="dropzone" tabindex="0" role="button">
+            <input id="fileInput" type="file" multiple accept="audio/*,image/*,video/*">
+            <input id="folderInput" type="file" multiple webkitdirectory directory>
+            <div class="drop-art" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <strong>ここにドロップ</strong>
+            <span>ファイルでもフォルダーでもOK</span>
+            <div class="drop-actions">
+              <button id="filePickButton" type="button">ファイル</button>
+              <button id="folderPickButton" type="button">フォルダーを探す</button>
+            </div>
+            <p class="drop-status" id="dropStatus">待機中</p>
+            <div class="import-summary"><span>Last import</span><strong id="importSummaryText">まだ取り込みなし</strong></div>
+          </div>
+        </section>
+
+        <section class="desk-band">
+          <div class="desk-head">
+            <div>
+              <p class="section-label">Archive Tiles</p>
+              <h2>音源一覧</h2>
+            </div>
+            <div class="desk-tools">
+              <label class="search-box">
+                <span>Search</span>
+                <input id="searchInput" type="search" placeholder="曲名・名義・メモ">
+              </label>
+              <select id="filterSelect">
+                <option value="all">全部</option>
+                <option value="with-art">画像あり</option>
+                <option value="no-art">画像なし</option>
+                <option value="public">公開候補</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="artist-tabs" id="artistTabs"></div>
+
+          <div class="pending-art" id="pendingArt" hidden>
+            <div><span>ジャケット候補</span><strong id="pendingArtName"></strong></div>
+            <button id="clearPendingArt" type="button">クリア</button>
+          </div>
+
+          <div class="track-list" id="trackList"></div>
+          <div class="empty-state" id="emptyState">
+            <p class="section-label">No Tapes Yet</p>
+            <h3>まだ墓場は静かです。</h3>
+            <p>音源を投げ込むと、ここに横並びで出ます。</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="trackTemplate">
+      <article class="track-card">
+        <button class="remove-button" type="button" title="削除">×</button>
+        <div class="cover-slot"></div>
+        <div class="track-main">
+          <label class="track-title-field">
+            <span>リネーム</span>
+            <input class="track-title" type="text">
+          </label>
+          <div class="track-fields">
+            <label><span>名義</span><input class="track-artist" type="text" placeholder="未分類"></label>
+            <label><span>メモ</span><input class="track-note" type="text" placeholder="メモ"></label>
+          </div>
+          <div class="track-meta">
+            <span class="track-size"></span>
+            <label class="public-toggle"><input class="track-public" type="checkbox">公開候補</label>
+          </div>
+          <div class="track-actions">
+            <input class="art-input" type="file" accept="image/*">
+            <button class="art-button" type="button">ジャケ挿入</button>
+            <button class="art-clear-button" type="button">ジャケなし</button>
+          </div>
+          <audio class="track-audio" controls preload="metadata"></audio>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js?v=rebuild-1"></script>
+  </body>
+</html>

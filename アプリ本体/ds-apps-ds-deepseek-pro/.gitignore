@@ -1,0 +1,36 @@
+# 実データ・個人情報
+*.sqlite
+*_data.json
+*_ledger.json
+
+# 署名・証明書
+*.p12
+*.mobileprovision
+*.cer
+*.provisionprofile
+
+# APIキー・環境変数
+.env
+*.apikey
+secrets/
+
+# Vault / Obsidian
+*Vault*/
+Obsidian/
+
+# macOS
+.DS_Store
+*.xcuserdata
+*.xcworkspace/xcuserdata/
+
+# Xcode
+DerivedData/
+build/
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>やりたいことソーター</title>
+<style>
+  :root {
+    --bg: #f6f7f3;
+    --surface: #ffffff;
+    --surface-2: #eef4f1;
+    --ink: #1f2a25;
+    --muted: #66746e;
+    --line: #d9e1dc;
+    --accent: #167c68;
+    --accent-2: #315da8;
+    --warn: #b85b24;
+    --danger: #b33838;
+    --done: #5c6b63;
+    --shadow: 0 10px 26px rgba(31, 42, 37, 0.08);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151917;
+      --surface: #202622;
+      --surface-2: #28332e;
+      --ink: #eef4ef;
+      --muted: #a7b4ad;
+      --line: #3a4741;
+      --accent: #45b79b;
+      --accent-2: #7fa6ef;
+      --warn: #db884f;
+      --danger: #e06b6b;
+      --done: #95a39b;
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button, input, select, textarea {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  .app {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 22px 18px 48px;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: 0;
+  }
+
+  .today {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(72px, 1fr));
+    gap: 8px;
+    min-width: 360px;
+  }
+
+  .metric {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 8px 10px;
+    text-align: right;
+    box-shadow: var(--shadow);
+  }
+
+  .metric strong {
+    display: block;
+    font-size: 20px;
+    line-height: 1.1;
+  }
+
+  .metric span {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  .capture {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) 360px;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 112px;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+  }
+
+  textarea:focus, input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(22, 124, 104, 0.14);
+  }
+
+  .captureControls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-content: start;
+  }
+
+  label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  label span {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  select, input[type="search"], input[type="text"], input[type="number"] {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: var(--surface);
+    color: var(--ink);
+    outline: none;
+  }
+
+  .primary {
+    min-height: 40px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 9px 13px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+  }
+
+  .secondary, .ghost, .danger {
+    min-height: 36px;
+    border-radius: 8px;
+    padding: 7px 11px;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  .secondary {
+    border-color: rgba(49, 93, 168, 0.45);
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+
+  .danger {
+    border-color: rgba(179, 56, 56, 0.45);
+    color: var(--danger);
+  }
+
+  .wide {
+    grid-column: 1 / -1;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+
+  .sidebar {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 12px;
+  }
+
+  .sideTitle {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .filterList {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .filterButton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 36px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink);
+    padding: 7px 9px;
+    text-align: left;
+  }
+
+  .filterButton.on {
+    background: var(--surface-2);
+    border-color: var(--line);
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .filterButton small {
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .sideTools {
+    display: grid;
+    gap: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+  }
+
+  .main {
+    min-width: 0;
+  }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) 190px 154px;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .bulkbar {
+    display: none;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 9px;
+    margin-bottom: 10px;
+  }
+
+  .bulkbar.show {
+    display: flex;
+  }
+
+  .bulkbar .selectedCount {
+    color: var(--muted);
+    font-size: 13px;
+    margin-right: auto;
+  }
+
+  .list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .itemCard {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 9px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 11px;
+    box-shadow: var(--shadow);
+  }
+
+  .itemCard.done {
+    opacity: 0.72;
+  }
+
+  .checkCell {
+    padding-top: 4px;
+  }
+
+  .selectBox {
+    width: 19px;
+    height: 19px;
+    accent-color: var(--accent);
+  }
+
+  .itemHeader {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .itemTitle {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 16px;
+    overflow-wrap: anywhere;
+  }
+
+  .done .itemTitle {
+    color: var(--done);
+    text-decoration: line-through;
+    text-decoration-color: var(--line);
+  }
+
+  .actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .mini {
+    min-height: 28px;
+    border-radius: 8px;
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .mini.accent {
+    color: var(--accent);
+    border-color: rgba(22, 124, 104, 0.42);
+  }
+
+  .mini.warn {
+    color: var(--warn);
+    border-color: rgba(184, 91, 36, 0.42);
+  }
+
+  .mini.danger {
+    color: var(--danger);
+    border-color: rgba(179, 56, 56, 0.42);
+  }
+
+  .chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 23px;
+    border-radius: 999px;
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    background: var(--bg);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .chip.area {
+    border-color: rgba(49, 93, 168, 0.35);
+    color: var(--accent-2);
+  }
+
+  .chip.now {
+    border-color: rgba(22, 124, 104, 0.35);
+    color: var(--accent);
+  }
+
+  .chip.warn {
+    border-color: rgba(184, 91, 36, 0.35);
+    color: var(--warn);
+  }
+
+  .note {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .children {
+    margin-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  .childRow {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+    padding: 7px 0 0;
+    font-size: 13px;
+  }
+
+  .childRow input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent);
+  }
+
+  .childRow.done span {
+    color: var(--done);
+    text-decoration: line-through;
+  }
+
+  .empty {
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 22px;
+    text-align: center;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.42);
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%) translateY(24px);
+    background: var(--ink);
+    color: var(--surface);
+    border-radius: 8px;
+    padding: 9px 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: var(--shadow);
+    z-index: 10;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  dialog {
+    width: min(620px, calc(100vw - 28px));
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    padding: 0;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  }
+
+  dialog::backdrop {
+    background: rgba(12, 18, 16, 0.45);
+  }
+
+  .dialogBody {
+    padding: 16px;
+  }
+
+  .dialogBody h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+  }
+
+  .formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .formGrid .full {
+    grid-column: 1 / -1;
+  }
+
+  .dialogActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 860px) {
+    .topbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .metrics {
+      min-width: 0;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .capture, .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+      position: static;
+    }
+
+    .toolbar {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .app {
+      padding: 16px 12px 36px;
+    }
+
+    h1 {
+      font-size: 21px;
+    }
+
+    .captureControls, .formGrid {
+      grid-template-columns: 1fr;
+    }
+
+    .itemHeader {
+      flex-direction: column;
+    }
+
+    .actions {
+      justify-content: flex-start;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <h1>やりたいことソーター</h1>
+      <div class="today" id="todayLabel"></div>
+    </div>
+    <div class="metrics" aria-label="集計">
+      <div class="metric"><strong id="metricAll">0</strong><span>全部</span></div>
+      <div class="metric"><strong id="metricInbox">0</strong><span>未整理</span></div>
+      <div class="metric"><strong id="metricNow">0</strong><span>近いうち</span></div>
+      <div class="metric"><strong id="metricDone">0</strong><span>完了</span></div>
+    </div>
+  </header>
+
+  <section class="capture" aria-label="追加">
+    <textarea id="captureInput" placeholder="恋する惑星が見たい&#10;スキューバの免許が欲しい"></textarea>
+    <div class="captureControls">
+      <label>
+        <span>分野</span>
+        <select id="quickArea"></select>
+      </label>
+      <label>
+        <span>時期</span>
+        <select id="quickTimeframe"></select>
+      </label>
+      <label>
+        <span>大きさ</span>
+        <select id="quickEffort"></select>
+      </label>
+      <label>
+        <span>強さ</span>
+        <select id="quickPriority"></select>
+      </label>
+      <button class="primary wide" id="addButton" type="button">放り込む</button>
+    </div>
+  </section>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="sideTitle">見る箱</p>
+      <div class="filterList" id="filterList"></div>
+      <div class="sideTools">
+        <button class="secondary" id="exportMdButton" type="button">Markdown</button>
+        <button class="ghost" id="exportJsonButton" type="button">バックアップ</button>
+        <button class="ghost" id="importButton" type="button">復元</button>
+        <button class="danger" id="clearDoneButton" type="button">完了を掃除</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <input type="search" id="searchInput" placeholder="検索">
+        <select id="sortSelect" aria-label="並び替え"></select>
+        <button class="secondary" id="clearSelectionButton" type="button">選択解除</button>
+      </div>
+
+      <div class="bulkbar" id="bulkbar">
+        <span class="selectedCount" id="selectedCount">0件選択中</span>
+        <button class="secondary" id="mergeButton" type="button">まとめる</button>
+        <button class="ghost" id="markNowButton" type="button">近いうち</button>
+        <button class="ghost" id="markDoneButton" type="button">完了</button>
+        <button class="danger" id="deleteSelectedButton" type="button">削除</button>
+      </div>
+
+      <section class="list" id="itemList" aria-live="polite"></section>
+    </main>
+  </div>
+</div>
+
+<dialog id="editDialog">
+  <form method="dialog" id="editForm">
+    <div class="dialogBody">
+      <h2 id="editTitle">編集</h2>
+      <div class="formGrid">
+        <label class="full">
+          <span>名前</span>
+          <input type="text" id="editName" required>
+        </label>
+        <label class="full">
+          <span>メモ</span>
+          <textarea id="editNote"></textarea>
+        </label>
+        <label>
+          <span>分野</span>
+          <select id="editArea"></select>
+        </label>
+        <label>
+          <span>時期</span>
+          <select id="editTimeframe"></select>
+        </label>
+        <label>
+          <span>大きさ</span>
+          <select id="editEffort"></select>
+        </label>
+        <label>
+          <span>強さ</span>
+          <select id="editPriority"></select>
+        </label>
+        <label>
+          <span>状態</span>
+          <select id="editStatus"></select>
+        </label>
+      </div>
+    </div>
+    <div class="dialogActions">
+      <button class="ghost" value="cancel" type="button" id="editCancel">閉じる</button>
+      <button class="primary" value="default" type="submit">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="splitDialog">
+  <form method="dialog" id="splitForm">
+    <div class="dialogBody">
+      <h2 id="splitTitle">分解</h2>
+      <label>
+        <span>小さくする</span>
+        <textarea id="splitInput" placeholder="映画を探す&#10;配信サービスを確認する&#10;見る日を決める"></textarea>
+      </label>
+    </div>
+    <div class="dialogActions">
+      <button class="ghost" value="cancel" type="button" id="splitCancel">閉じる</button>
+      <button class="primary" value="default" type="submit">追加</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="importFile" class="hidden" accept="application/json">
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "want-sorter-v1";
+  const AREAS = ["自動", "観る/読む", "行く", "学ぶ", "作る", "買う", "人と会う", "暮らし", "事業", "信仰", "その他"];
+  const TIMEFRAMES = [
+    ["inbox", "未整理"],
+    ["now", "近いうち"],
+    ["month", "今月"],
+    ["someday", "いつか"],
+    ["waiting", "保留"]
+  ];
+  const EFFORTS = [
+    ["small", "小"],
+    ["medium", "中"],
+    ["large", "大"],
+    ["unknown", "未定"]
+  ];
+  const PRIORITIES = [
+    ["1", "低"],
+    ["2", "ふつう"],
+    ["3", "高"],
+    ["4", "かなり高い"]
+  ];
+  const STATUSES = [
+    ["open", "進行中"],
+    ["inbox", "未整理"],
+    ["done", "完了"],
+    ["archived", "保管"]
+  ];
+  const FILTERS = [
+    ["open", "開いている"],
+    ["inbox", "未整理"],
+    ["now", "近いうち"],
+    ["someday", "いつか"],
+    ["done", "完了"],
+    ["all", "全部"]
+  ];
+  const SORTS = [
+    ["created-desc", "新しい順"],
+    ["priority-desc", "強い順"],
+    ["timeframe", "時期順"],
+    ["area", "分野順"],
+    ["effort", "小さい順"],
+    ["title", "名前順"]
+  ];
+
+  const $ = (selector) => document.querySelector(selector);
+  const dom = {
+    todayLabel: $("#todayLabel"),
+    captureInput: $("#captureInput"),
+    quickArea: $("#quickArea"),
+    quickTimeframe: $("#quickTimeframe"),
+    quickEffort: $("#quickEffort"),
+    quickPriority: $("#quickPriority"),
+    addButton: $("#addButton"),
+    filterList: $("#filterList"),
+    searchInput: $("#searchInput"),
+    sortSelect: $("#sortSelect"),
+    bulkbar: $("#bulkbar"),
+    selectedCount: $("#selectedCount"),
+    itemList: $("#itemList"),
+    clearSelectionButton: $("#clearSelectionButton"),
+    mergeButton: $("#mergeButton"),
+    markNowButton: $("#markNowButton"),
+    markDoneButton: $("#markDoneButton"),
+    deleteSelectedButton: $("#deleteSelectedButton"),
+    exportMdButton: $("#exportMdButton"),
+    exportJsonButton: $("#exportJsonButton"),
+    importButton: $("#importButton"),
+    importFile: $("#importFile"),
+    clearDoneButton: $("#clearDoneButton"),
+    metricAll: $("#metricAll"),
+    metricInbox: $("#metricInbox"),
+    metricNow: $("#metricNow"),
+    metricDone: $("#metricDone"),
+    editDialog: $("#editDialog"),
+    editForm: $("#editForm"),
+    editTitle: $("#editTitle"),
+    editName: $("#editName"),
+    editNote: $("#editNote"),
+    editArea: $("#editArea"),
+    editTimeframe: $("#editTimeframe"),
+    editEffort: $("#editEffort"),
+    editPriority: $("#editPriority"),
+    editStatus: $("#editStatus"),
+    editCancel: $("#editCancel"),
+    splitDialog: $("#splitDialog"),
+    splitForm: $("#splitForm"),
+    splitTitle: $("#splitTitle"),
+    splitInput: $("#splitInput"),
+    splitCancel: $("#splitCancel"),
+    toast: $("#toast")
+  };
+
+  let state = loadState();
+  let selected = new Set();
+  let editingId = null;
+  let splittingId = null;
+  let toastTimer = null;
+
+  init();
+
+  function init() {
+    fillOptions(dom.quickArea, AREAS.map((area) => [area, area]));
+    fillOptions(dom.quickTimeframe, TIMEFRAMES);
+    fillOptions(dom.quickEffort, EFFORTS);
+    fillOptions(dom.quickPriority, PRIORITIES);
+    fillOptions(dom.editArea, AREAS.filter((area) => area !== "自動").map((area) => [area, area]));
+    fillOptions(dom.editTimeframe, TIMEFRAMES);
+    fillOptions(dom.editEffort, EFFORTS);
+    fillOptions(dom.editPriority, PRIORITIES);
+    fillOptions(dom.editStatus, STATUSES);
+    fillOptions(dom.sortSelect, SORTS);
+
+    dom.quickTimeframe.value = "inbox";
+    dom.quickEffort.value = "unknown";
+    dom.quickPriority.value = "2";
+    dom.sortSelect.value = state.sort;
+    dom.searchInput.value = state.query;
+    dom.todayLabel.textContent = new Intl.DateTimeFormat("ja-JP", {
+      dateStyle: "full"
+    }).format(new Date());
+
+    bindEvents();
+    render();
+  }
+
+  function bindEvents() {
+    dom.addButton.addEventListener("click", addFromCapture);
+    dom.captureInput.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") addFromCapture();
+    });
+    dom.searchInput.addEventListener("input", () => {
+      state.query = dom.searchInput.value.trim();
+      saveAndRender(false);
+    });
+    dom.sortSelect.addEventListener("change", () => {
+      state.sort = dom.sortSelect.value;
+      saveAndRender(false);
+    });
+    dom.clearSelectionButton.addEventListener("click", () => {
+      selected.clear();
+      render();
+    });
+    dom.mergeButton.addEventListener("click", mergeSelected);
+    dom.markNowButton.addEventListener("click", () => updateSelected({ timeframe: "now", status: "open" }));
+    dom.markDoneButton.addEventListener("click", () => updateSelected({ status: "done", doneAt: new Date().toISOString() }));
+    dom.deleteSelectedButton.addEventListener("click", deleteSelected);
+    dom.exportMdButton.addEventListener("click", exportMarkdown);
+    dom.exportJsonButton.addEventListener("click", exportJson);
+    dom.importButton.addEventListener("click", () => dom.importFile.click());
+    dom.importFile.addEventListener("change", importJson);
+    dom.clearDoneButton.addEventListener("click", clearDone);
+    dom.editCancel.addEventListener("click", () => dom.editDialog.close());
+    dom.splitCancel.addEventListener("click", () => dom.splitDialog.close());
+    dom.editForm.addEventListener("submit", saveEdit);
+    dom.splitForm.addEventListener("submit", saveSplit);
+  }
+
+  function addFromCapture() {
+    const lines = dom.captureInput.value
+      .split(/\n+/)
+      .map((line) => line.replace(/^[-*・\s]+/, "").trim())
+      .filter(Boolean);
+
+    if (!lines.length) {
+      showToast("何か入れてください");
+      return;
+    }
+
+    const created = lines.map((title, index) => {
+      const guessed = guessItem(title);
+      const area = dom.quickArea.value === "自動" ? guessed.area : dom.quickArea.value;
+      const timeframe = dom.quickTimeframe.value === "inbox" ? guessed.timeframe : dom.quickTimeframe.value;
+      return {
+        id: uid(),
+        title,
+        note: "",
+        area,
+        timeframe,
+        effort: dom.quickEffort.value,
+        priority: Number(dom.quickPriority.value),
+        status: timeframe === "inbox" ? "inbox" : "open",
+        parentId: null,
+        createdAt: new Date(Date.now() + index).toISOString(),
+        updatedAt: new Date().toISOString(),
+        doneAt: null
+      };
+    });
+
+    state.items.unshift(...created);
+    dom.captureInput.value = "";
+    saveAndRender();
+    showToast(`${created.length}件入れました`);
+  }
+
+  function render() {
+    renderMetrics();
+    renderFilters();
+    renderBulkbar();
+    renderItems();
+  }
+
+  function renderMetrics() {
+    const activeItems = state.items.filter((item) => item.status !== "archived");
+    dom.metricAll.textContent = activeItems.length;
+    dom.metricInbox.textContent = activeItems.filter((item) => item.status === "inbox").length;
+    dom.metricNow.textContent = activeItems.filter((item) => item.timeframe === "now" && item.status !== "done").length;
+    dom.metricDone.textContent = activeItems.filter((item) => item.status === "done").length;
+  }
+
+  function renderFilters() {
+    dom.filterList.innerHTML = "";
+    FILTERS.forEach(([key, label]) => {
+      const button = document.createElement("button");
+      button.className = `filterButton ${state.view === key ? "on" : ""}`;
+      button.type = "button";
+      button.innerHTML = `<span>${escapeHtml(label)}</span><small>${countForFilter(key)}</small>`;
+      button.addEventListener("click", () => {
+        state.view = key;
+        selected.clear();
+        saveAndRender(false);
+      });
+      dom.filterList.appendChild(button);
+    });
+  }
+
+  function renderBulkbar() {
+    dom.bulkbar.classList.toggle("show", selected.size > 0);
+    dom.selectedCount.textContent = `${selected.size}件選択中`;
+  }
+
+  function renderItems() {
+    const visibleItems = filteredItems();
+    const visibleIds = new Set(visibleItems.map((item) => item.id));
+    const roots = visibleItems
+      .filter((item) => !item.parentId || !visibleIds.has(item.parentId))
+      .sort(compareItems);
+
+    dom.itemList.innerHTML = "";
+    if (!roots.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = state.query ? "見つかりませんでした" : "まだ空です";
+      dom.itemList.appendChild(empty);
+      return;
+    }
+
+    roots.forEach((item) => dom.itemList.appendChild(renderItemCard(item)));
+  }
+
+  function renderItemCard(item) {
+    const card = document.createElement("article");
+    const children = childrenOf(item.id)
+      .filter((child) => state.view === "all" || child.status !== "archived")
+      .sort(compareItems);
+    card.className = `itemCard ${item.status === "done" ? "done" : ""}`;
+    card.dataset.id = item.id;
+
+    const checked = selected.has(item.id) ? "checked" : "";
+    card.innerHTML = `
+      <div class="checkCell">
+        <input class="selectBox" type="checkbox" aria-label="選択" ${checked}>
+      </div>
+      <div class="itemBody">
+        <div class="itemHeader">
+          <h3 class="itemTitle">${escapeHtml(item.title)}</h3>
+          <div class="actions">
+            <button class="mini accent" type="button" data-action="edit">編集</button>
+            <button class="mini warn" type="button" data-action="split">分解</button>
+            ${children.length ? '<button class="mini" type="button" data-action="unpack">ばらす</button>' : ""}
+            <button class="mini" type="button" data-action="toggle">${item.status === "done" ? "戻す" : "完了"}</button>
+            <button class="mini danger" type="button" data-action="delete">削除</button>
+          </div>
+        </div>
+        <div class="chips">${renderChips(item, children.length)}</div>
+        ${item.note ? `<p class="note">${escapeHtml(item.note)}</p>` : ""}
+        ${children.length ? renderChildren(children) : ""}
+      </div>
+    `;
+
+    card.querySelector(".selectBox").addEventListener("change", (event) => {
+      if (event.target.checked) selected.add(item.id);
+      else selected.delete(item.id);
+      render();
+    });
+
+    card.querySelectorAll("[data-action]").forEach((button) => {
+      button.addEventListener("click", () => handleAction(button.dataset.action, item.id));
+    });
+
+    card.querySelectorAll("[data-child-action]").forEach((button) => {
+      button.addEventListener("click", () => handleAction(button.dataset.childAction, button.dataset.childId));
+    });
+
+    card.querySelectorAll("[data-child-toggle]").forEach((input) => {
+      input.addEventListener("change", () => toggleDone(input.dataset.childToggle));
+    });
+
+    return card;
+  }
+
+  function renderChips(item, childCount) {
+    const priorityLabel = "強さ" + " ".repeat(1) + "I".repeat(item.priority || 1);
+    const childText = childCount ? `<span class="chip warn">${childCount}個に分解</span>` : "";
+    return `
+      <span class="chip area">${escapeHtml(item.area)}</span>
+      <span class="chip ${item.timeframe === "now" ? "now" : ""}">${labelOf(TIMEFRAMES, item.timeframe)}</span>
+      <span class="chip">${labelOf(EFFORTS, item.effort)}</span>
+      <span class="chip">${escapeHtml(priorityLabel)}</span>
+      ${item.status === "inbox" ? '<span class="chip warn">未整理</span>' : ""}
+      ${item.status === "done" ? '<span class="chip">完了</span>' : ""}
+      ${childText}
+    `;
+  }
+
+  function renderChildren(children) {
+    return `
+      <div class="children">
+        ${children.map((child) => `
+          <div class="childRow ${child.status === "done" ? "done" : ""}">
+            <input type="checkbox" data-child-toggle="${child.id}" ${child.status === "done" ? "checked" : ""} aria-label="完了">
+            <span>${escapeHtml(child.title)}</span>
+            <span>
+              <button class="mini" type="button" data-child-action="edit" data-child-id="${child.id}">編集</button>
+              <button class="mini danger" type="button" data-child-action="delete" data-child-id="${child.id}">削除</button>
+            </span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function handleAction(action, id) {
+    if (action === "edit") openEdit(id);
+    if (action === "split") openSplit(id);
+    if (action === "toggle") toggleDone(id);
+    if (action === "delete") deleteItem(id);
+    if (action === "unpack") unpackItem(id);
+  }
+
+  function openEdit(id) {
+    const item = findItem(id);
+    if (!item) return;
+    editingId = id;
+    dom.editTitle.textContent = item.parentId ? "小項目を編集" : "編集";
+    dom.editName.value = item.title;
+    dom.editNote.value = item.note || "";
+    dom.editArea.value = item.area || "その他";
+    dom.editTimeframe.value = item.timeframe || "inbox";
+    dom.editEffort.value = item.effort || "unknown";
+    dom.editPriority.value = String(item.priority || 2);
+    dom.editStatus.value = item.status || "open";
+    dom.editDialog.showModal();
+    dom.editName.focus();
+  }
+
+  function saveEdit(event) {
+    event.preventDefault();
+    const item = findItem(editingId);
+    if (!item) return;
+    item.title = dom.editName.value.trim();
+    item.note = dom.editNote.value.trim();
+    item.area = dom.editArea.value;
+    item.timeframe = dom.editTimeframe.value;
+    item.effort = dom.editEffort.value;
+    item.priority = Number(dom.editPriority.value);
+    item.status = dom.editStatus.value;
+    item.doneAt = item.status === "done" ? (item.doneAt || new Date().toISOString()) : null;
+    item.updatedAt = new Date().toISOString();
+    dom.editDialog.close();
+    saveAndRender();
+  }
+
+  function openSplit(id) {
+    const item = findItem(id);
+    if (!item) return;
+    splittingId = id;
+    dom.splitTitle.textContent = `分解: ${item.title}`;
+    dom.splitInput.value = "";
+    dom.splitDialog.showModal();
+    dom.splitInput.focus();
+  }
+
+  function saveSplit(event) {
+    event.preventDefault();
+    const parent = findItem(splittingId);
+    if (!parent) return;
+    const lines = dom.splitInput.value
+      .split(/\n+/)
+      .map((line) => line.replace(/^[-*・\s]+/, "").trim())
+      .filter(Boolean);
+    if (!lines.length) {
+      showToast("小項目を入れてください");
+      return;
+    }
+    const children = lines.map((title, index) => ({
+      id: uid(),
+      title,
+      note: "",
+      area: parent.area,
+      timeframe: parent.timeframe,
+      effort: "small",
+      priority: parent.priority,
+      status: "open",
+      parentId: parent.id,
+      createdAt: new Date(Date.now() + index).toISOString(),
+      updatedAt: new Date().toISOString(),
+      doneAt: null
+    }));
+    parent.status = parent.status === "inbox" ? "open" : parent.status;
+    parent.updatedAt = new Date().toISOString();
+    state.items.push(...children);
+    dom.splitDialog.close();
+    saveAndRender();
+    showToast(`${children.length}個に分けました`);
+  }
+
+  function mergeSelected() {
+    const ids = Array.from(selected).filter((id) => findItem(id));
+    if (ids.length < 2) {
+      showToast("2件以上選んでください");
+      return;
+    }
+    const name = prompt("まとめ名", suggestMergeName(ids));
+    if (!name || !name.trim()) return;
+    const base = findItem(ids[0]);
+    const parent = {
+      id: uid(),
+      title: name.trim(),
+      note: "",
+      area: base?.area || "その他",
+      timeframe: base?.timeframe || "inbox",
+      effort: "large",
+      priority: Math.max(...ids.map((id) => findItem(id)?.priority || 1)),
+      status: "open",
+      parentId: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      doneAt: null
+    };
+    state.items.unshift(parent);
+    ids.forEach((id) => {
+      const item = findItem(id);
+      if (!item || item.id === parent.id) return;
+      item.parentId = parent.id;
+      item.status = item.status === "inbox" ? "open" : item.status;
+      item.updatedAt = new Date().toISOString();
+    });
+    selected.clear();
+    saveAndRender();
+    showToast("まとめました");
+  }
+
+  function suggestMergeName(ids) {
+    const areas = ids.map((id) => findItem(id)?.area).filter(Boolean);
+    const common = areas.find((area) => areas.filter((candidate) => candidate === area).length > 1);
+    return common ? `${common}のやりたいこと` : "新しいまとまり";
+  }
+
+  function updateSelected(patch) {
+    if (!selected.size) return;
+    selected.forEach((id) => {
+      const item = findItem(id);
+      if (!item) return;
+      Object.assign(item, patch, { updatedAt: new Date().toISOString() });
+      if (patch.status !== "done") item.doneAt = null;
+    });
+    selected.clear();
+    saveAndRender();
+  }
+
+  function toggleDone(id) {
+    const item = findItem(id);
+    if (!item) return;
+    const done = item.status !== "done";
+    item.status = done ? "done" : "open";
+    item.doneAt = done ? new Date().toISOString() : null;
+    item.updatedAt = new Date().toISOString();
+    saveAndRender(false);
+  }
+
+  function deleteItem(id) {
+    const item = findItem(id);
+    if (!item) return;
+    if (!confirm(`削除しますか？\n${item.title}`)) return;
+    const childIds = childrenOf(id).map((child) => child.id);
+    state.items = state.items.filter((candidate) => candidate.id !== id && !childIds.includes(candidate.id));
+    selected.delete(id);
+    saveAndRender();
+  }
+
+  function deleteSelected() {
+    if (!selected.size) return;
+    if (!confirm(`${selected.size}件を削除しますか？`)) return;
+    const ids = new Set(selected);
+    state.items.forEach((item) => {
+      if (ids.has(item.parentId)) ids.add(item.id);
+    });
+    state.items = state.items.filter((item) => !ids.has(item.id));
+    selected.clear();
+    saveAndRender();
+  }
+
+  function unpackItem(id) {
+    const item = findItem(id);
+    if (!item) return;
+    const children = childrenOf(id);
+    if (!children.length) return;
+    if (!confirm(`「${item.title}」をばらしますか？`)) return;
+    children.forEach((child) => {
+      child.parentId = null;
+      child.updatedAt = new Date().toISOString();
+    });
+    state.items = state.items.filter((candidate) => candidate.id !== id);
+    selected.delete(id);
+    saveAndRender();
+  }
+
+  function clearDone() {
+    const doneCount = state.items.filter((item) => item.status === "done").length;
+    if (!doneCount) {
+      showToast("完了はありません");
+      return;
+    }
+    if (!confirm(`完了 ${doneCount}件を保管しますか？`)) return;
+    state.items.forEach((item) => {
+      if (item.status === "done") item.status = "archived";
+    });
+    selected.clear();
+    saveAndRender();
+  }
+
+  function filteredItems() {
+    const query = normalize(state.query);
+    return state.items.filter((item) => {
+      if (!matchesFilter(item, state.view)) return false;
+      if (!query) return true;
+      const childrenText = childrenOf(item.id).map((child) => child.title).join(" ");
+      const haystack = normalize([item.title, item.note, item.area, labelOf(TIMEFRAMES, item.timeframe), childrenText].join(" "));
+      return haystack.includes(query);
+    });
+  }
+
+  function matchesFilter(item, filter) {
+    if (item.status === "archived" && filter !== "all") return false;
+    if (filter === "all") return true;
+    if (filter === "open") return item.status !== "done" && item.status !== "archived";
+    if (filter === "inbox") return item.status === "inbox";
+    if (filter === "now") return item.timeframe === "now" && item.status !== "done";
+    if (filter === "someday") return item.timeframe === "someday" && item.status !== "done";
+    if (filter === "done") return item.status === "done";
+    return true;
+  }
+
+  function compareItems(a, b) {
+    if (state.sort === "priority-desc") return (b.priority || 0) - (a.priority || 0) || newestFirst(a, b);
+    if (state.sort === "timeframe") return orderOf(TIMEFRAMES, a.timeframe) - orderOf(TIMEFRAMES, b.timeframe) || newestFirst(a, b);
+    if (state.sort === "area") return a.area.localeCompare(b.area, "ja") || newestFirst(a, b);
+    if (state.sort === "effort") return orderOf(EFFORTS, a.effort) - orderOf(EFFORTS, b.effort) || newestFirst(a, b);
+    if (state.sort === "title") return a.title.localeCompare(b.title, "ja");
+    return newestFirst(a, b);
+  }
+
+  function newestFirst(a, b) {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  }
+
+  function countForFilter(filter) {
+    return state.items.filter((item) => matchesFilter(item, filter)).length;
+  }
+
+  function childrenOf(parentId) {
+    return state.items.filter((item) => item.parentId === parentId);
+  }
+
+  function findItem(id) {
+    return state.items.find((item) => item.id === id);
+  }
+
+  function guessItem(title) {
+    const text = normalize(title);
+    const has = (...words) => words.some((word) => text.includes(normalize(word)));
+    let area = "その他";
+    if (has("映画", "観たい", "見たい", "読みたい", "本", "漫画", "ドラマ", "動画")) area = "観る/読む";
+    if (has("行きたい", "旅", "旅行", "泊まりたい", "温泉", "店", "カフェ")) area = "行く";
+    if (has("免許", "資格", "学びたい", "習いたい", "練習", "勉強", "講座")) area = "学ぶ";
+    if (has("作りたい", "書きたい", "録りたい", "始めたい", "アプリ", "曲", "小説")) area = "作る";
+    if (has("買いたい", "欲しい", "手に入れたい")) area = area === "その他" ? "買う" : area;
+    if (has("会いたい", "話したい", "連絡", "誘う")) area = "人と会う";
+    if (has("掃除", "片付け", "家", "健康", "病院")) area = "暮らし";
+    if (has("事業", "売上", "顧客", "企画", "商品")) area = "事業";
+    if (has("祈り", "聖書", "説教", "礼拝")) area = "信仰";
+
+    let timeframe = "inbox";
+    if (has("今日", "明日", "今週", "近いうち")) timeframe = "now";
+    if (has("今月", "六月", "6月", "七月", "7月")) timeframe = "month";
+    if (has("いつか", "そのうち")) timeframe = "someday";
+    return { area, timeframe };
+  }
+
+  function exportMarkdown() {
+    const lines = ["# やりたいことソーター", ""];
+    const roots = state.items
+      .filter((item) => !item.parentId && item.status !== "archived")
+      .sort(compareItems);
+
+    roots.forEach((item) => {
+      lines.push(`- [${item.status === "done" ? "x" : " "}] ${item.title}`);
+      lines.push(`  - 分野: ${item.area} / 時期: ${labelOf(TIMEFRAMES, item.timeframe)} / 大きさ: ${labelOf(EFFORTS, item.effort)} / 強さ: ${item.priority}`);
+      if (item.note) lines.push(`  - メモ: ${item.note.replace(/\n/g, " / ")}`);
+      childrenOf(item.id).filter((child) => child.status !== "archived").sort(compareItems).forEach((child) => {
+        lines.push(`  - [${child.status === "done" ? "x" : " "}] ${child.title}`);
+      });
+    });
+
+    download(`やりたいことソーター_${dateStamp()}.md`, lines.join("\n"));
+    showToast("Markdownを書き出しました");
+  }
+
+  function exportJson() {
+    download(`やりたいことソーター_${dateStamp()}.json`, JSON.stringify(state, null, 2), "application/json");
+    showToast("バックアップを書き出しました");
+  }
+
+  function importJson(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const imported = JSON.parse(String(reader.result));
+        if (!Array.isArray(imported.items)) throw new Error("items missing");
+        state = {
+          items: imported.items.map(normalizeItem),
+          view: imported.view || "open",
+          sort: imported.sort || "created-desc",
+          query: imported.query || ""
+        };
+        selected.clear();
+        dom.searchInput.value = state.query;
+        dom.sortSelect.value = state.sort;
+        saveAndRender();
+        showToast("復元しました");
+      } catch (error) {
+        showToast("復元できませんでした");
+      } finally {
+        dom.importFile.value = "";
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function saveAndRender(showSaved = true) {
+    saveState();
+    render();
+    if (showSaved) showToast("保存しました");
+  }
+
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "");
+      if (!saved || !Array.isArray(saved.items)) throw new Error("empty");
+      return {
+        items: saved.items.map(normalizeItem),
+        view: saved.view || "open",
+        sort: saved.sort || "created-desc",
+        query: saved.query || ""
+      };
+    } catch (error) {
+      return { items: [], view: "open", sort: "created-desc", query: "" };
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function normalizeItem(item) {
+    return {
+      id: item.id || uid(),
+      title: String(item.title || "").trim() || "無題",
+      note: String(item.note || ""),
+      area: AREAS.includes(item.area) && item.area !== "自動" ? item.area : "その他",
+      timeframe: TIMEFRAMES.some(([key]) => key === item.timeframe) ? item.timeframe : "inbox",
+      effort: EFFORTS.some(([key]) => key === item.effort) ? item.effort : "unknown",
+      priority: Number(item.priority || 2),
+      status: STATUSES.some(([key]) => key === item.status) ? item.status : "open",
+      parentId: item.parentId || null,
+      createdAt: item.createdAt || new Date().toISOString(),
+      updatedAt: item.updatedAt || new Date().toISOString(),
+      doneAt: item.doneAt || null
+    };
+  }
+
+  function fillOptions(select, options) {
+    select.innerHTML = options.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("");
+  }
+
+  function labelOf(options, value) {
+    return options.find(([key]) => key === value)?.[1] || value;
+  }
+
+  function orderOf(options, value) {
+    const index = options.findIndex(([key]) => key === value);
+    return index === -1 ? 999 : index;
+  }
+
+  function uid() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function normalize(text) {
+    return String(text || "").toLocaleLowerCase("ja-JP").normalize("NFKC");
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function download(filename, content, type = "text/markdown") {
+    const blob = new Blob([content], { type: `${type};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function dateStamp() {
+    const date = new Date();
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${yyyy}${mm}${dd}`;
+  }
+
+  function showToast(message) {
+    clearTimeout(toastTimer);
+    dom.toast.textContent = message;
+    dom.toast.classList.add("show");
+    toastTimer = setTimeout(() => dom.toast.classList.remove("show"), 1500);
+  }
+})();
+</script>
+</body>
+</html>

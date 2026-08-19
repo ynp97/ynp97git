@@ -1,0 +1,53 @@
+{
+  "app": "三本立て毎日TODO",
+  "version": 1,
+  "exportedAt": "2026-06-25T09:18:19.272Z",
+  "state": {
+    "0-0-0": 1,
+    "0-0-1": 1,
+    "0-0-2": 1,
+    "c|cmqtag2gu0uq2|2026-06-26": 1
+  },
+  "customDefs": [
+    {
+      "id": "cmqtag2gu0uq2",
+      "text": "資料請求チェック",
+      "g": "日常業務",
+      "time": "",
+      "rec": {
+        "type": "weekly",
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "id": "cmqtagjxj0r8g",
+      "text": "メッセージ箇所決定",
+      "g": "日常業務",
+      "time": "",
+      "rec": {
+        "type": "weekly",
+        "days": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "cmqtah2j70xdg",
+      "text": "メッセージ",
+      "g": "日常業務",
+      "time": "",
+      "rec": {
+        "type": "weekly",
+        "days": [
+          6
+        ]
+      }
+    }
+  ]
+}

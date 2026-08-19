@@ -1,0 +1,44 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+# 注意: これは「掲示」であって「門」ではない。
+# 赤が出てもマージは止まらない（ブランチ保護は意図的に設定していない）。
+# 急ぎのときはコミットメッセージに [skip ci] を入れれば実行自体を飛ばせる。
+
+jobs:
+  node:
+    name: apps配下のNodeプロジェクトを検査
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: install / typecheck / build
+        run: |
+          found=0
+          fail=0
+          for pkg in apps/*/package.json; do
+            [ -e "$pkg" ] || continue
+            found=1
+            d=$(dirname "$pkg")
+            echo "::group::$d"
+            (
+              cd "$d" || exit 1
+              npm install --no-audit --no-fund || exit 1
+              if [ -f tsconfig.json ]; then
+                npx tsc --noEmit || exit 1
+              fi
+              npm run build --if-present || exit 1
+            ) || fail=1
+            echo "::endgroup::"
+          done
+          if [ "$found" = "0" ]; then
+            echo "apps/ にNodeプロジェクトが無いので検査対象なし"
+          fi
+          exit $fail

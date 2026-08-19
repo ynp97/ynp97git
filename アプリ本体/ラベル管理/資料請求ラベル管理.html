@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料請求ラベル管理</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23F57C00'/%3E%3Ctext x='50' y='55' font-size='66' font-weight='bold' text-anchor='middle' dominant-baseline='central' fill='white' font-family='Hiragino Sans,sans-serif'%3E%E3%83%A9%3C/text%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{--bg:#f6f7f9;--panel:#fff;--line:#e3e6ea;--ink:#1f2430;--sub:#6b7280;--accent:#2563eb;--accent2:#eff4ff;--ok:#15803d;--warn:#b45309}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6}
+  header{background:var(--panel);border-bottom:1px solid var(--line);padding:10px 16px;position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:16px;margin:0}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap}
+  .tab{padding:6px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .muted{color:var(--sub)} .small{font-size:12px} .right{margin-left:auto}
+  main{padding:16px;max-width:1180px;margin:0 auto}
+  .view{display:none}.view.active{display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .card h2{font-size:15px;margin:0 0 10px}
+  .row{display:flex;gap:14px;flex-wrap:wrap}.col{flex:1;min-width:210px}
+  label.f{display:block;font-size:12px;color:var(--sub);margin:8px 0 2px}
+  input,select,textarea{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:#fff}
+  input[type=checkbox]{width:20px!important;height:20px;padding:0;margin:0;border-radius:4px;cursor:pointer;accent-color:var(--accent);vertical-align:middle}
+  textarea{min-height:120px;font-family:ui-monospace,monospace;font-size:12px}
+  button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font-size:13px}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{border:1px solid var(--line);padding:4px 7px;text-align:left;vertical-align:middle}
+  th{background:#f1f3f6;position:sticky;top:0}
+  td[contenteditable]{background:#fffef5}
+  .tablewrap{max-height:60vh;overflow:auto;border:1px solid var(--line);border-radius:8px}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:600}
+  .pill.ok{background:#dcfce7;color:var(--ok)}.pill.warn{background:#fef3c7;color:var(--warn)}.pill.bad{background:#f3f4f6;color:#6b7280}.pill.low{background:#fee2e2;color:#b91c1c}
+  .stat{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0}
+  .stat div{background:var(--accent2);border-radius:10px;padding:8px 14px;min-width:90px}
+  .stat b{font-size:20px;display:block}
+  .hint{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;font-size:12px;color:#92400e;margin:8px 0}
+  .flow{background:#fff;border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .flow.hidden{display:none}
+  .flow.success{border-left-color:var(--ok);background:#f0fdf4}
+  .flow.warn{border-left-color:var(--warn);background:#fffbeb}
+  .flow strong{display:block;font-size:14px;margin-bottom:2px}
+  .flow .copy{min-width:260px;flex:1}
+  .flow .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .emptyrow td{padding:14px;color:var(--sub);text-align:center}
+  #sheet{display:none}
+  @media print{
+    header,main{display:none!important} /* 画面本体を完全に除去（空白ページ防止） */
+    body{margin:0;background:#fff}
+    #sheet{display:block;position:absolute;left:0;top:0}
+    .a4{page-break-after:always}
+    .a4:last-child{page-break-after:auto}
+    @page{size:A4;margin:0}
+  }
+  .a4{width:210mm;height:297mm;position:relative;background:#fff}
+  .lbl{position:absolute;overflow:hidden;padding:2mm 3mm;display:flex;flex-direction:column;justify-content:center}
+  .lbl .pc{font-size:9pt}.lbl .ad{font-size:9pt;margin-top:1mm}.lbl .nm{margin-top:1.5mm;font-weight:700}
+  .previewframe{border:1px dashed #cbd5e1;overflow:auto;max-width:100%}
+</style>
+</head>
+<body>
+<header>
+  <h1>資料請求ラベル管理</h1>
+  <span class="muted small">単体HTML / このMac内で完結 / サーバー不要</span>
+  <button id="quickRefresh" title="履歴・辞書・印刷待ちは残して、取り込み中の名簿と判定だけ消します">取り込みリストを空にする</button>
+  <div class="tabs right">
+    <div class="tab active" data-v="in">① 取り込み</div>
+    <div class="tab" data-v="sel">② 抽出・選択</div>
+    <div class="tab" data-v="print">③ 印刷</div>
+    <div class="tab" data-v="dict">京成駅・辞書</div>
+    <div class="tab" data-v="hist">履歴・バックアップ</div>
+  </div>
+</header>
+
+<main>
+  <div id="multiWarn" class="hint" style="display:none;background:#fee2e2;border-color:#fca5a5;color:#991b1b"><b>⚠ このアプリが別のウインドウでも開いています。</b>両方で入力すると片方の保存が消える恐れがあります。使わない方のウインドウを閉じてください。</div>
+  <div id="openWarn" class="hint" style="display:none"><b>Dockのオレンジ「ラ」以外から開いています。</b>保存場所がずれる恐れがあります。フォルダ内の「セットアップ_古い削除とDock追加.command」を一度実行してDockアプリを更新し、以後は必ずDockから開いてください。</div>
+  <div id="flowBanner" class="flow hidden">
+    <div class="copy">
+      <strong id="flowTitle"></strong>
+      <div id="flowBody" class="small muted"></div>
+    </div>
+    <div id="flowActions" class="actions"></div>
+  </div>
+
+  <!-- ① 取り込み -->
+  <section class="view active" id="v-in">
+    <div class="card">
+      <h2>① データを取り込む</h2>
+      <div class="row">
+        <div class="col">
+          <label class="f">Excelファイルを取り込む（.xlsx / .xls）</label>
+          <input type="file" id="xlsxFile" accept=".xlsx,.xls">
+          <div class="small muted" id="xlsxState"></div>
+        </div>
+        <div class="col">
+          <label class="f">Word等からコピーした雑なテキストを貼り付ける</label>
+          <textarea id="pasteArea" placeholder="きれいな表でなくてOK。〒や住所・名前が混ざった雑な文でも、自動で整えて取り込みます。取り込んだ後に下の表で手直しできます。"></textarea>
+          <div class="btnrow"><button class="primary" id="pasteBtn">貼り付けたテキストを整えて取り込む</button></div>
+        </div>
+      </div>
+      <div class="hint">取り込むと現在の条件で<b>自動判定して②へ移動</b>します。間違って分かれた住所・氏名は①へ戻って黄色いセルで直し、②で判定し直してください。</div>
+      <div class="stat"><div><span class="muted small">取り込み件数</span><b id="cntTotal">0</b></div></div>
+      <div class="btnrow"><button id="addRow">＋ 行を追加</button><button id="clearImportedList">取り込みリストをリフレッシュ</button><button class="primary" id="goJudge">②で判定する →</button><span class="muted small" id="rawNote"></span></div>
+      <div class="tablewrap"><table id="rawTable"><thead><tr><th>氏名</th><th>カナ</th><th>郵便番号</th><th>住所</th><th>請求日</th><th></th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ② 抽出・選択 -->
+  <section class="view" id="v-sel">
+    <div class="card">
+      <h2>② 抽出条件</h2>
+      <div class="row">
+        <div class="col"><label class="f">駅まで移動時間の上限（分）</label><input type="number" id="cWalk" value="20"></div>
+        <div class="col"><label class="f">電車に乗る時間の上限（分）</label><input type="number" id="cTrain" value="30"></div>
+        <div class="col"><label class="f">駅まで＋電車の合計時間の上限（分）</label><input type="number" id="cTotal" value="60"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label class="f">駅までの移動手段</label>
+          <select id="cMode"><option value="walk">徒歩（約4.8km/h）</option><option value="bike" selected>自転車（約13km/h）</option></select></div>
+        <div class="col"><label class="f">道路補正係数（直線距離×この値）</label><input type="number" step="0.05" id="cRoad" value="1.30"></div>
+        <div class="col" style="display:flex;align-items:flex-end"><label class="small"><input type="checkbox" id="cLow" style="width:auto"> 市区町村だけ一致の低精度候補も一次候補に入れる</label></div>
+      </div>
+      <div class="btnrow"><button class="primary" id="applyBtn">この条件で判定する</button><button id="backRaw">① 取り込み内容を手直し</button><span class="muted small" id="selNote"></span></div>
+      <div class="stat">
+        <div><span class="muted small">全件</span><b id="sTotal">0</b></div>
+        <div><span class="muted small">一次候補</span><b id="sPrimary">0</b></div>
+        <div><span class="muted small">要確認</span><b id="sCheck">0</b></div>
+        <div><span class="muted small">除外</span><b id="sExcl">0</b></div>
+        <div><span class="muted small">送付済み</span><b id="sSent">0</b></div>
+        <div><span class="muted small">前回取り込み済み</span><b id="sSeen">0</b></div>
+        <div><span class="muted small">送付対象</span><b id="sSel">0</b></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>送る相手を選ぶ</h2>
+      <div class="row">
+        <div class="col" style="max-width:230px"><label class="f">表示</label>
+          <select id="selShow"><option value="all">全部</option><option value="primcheck">一次候補＋要確認</option><option value="primary">一次候補だけ</option></select></div>
+        <div class="col" style="max-width:230px"><label class="f">並び替え</label>
+          <select id="selSort"><option value="total">合計時間が短い順</option><option value="walk">駅まで時間が短い順</option><option value="train">電車時間が短い順</option><option value="orig">元の順</option></select></div>
+      </div>
+      <div class="btnrow">
+        <button id="checkShown">表示中を全部チェック</button>
+        <button id="checkNone">全部チェック外す</button>
+        <button class="primary right" id="toQueue">チェックした人を印刷待ちへ →</button>
+      </div>
+      <div id="selEmpty" class="hint" style="display:none"></div>
+      <div class="tablewrap" style="margin-top:8px"><table id="selTable">
+        <thead><tr><th>送付</th><th>判定</th><th>氏名</th><th>郵便番号</th><th>住所</th><th>最寄り京成駅</th><th>駅まで</th><th>電車</th><th>合計</th><th>理由</th></tr></thead>
+        <tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ③ 印刷 -->
+  <section class="view" id="v-print">
+    <div class="card">
+      <h2>③ 印刷待ちキュー（UNIPACK A4 新24面）</h2>
+      <div class="row">
+        <div class="col"><label class="f">印刷開始位置（1〜24）</label><input type="number" id="pStart" min="1" max="24" value="1"></div>
+        <div class="col"><label class="f">文字サイズ（pt）</label><input type="number" id="pFont" min="7" max="16" value="10"></div>
+        <div class="col"><label class="f">敬称</label><input type="text" id="pHon" value="様"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label class="f">左右位置の微調整（mm）</label><input type="number" step="0.5" id="pOffX" value="0"></div>
+        <div class="col"><label class="f">上下位置の微調整（mm）</label><input type="number" step="0.5" id="pOffY" value="0"></div>
+        <div class="col" style="display:flex;align-items:flex-end;gap:8px">
+          <button class="primary" id="doPrint">印刷する</button><button id="clearQueue">キューを空に</button></div>
+      </div>
+      <div class="hint">印刷ダイアログで「用紙=A4」「余白=なし」「拡大縮小=100%」に。1枚=24件。ずれたら上の微調整(mm)で合わせます。<br><b>給紙トレイ（スロット）を選ぶには:</b> Chromeのダイアログの「詳細設定」にトレイ項目が無ければ、左下の「システムダイアログを使用して印刷...」（⌘+Option+P）→ macOSのダイアログで「用紙送り」やプリンターオプションからトレイを選択。一度選べばプリンター側が記憶することが多いです。</div>
+      <div class="stat"><div><span class="muted small">キュー件数</span><b id="qCount">0</b></div></div>
+      <h2 style="margin-top:14px">印刷待ちの一覧（この人たちが印刷されます）</h2>
+      <div class="tablewrap" style="max-height:32vh"><table id="qTable"><thead><tr><th>#</th><th>氏名</th><th>郵便番号</th><th>住所</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="btnrow"><button id="markSent">印刷したら「送付済み」にして履歴へ記録</button></div>
+      <h2 style="margin-top:14px">プレビュー</h2>
+      <div class="previewframe"><div id="preview" style="transform-origin:top left"></div></div>
+    </div>
+  </section>
+
+  <!-- 京成駅・辞書 -->
+  <section class="view" id="v-dict">
+    <div class="card">
+      <h2>京成駅リスト（京成船橋〜京成成田）</h2>
+      <div class="hint">各駅の「基準駅(八千代台)までの電車時間(分)」。<b>数値は私の概算なので、実際に合わせて直してください。</b>この時間が②の「電車時間」「合計時間」の判定に使われます。</div>
+      <div class="tablewrap" style="max-height:40vh"><table id="staTable">
+        <thead><tr><th>京成駅</th><th>電車（八千代台まで・分）</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="btnrow"><button id="addSta">＋ 駅を追加</button><button id="resetSta">京成本線の初期値に戻す</button></div>
+    </div>
+    <div class="card">
+      <h2>住所 → 最寄り京成駅 の対応</h2>
+      <div class="hint">住所や郵便番号から「最寄り京成駅・駅までの距離(km)」を引く表。<b>一致キー</b>＝郵便番号の先頭3桁、または市区町村・町名のキーワード。上から順に最初に一致した行を使います。精度＝高/中/低（低＝市区町村だけの大雑把な一致）。<b>あなたの実データに合わせて足してください。</b></div>
+      <div class="tablewrap"><table id="geoTable">
+        <thead><tr><th>一致キー（郵便3桁 or 地名）</th><th>精度</th><th>最寄り京成駅</th><th>駅まで距離km</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="btnrow">
+        <button id="addGeo">＋ 行を追加</button>
+        <button id="exportDict">辞書をJSON書き出し</button>
+        <label style="display:inline-flex;align-items:center;padding:8px 14px;border:1px solid var(--line);border-radius:8px;cursor:pointer">辞書をJSON読み込み<input type="file" id="importDict" accept=".json" style="display:none"></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 履歴・バックアップ -->
+  <section class="view" id="v-hist">
+    <div class="card"><h2>送付済みの人（二重発送防止台帳）</h2>
+      <div class="hint">③で「送付済み」にした人を<b>個人単位</b>で記録します。以後の取り込みで同じ人が来ても<b>自動で除外</b>されます（②で「送付済み」表示・チェック不可）。誤登録はここで削除すると候補に戻ります。</div>
+      <div class="stat"><div><span class="muted small">送付済み台帳</span><b id="sentCount">0</b></div><div><span class="muted small">取り込み済み記録</span><b id="seenCount">0</b></div></div>
+      <div class="row"><div class="col"><label class="f">検索（氏名・住所）</label><input id="sentSearch" placeholder="例: 山田"></div></div>
+      <div class="tablewrap" style="max-height:34vh;margin-top:6px"><table id="sentTable"><thead><tr><th>氏名</th><th>郵便番号</th><th>住所</th><th>送付日</th><th></th></tr></thead><tbody></tbody></table></div>
+      <label class="f" style="margin-top:12px">過去に送った人を後から登録する（名前・住所を貼り付け）</label>
+      <textarea id="sentPaste" style="min-height:70px" placeholder="この機能を入れる前に発送した人をここに貼って登録しておくと、次回の取り込みから自動で除外されます。形式は①の貼り付けと同じで雑でOK。"></textarea>
+      <div class="btnrow"><button class="primary" id="sentAdd">貼り付けた人を送付済みに登録</button><button id="seenClear">取り込み済み記録を全部消す</button></div>
+    </div>
+    <div class="card"><h2>送付履歴</h2>
+      <div class="tablewrap"><table id="histTable"><thead><tr><th>送付日時</th><th>件数</th><th>氏名（先頭）</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="card"><h2>学校台帳アプリへ渡す</h2>
+      <div class="hint">送付済みの人を、<b>現在の辞書で距離帯を計算し直して</b>JSONに書き出します。学校台帳アプリ側で取り込むと、送った人のうち誰から反応があったかを紐づけて、<b>距離帯ごとの反応率</b>が出せます。<br>個人情報を含むファイルです。<b>このMacの中だけで扱い、外へ出さないこと。</b></div>
+      <div class="btnrow">
+        <button class="primary" id="exportLedger">送付済みをJSON書き出し（学校台帳用）</button>
+        <span class="hint" id="exportLedgerInfo" style="align-self:center"></span>
+      </div>
+    </div>
+    <div class="card"><h2>バックアップ（全データ）</h2>
+      <div class="hint">データはこのブラウザ内（このHTMLの場所）に保存されます。<b>大事なデータは定期的にJSONで書き出してください。</b></div>
+      <div class="btnrow">
+        <button class="primary" id="backup">全データをJSON書き出し</button>
+        <label style="display:inline-flex;align-items:center;padding:8px 14px;border:1px solid var(--line);border-radius:8px;cursor:pointer">JSONから復元<input type="file" id="restore" accept=".json" style="display:none"></label>
+        <button id="wipe">取り込み中の名簿だけ消す</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="sheet"></div>
+
+<script>
+"use strict";
+const LS="label_app_v2";
+const PRESET={cols:3,rows:8,ml:6.0,mt:12.9,w:66.0,h:33.9,gx:0,gy:0};
+const SPEED={walk:4.8,bike:13};
+const ALIAS={request_date:["資料請求日","請求日","申込日","登録日","作成日"],name:["氏名","名前","お名前","保護者氏名","請求者氏名"],
+  kana:["氏名(カナ)","フリガナ","ふりがな","カナ","氏名カナ"],postal_code:["郵便番号","〒","郵便"],address:["住所","現住所","都道府県住所","所在地"]};
+// 京成本線 京成船橋〜京成成田（電車時間は八千代台までの概算・分。要編集）
+const KEISEI=[
+  {name:"京成船橋",train:13},{name:"大神宮下",train:11},{name:"船橋競馬場",train:9},{name:"谷津",train:8},
+  {name:"京成津田沼",train:6},{name:"京成大久保",train:4},{name:"実籾",train:2},{name:"八千代台",train:0},
+  {name:"京成大和田",train:2},{name:"勝田台",train:4},{name:"志津",train:6},{name:"ユーカリが丘",train:8},
+  {name:"京成臼井",train:10},{name:"京成佐倉",train:13},{name:"大佐倉",train:15},{name:"京成酒々井",train:17},
+  {name:"宗吾参道",train:19},{name:"公津の杜",train:21},{name:"京成成田",train:24}
+];
+const GEO=[
+  {key:"八千代台",prec:"高",station:"八千代台",km:0.8},
+  {key:"勝田台",prec:"高",station:"勝田台",km:0.8},
+  {key:"八千代市",prec:"低",station:"勝田台",km:2.5},
+  {key:"習志野市",prec:"低",station:"京成津田沼",km:2.0},
+  {key:"船橋市",prec:"低",station:"京成船橋",km:2.5},
+  {key:"佐倉市",prec:"低",station:"京成佐倉",km:2.5},
+  {key:"成田市",prec:"低",station:"京成成田",km:2.5}
+];
+
+const IID=Math.random().toString(36).slice(2); // このウインドウの識別子
+let state=load();
+function base(){return{recipients:[],judged:[],queue:[],history:[],sent:[],seen:[],batchSeq:0,
+  stations:JSON.parse(JSON.stringify(KEISEI)),geo:JSON.parse(JSON.stringify(GEO)),
+  settings:{cWalk:20,cTrain:30,cTotal:60,cMode:"bike",cRoad:1.30,cLow:false,pStart:1,pFont:10,pHon:"様",pOffX:0,pOffY:0}};}
+function load(){try{const s=JSON.parse(localStorage.getItem(LS));if(s)return Object.assign(base(),s);}catch(e){}return base();}
+function save(){state._savedAt=Date.now();state._savedBy=IID;localStorage.setItem(LS,JSON.stringify(state));}
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function norm(s){return (s==null?"":String(s)).trim();}
+
+// ===== 同一人物の照合キー（二重発送防止の心臓部） =====
+// 氏名＋郵便番号、氏名＋住所先頭のどちらかが一致したら「同じ人」とみなす。
+function normKey(s){return toHalf(String(s==null?"":s)).replace(/[\s　]/g,"").replace(/[‐‑–—ー−－-]/g,"").toLowerCase();}
+function personKeys(p){
+  const n=normKey(p.name);if(!n)return[];
+  const pc=String(p.postal||"").replace(/[^0-9]/g,"");
+  const ad=normKey(p.address);
+  const keys=[];
+  if(pc)keys.push(n+"|p"+pc);
+  if(ad)keys.push(n+"|a"+ad.slice(0,14));
+  if(!keys.length)keys.push(n+"|only");
+  return keys;
+}
+let _sentMap=null,_seenMap=null;
+function sentDirty(){_sentMap=null;}
+function seenDirty(){_seenMap=null;}
+function sentMap(){if(!_sentMap){_sentMap=new Map();(state.sent||[]).forEach(r=>personKeys(r).forEach(k=>{if(!_sentMap.has(k))_sentMap.set(k,r);}));}return _sentMap;}
+function seenMap(){if(!_seenMap){_seenMap=new Map();(state.seen||[]).forEach(r=>personKeys(r).forEach(k=>{if(!_seenMap.has(k))_seenMap.set(k,r);}));}return _seenMap;}
+function findSent(p){const m=sentMap();for(const k of personKeys(p)){if(m.has(k))return m.get(k);}return null;}
+function findSeen(p){const m=seenMap();for(const k of personKeys(p)){if(m.has(k))return m.get(k);}return null;}
+function addSent(p,at){
+  if(findSent(p))return false;
+  state.sent.unshift({name:norm(p.name),postal:norm(p.postal),address:norm(p.address),at:at||new Date().toLocaleString("ja-JP")});
+  sentDirty();return true;
+}
+// 取り込みリスト内の同一人物をまとめる
+function dedupeList(list){
+  const seen=new Set();const out=[];let dup=0;
+  for(const p of list){
+    const keys=personKeys(p);
+    if(keys.length&&keys.some(k=>seen.has(k))){dup++;continue;}
+    keys.forEach(k=>seen.add(k));out.push(p);
+  }
+  return{out,dup};
+}
+
+// タブ
+function gotoTab(v){
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.v===v));
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  document.getElementById("v-"+v).classList.add("active");
+  if(v==="print")renderPreview();
+}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>gotoTab(t.dataset.v));
+function showFlow(kind,title,body,actions=[]){
+  const box=document.getElementById("flowBanner");
+  box.className="flow "+(kind||"");
+  document.getElementById("flowTitle").textContent=title;
+  document.getElementById("flowBody").textContent=body||"";
+  const wrap=document.getElementById("flowActions");wrap.innerHTML="";
+  actions.forEach(a=>{const b=document.createElement("button");b.textContent=a.label;if(a.primary)b.className="primary";b.onclick=a.run;wrap.appendChild(b);});
+}
+function hideFlow(){document.getElementById("flowBanner").className="flow hidden";}
+function judgementCounts(){
+  const J=state.judged;
+  return {total:J.length,primary:J.filter(j=>j.verdict==="一次候補").length,check:J.filter(j=>j.verdict==="要確認").length,
+    excl:J.filter(j=>j.verdict==="除外").length,sent:J.filter(j=>j.verdict==="送付済み").length,
+    seen:J.filter(j=>j.verdict==="取り込み済み").length,selected:J.filter(j=>j.checked).length};
+}
+function selectionActions(){
+  return [
+    {label:"①で手直し",run:()=>gotoTab("in")},
+    {label:"判定し直す",run:()=>judgeAndShow("判定し直しました")},
+    {label:"印刷待ちへ",primary:true,run:()=>document.getElementById("toQueue").click()}
+  ];
+}
+function describeIssues(list){
+  const missName=list.filter(x=>!norm(x.name)).length;
+  const missAddr=list.filter(x=>!norm(x.address)).length;
+  const missPost=list.filter(x=>!norm(x.postal)).length;
+  const bits=[];
+  if(missName)bits.push(`氏名なし ${missName}件`);
+  if(missAddr)bits.push(`住所なし ${missAddr}件`);
+  if(missPost)bits.push(`郵便番号なし ${missPost}件`);
+  return bits.length?`要手直し候補: ${bits.join(" / ")}。`:"氏名・住所・郵便番号は一通り入っています。";
+}
+function finishImport(list,label){
+  const d=dedupeList(list);list=d.out;
+  if(!list.length){
+    setRecipients(list);
+    gotoTab("in");
+    document.getElementById("rawNote").textContent="取り込める行が見つかりませんでした。";
+    showFlow("warn","取り込み対象が見つかりません","テキストの形式を確認するか、下の表に手入力してください。",[{label:"行を追加",primary:true,run:()=>document.getElementById("addRow").click()}]);
+    return;
+  }
+  // この取り込みをバッチとして記録。過去バッチで取り込み済みの人は判定で自動的に外れる。
+  state.batchSeq=(state.batchSeq||0)+1;
+  const at=new Date().toLocaleDateString("ja-JP");
+  const newEntries=[];
+  list.forEach(p=>{p.batch=state.batchSeq;
+    if(!findSeen(p))newEntries.push({name:norm(p.name),postal:norm(p.postal),address:norm(p.address),at,batch:state.batchSeq});});
+  state.seen=(state.seen||[]).concat(newEntries);seenDirty();
+  setRecipients(list);
+  applyJudgement({quiet:true});
+  const c=judgementCounts();
+  gotoTab("sel");
+  document.getElementById("rawNote").textContent="";
+  const extra=[];
+  if(d.dup)extra.push(`同じ人の重複 ${d.dup}件をまとめました`);
+  if(c.sent)extra.push(`送付済み ${c.sent}件を自動で除外しました`);
+  if(c.seen)extra.push(`前回取り込み済み（未送付）${c.seen}件を外してあります（必要ならチェックで戻せます）`);
+  showFlow("success",`${label}から ${list.length}件を取り込みました`,
+    `${extra.length?extra.join("。")+"。 ":""}${describeIssues(list)} 現在の条件で自動判定済みです。一次候補 ${c.primary}件、要確認 ${c.check}件、除外 ${c.excl}件。一次候補は送付対象にチェック済みです。`,
+    selectionActions());
+}
+function invalidateJudgement(message){
+  state.judged=[];save();renderSel();
+  document.getElementById("selNote").textContent="";
+  document.getElementById("rawNote").textContent="名簿を変更しました。②で判定し直してください。";
+  showFlow("warn","取り込み内容を変更しました",message||"前の判定は古くなったので消しました。②で判定し直すと、送付対象のチェックが更新されます。",
+    [{label:"②で判定する",primary:true,run:()=>judgeAndShow("変更内容で判定しました")}]);
+}
+function judgeAndShow(title){
+  if(!applyJudgement({quiet:true}))return false;
+  const c=judgementCounts();
+  gotoTab("sel");
+  showFlow("success",title||"判定しました",
+    `一次候補 ${c.primary}件、要確認 ${c.check}件、除外 ${c.excl}件。一次候補は送付対象にチェック済みです。必要ならチェックを調整してください。`,
+    selectionActions());
+  return true;
+}
+function showStartupGuide(){
+  if(state.queue.length){
+    showFlow("success",`印刷待ちが ${state.queue.length}件あります`,"③印刷で一覧とプレビューを確認できます。印刷済みにしたら履歴へ記録してください。",
+      [{label:"③印刷へ",primary:true,run:()=>gotoTab("print")}]);
+  }else if(state.judged.length){
+    const c=judgementCounts();
+    showFlow("success","判定済みの名簿があります",`一次候補 ${c.primary}件、要確認 ${c.check}件、除外 ${c.excl}件。チェックを確認して印刷待ちへ進めます。`,selectionActions());
+  }else if(state.recipients.length){
+    showFlow("warn","取り込み済みですが、まだ未判定です","②で判定すると候補一覧と送付チェックが出ます。",
+      [{label:"②で判定する",primary:true,run:()=>judgeAndShow("判定しました")}]);
+  }else hideFlow();
+}
+
+// ===== 取り込み =====
+function pickCol(h,al){for(let i=0;i<h.length;i++){const x=norm(h[i]);for(const a of al){if(x===a||x.includes(a))return i;}}return -1;}
+function rowsToRecipients(rows){
+  if(!rows.length)return [];
+  const header=rows[0].map(norm);
+  const looks=Object.values(ALIAS).some(al=>pickCol(header,al)>=0);
+  let idx,data;
+  if(looks){idx={name:pickCol(header,ALIAS.name),kana:pickCol(header,ALIAS.kana),postal:pickCol(header,ALIAS.postal_code),address:pickCol(header,ALIAS.address),date:pickCol(header,ALIAS.request_date)};data=rows.slice(1);}
+  else{idx={name:0,kana:1,postal:2,address:3,date:4};data=rows;}
+  const out=[];
+  for(const r of data){const name=norm(r[idx.name]),address=norm(r[idx.address]);if(!name&&!address)continue;
+    out.push({name,kana:norm(r[idx.kana]),postal:norm(r[idx.postal]),address,date:norm(r[idx.date])});}
+  return out;
+}
+// 雑テキスト整形
+function toHalf(s){return s.replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/　/g," ");}
+// KGの資料請求メール形式（■見出しの次の行が値・1通=1人・"資料送付先"を採用）専用パーサ
+function parseKG(text){
+  const lines=text.split(/\r?\n/).map(l=>l.replace(/　/g," ").trim());
+  const starts=[];
+  for(let i=0;i<lines.length;i++){if(/お名前/.test(lines[i])&&/資料送付先/.test(lines[i]))starts.push(i);}
+  if(!starts.length)return null;
+  starts.push(lines.length);
+  const out=[];
+  for(let s=0;s<starts.length-1;s++){
+    const seg=lines.slice(starts[s],starts[s+1]);
+    const get=(pred)=>{for(let i=0;i<seg.length;i++){if(pred(seg[i])){
+      for(let j=i+1;j<seg.length;j++){const v=seg[j].trim();if(v==="")continue;
+        if(v.startsWith("■")||v.startsWith("【")||/^[─＿￣–—-]{3,}/.test(v))return "";return v;}return "";}}return "";};
+    const name=get(l=>/お名前/.test(l)&&/資料送付先/.test(l));
+    const kana=get(l=>/フリガナ/.test(l)&&/資料送付先/.test(l))||get(l=>/フリガナ/.test(l));
+    const pm=get(l=>/郵便番号/.test(l)).match(/\d{3}-?\d{4}/);
+    const postal=pm?pm[0].replace(/^(\d{3})(\d{4})$/,"$1-$2"):"";
+    const pref=get(l=>/都道府県/.test(l)),city=get(l=>/市区町村/.test(l)),town=get(l=>/町名/.test(l)),banchi=get(l=>/番地/.test(l)),bldg=get(l=>/建物名/.test(l));
+    const address=[pref,city,town,banchi,bldg].filter(Boolean).join("");
+    if(name||address)out.push({name,kana,postal,address,date:""});
+  }
+  return out;
+}
+function parseMessy(text){
+  text=toHalf(text);
+  if(/お名前/.test(text)&&/資料送付先/.test(text)){const kg=parseKG(text);if(kg&&kg.length)return kg;}
+  if(text.includes("\t")||/^[^\n]*,[^\n]*,/.test(text)){ // 表っぽい→列で読む
+    const rows=text.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.includes("\t")?l.split("\t"):l.split(","));
+    const r=rowsToRecipients(rows); if(r.length)return r;
+  }
+  let blocks;
+  if(/\n\s*\n/.test(text))blocks=text.split(/\n\s*\n/);
+  else{const n=(text.match(/\d{3}[-ー－\s]?\d{4}/g)||[]).length;
+    blocks=(n>=2)?text.split(/(?=〒?\s*\d{3}[-ー－\s]?\d{4})/):text.split(/\r?\n/);}
+  const out=[];
+  for(let b of blocks){b=b.trim();if(!b)continue;const r=extractOne(b);if(r.name||r.address||r.postal)out.push(r);}
+  return out;
+}
+function extractOne(b){
+  let postal="";const pm=b.match(/(\d{3})[-ー－\s]?(\d{4})/);
+  if(pm){postal=pm[1]+"-"+pm[2];b=b.replace(pm[0],"").replace(/〒/g,"");}
+  const parts=b.split(/[\n,、\t]+/).map(s=>s.trim()).filter(Boolean);
+  const addr=[],nm=[];
+  for(const p of parts){ if(/[都道府県市区郡町村]|丁目|番地|[0-9]|−|-/.test(p))addr.push(p); else nm.push(p); }
+  let name=nm.join(" ").replace(/\s*(様|さん|君|ちゃん)\s*$/,"").trim();
+  let address=addr.join(" ").trim();
+  // 住所側の末尾に名前(様)が紛れている場合の救済
+  const hm=address.match(/([一-龠ぁ-んァ-ヶ]{2,8})\s*様\s*$/);
+  if(!name&&hm){name=hm[1];address=address.replace(hm[0],"").trim();}
+  return {name,kana:"",postal,address};
+}
+function setRecipients(list){state.recipients=list;state.judged=[];save();renderRaw();renderSel();}
+function renderRaw(){
+  document.getElementById("cntTotal").textContent=state.recipients.length;
+  const tb=document.querySelector("#rawTable tbody");tb.innerHTML="";
+  state.recipients.forEach((p,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td contenteditable data-i="${i}" data-k="name">${esc(p.name)}</td>
+      <td contenteditable data-i="${i}" data-k="kana">${esc(p.kana)}</td>
+      <td contenteditable data-i="${i}" data-k="postal">${esc(p.postal)}</td>
+      <td contenteditable data-i="${i}" data-k="address">${esc(p.address)}</td>
+      <td contenteditable data-i="${i}" data-k="date">${esc(p.date||"")}</td>
+      <td><button data-del="${i}">削除</button></td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll("td[contenteditable]").forEach(td=>td.onblur=()=>{const i=+td.dataset.i,k=td.dataset.k,next=td.textContent.trim();
+    if(state.recipients[i]&&state.recipients[i][k]!==next){state.recipients[i][k]=next;invalidateJudgement("黄色いセルの内容を変更しました。");}
+    else save();
+  });
+  tb.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{state.recipients.splice(+b.dataset.del,1);renderRaw();invalidateJudgement("行を削除しました。");});
+}
+document.getElementById("addRow").onclick=()=>{state.recipients.push({name:"",kana:"",postal:"",address:"",date:""});renderRaw();invalidateJudgement("行を追加しました。");};
+document.getElementById("goJudge").onclick=()=>judgeAndShow("判定しました");
+document.getElementById("xlsxFile").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const st=document.getElementById("xlsxState");
+  if(typeof XLSX==="undefined"){st.textContent="Excelライブラリを取得できません（オフラインの可能性）。テキスト貼り付けをお使いください。";return;}
+  const rd=new FileReader();rd.onload=ev=>{try{
+    const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
+    const list=rowsToRecipients(rows);st.textContent=`「${f.name}」から ${list.length} 件。`;finishImport(list,`Excel「${f.name}」`);
+  }catch(err){st.textContent="読み込みエラー: "+err.message;}};rd.readAsArrayBuffer(f);
+};
+document.getElementById("pasteBtn").onclick=()=>{
+  const t=document.getElementById("pasteArea").value;if(!t.trim()){alert("テキストが空です。");return;}
+  const list=parseMessy(t);finishImport(list,"貼り付けテキスト");
+};
+
+// ===== 判定 =====
+function val(id){return document.getElementById(id).value;}
+function readSettings(){const s=state.settings;s.cWalk=+val("cWalk");s.cTrain=+val("cTrain");s.cTotal=+val("cTotal");
+  s.cMode=val("cMode");s.cRoad=+val("cRoad");s.cLow=document.getElementById("cLow").checked;save();}
+function stationTrain(name){const st=state.stations.find(x=>x.name===name);return st?(+st.train||0):0;}
+function matchGeo(p){
+  const pc=(p.postal||"").replace(/[^0-9]/g,"").slice(0,3);
+  const hay=(p.address||"")+" "+(p.postal||"");
+  for(const g of state.geo){const k=norm(g.key);if(!k)continue;
+    if(/^\d{3}$/.test(k)){if(pc===k)return g;}else if(hay.includes(k))return g;}
+  return null;
+}
+function judgeOne(p){
+  // ① 送付済みの人は最優先で弾く（チェック不可）
+  const sentRec=findSent(p);
+  if(sentRec)return{p,verdict:"送付済み",station:"-",walk:null,train:null,total:null,reason:"送付済み（"+(sentRec.at||"日時不明")+"）二重発送防止",low:false};
+  const s=state.settings,g=matchGeo(p);
+  let res;
+  if(!g)res={p,verdict:"除外",station:"-",walk:null,train:null,total:null,reason:"辞書に一致なし",low:false};
+  else{
+    const speed=SPEED[s.cMode]||SPEED.bike;
+    const walk=(g.km/speed)*60*(s.cRoad||1);
+    const train=stationTrain(g.station);
+    const total=walk+train;const low=(g.prec==="低");
+    let verdict,reason="";
+    if(walk>s.cWalk){verdict="除外";reason=`駅まで${Math.round(walk)}分>上限${s.cWalk}`;}
+    else if(train>s.cTrain){verdict="除外";reason=`電車${train}分>上限${s.cTrain}`;}
+    else if(total>s.cTotal){verdict="除外";reason=`合計${Math.round(total)}分>上限${s.cTotal}`;}
+    else if(low&&!s.cLow){verdict="要確認";reason="低精度（市区町村のみ一致）";}
+    else{verdict="一次候補";reason=low?"低精度だが条件内":"条件内";}
+    res={p,verdict,station:g.station,walk,train,total,reason,low};
+  }
+  // ② 過去の取り込みに居た未送付の人は、既定でチェックを外す（チェックすれば送れる）
+  const seenRec=findSeen(p);
+  if(seenRec&&p.batch&&seenRec.batch&&seenRec.batch!==p.batch){
+    res.prevVerdict=res.verdict;
+    res.verdict="取り込み済み";
+    res.reason=`前回取り込み済み（${seenRec.at||""}・未送付）／今回の条件判定: ${res.prevVerdict}${res.reason?"・"+res.reason:""}`;
+  }
+  return res;
+}
+function applyJudgement(opts={}){
+  if(!state.recipients.length){if(!opts.quiet)alert("先に名簿を取り込んでください。");return false;}
+  readSettings();
+  state.judged=state.recipients.map(judgeOne);
+  state.judged.forEach(j=>j.checked=(j.verdict==="一次候補"));
+  save();renderSel();
+  const c=judgementCounts();
+  document.getElementById("rawNote").textContent="";
+  document.getElementById("selNote").textContent=`一次候補 ${c.primary}件 / 要確認 ${c.check}件 / 除外 ${c.excl}件`;
+  return true;
+}
+document.getElementById("applyBtn").onclick=()=>judgeAndShow("判定しました");
+document.getElementById("backRaw").onclick=()=>gotoTab("in");
+function shownList(){
+  const show=val("selShow"),sort=val("selSort");
+  let arr=state.judged.map((j,i)=>({j,i}));
+  if(show==="primary")arr=arr.filter(o=>o.j.verdict==="一次候補");
+  else if(show==="primcheck")arr=arr.filter(o=>o.j.verdict==="一次候補"||o.j.verdict==="要確認");
+  const key={total:"total",walk:"walk",train:"train"}[sort];
+  if(key)arr.sort((a,b)=>((a.j[key]==null?1e9:a.j[key])-(b.j[key]==null?1e9:b.j[key])));
+  return arr;
+}
+function renderSel(){
+  const J=state.judged;
+  document.getElementById("sTotal").textContent=J.length;
+  document.getElementById("sPrimary").textContent=J.filter(j=>j.verdict==="一次候補").length;
+  document.getElementById("sCheck").textContent=J.filter(j=>j.verdict==="要確認").length;
+  document.getElementById("sExcl").textContent=J.filter(j=>j.verdict==="除外").length;
+  document.getElementById("sSent").textContent=J.filter(j=>j.verdict==="送付済み").length;
+  document.getElementById("sSeen").textContent=J.filter(j=>j.verdict==="取り込み済み").length;
+  const empty=document.getElementById("selEmpty");
+  if(!J.length){
+    empty.style.display="block";
+    empty.textContent=state.recipients.length?"取り込み済みの名簿があります。上の「この条件で判定する」を押すと、候補の一覧とチェック欄が出ます。":"まだ名簿がありません。①で取り込むか、行を追加してください。";
+  }else empty.style.display="none";
+  const tb=document.querySelector("#selTable tbody");tb.innerHTML="";
+  if(!J.length){
+    const tr=document.createElement("tr");tr.className="emptyrow";
+    tr.innerHTML=`<td colspan="10">${state.recipients.length?"未判定です。上のボタンで判定してください。":"①で名簿を取り込むと、ここに候補が表示されます。"}</td>`;
+    tb.appendChild(tr);updSel();return;
+  }
+  shownList().forEach(o=>{const j=o.j,i=o.i;
+    const pill=j.verdict==="一次候補"?'<span class="pill ok">一次候補</span>':j.verdict==="要確認"?'<span class="pill warn">要確認</span>':
+      j.verdict==="送付済み"?'<span class="pill low">送付済み</span>':j.verdict==="取り込み済み"?'<span class="pill bad">取り込み済み</span>':'<span class="pill bad">除外</span>';
+    const noCheck=(j.verdict==="送付済み");
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td style="text-align:center"><input type="checkbox" data-i="${i}" ${j.checked?"checked":""} ${noCheck?'disabled title="送付済みのため選べません。再送するなら履歴タブの台帳から削除してください。"':""} style="width:auto"></td>
+      <td>${pill}${j.low?' <span class="pill low">低</span>':''}</td>
+      <td>${esc(j.p.name)}</td><td>${esc(j.p.postal)}</td><td>${esc(j.p.address)}</td><td>${esc(j.station)}</td>
+      <td>${j.walk==null?'-':Math.round(j.walk)+'分'}</td><td>${j.train==null?'-':j.train+'分'}</td>
+      <td>${j.total==null?'-':Math.round(j.total)+'分'}</td><td class="small muted">${esc(j.reason)}</td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll("input[type=checkbox]").forEach(c=>c.onchange=()=>{state.judged[+c.dataset.i].checked=c.checked;save();updSel();});
+  updSel();
+}
+function updSel(){document.getElementById("sSel").textContent=state.judged.filter(j=>j.checked).length;}
+document.getElementById("selShow").onchange=renderSel;
+document.getElementById("selSort").onchange=renderSel;
+document.getElementById("checkShown").onclick=()=>{shownList().forEach(o=>{if(o.j.verdict!=="送付済み")state.judged[o.i].checked=true;});save();renderSel();};
+document.getElementById("checkNone").onclick=()=>{state.judged.forEach(j=>j.checked=false);save();renderSel();};
+document.getElementById("toQueue").onclick=()=>{
+  const picked=state.judged.filter(j=>j.checked);
+  if(!picked.length){alert("チェックした人がいません。");return;}
+  // 二重発送防止: 送付済みの人と、印刷待ちに既にいる人はスキップ
+  const qKeys=new Set();state.queue.forEach(p=>personKeys(p).forEach(k=>qKeys.add(k)));
+  let skipSent=0,skipQ=0;const add=[];
+  for(const j of picked){
+    const p=j.p;
+    if(findSent(p)){skipSent++;continue;}
+    const keys=personKeys(p);
+    if(keys.some(k=>qKeys.has(k))){skipQ++;continue;}
+    keys.forEach(k=>qKeys.add(k));
+    add.push({name:p.name,postal:p.postal,address:p.address,hon:state.settings.pHon});
+  }
+  const skipped=[];if(skipSent)skipped.push(`送付済み ${skipSent}人`);if(skipQ)skipped.push(`印刷待ちに既にいる ${skipQ}人`);
+  if(!add.length){alert("追加できる人がいませんでした。"+(skipped.length?skipped.join("・")+"を二重発送防止のためスキップしました。":""));return;}
+  state.queue=state.queue.concat(add);save();
+  gotoTab("print"); // 自動で③印刷へ移動して一覧・プレビューを見せる
+  showFlow("success",`${add.length}件を印刷待ちへ追加しました`,
+    (skipped.length?`${skipped.join("・")}は二重発送防止のためスキップしました。 `:"")+
+    "下の一覧とプレビューに、このあと印刷される宛名が出ています。開始位置や文字サイズを確認してから印刷してください。",
+    [{label:"②に戻る",run:()=>gotoTab("sel")},{label:"印刷する",primary:true,run:()=>document.getElementById("doPrint").click()}]);
+};
+
+// ===== 印刷 =====
+function buildLabels(target){
+  const s=state.settings;target.innerHTML="";
+  const per=PRESET.cols*PRESET.rows;
+  const offset=Math.min(Math.max(1,+s.pStart||1),per)-1;
+  const items=state.queue;const pages=Math.ceil((offset+items.length)/per)||0;
+  for(let pg=0;pg<pages;pg++){
+    const a4=document.createElement("div");a4.className="a4";target.appendChild(a4);
+    for(let cell=0;cell<per;cell++){
+      const idx=pg*per+cell-offset;if(idx<0||idx>=items.length)continue;
+      const it=items[idx];const r=Math.floor(cell/PRESET.cols),c=cell%PRESET.cols;
+      const left=PRESET.ml+c*(PRESET.w+PRESET.gx)+(+s.pOffX||0);
+      const top=PRESET.mt+r*(PRESET.h+PRESET.gy)+(+s.pOffY||0);
+      const d=document.createElement("div");d.className="lbl";
+      d.style.left=left+"mm";d.style.top=top+"mm";d.style.width=PRESET.w+"mm";d.style.height=PRESET.h+"mm";d.style.fontSize=(+s.pFont||10)+"pt";
+      d.innerHTML=`<div class="pc">${esc(it.postal?("〒"+it.postal):"")}</div><div class="ad">${esc(it.address)}</div><div class="nm">${esc(it.name)}　${esc(it.hon||s.pHon||"様")}</div>`;
+      a4.appendChild(d);
+    }
+  }
+}
+function renderQueueList(){
+  const tb=document.querySelector("#qTable tbody");if(!tb)return;tb.innerHTML="";
+  if(!state.queue.length){
+    const tr=document.createElement("tr");tr.className="emptyrow";
+    tr.innerHTML='<td colspan="5">印刷待ちは空です。②で送付対象をチェックして「印刷待ちへ」を押すと、ここに表示されます。</td>';
+    tb.appendChild(tr);return;
+  }
+  state.queue.forEach((it,i)=>{const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${i+1}</td><td>${esc(it.name)}</td><td>${esc(it.postal)}</td><td>${esc(it.address)}</td><td><button data-q="${i}">削除</button></td>`;tb.appendChild(tr);});
+  tb.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{state.queue.splice(+b.dataset.q,1);save();renderPreview();});
+}
+function renderPreview(){
+  document.getElementById("qCount").textContent=state.queue.length;
+  renderQueueList();
+  const pv=document.getElementById("preview");buildLabels(pv);
+  const scale=Math.min(1,(pv.parentElement.clientWidth-4)/(210*3.7795));
+  pv.style.transform="scale("+scale+")";pv.style.height=(pv.scrollHeight*scale)+"px";
+}
+["pStart","pFont","pHon","pOffX","pOffY"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  const s=state.settings;s.pStart=+val("pStart");s.pFont=+val("pFont");s.pHon=val("pHon");s.pOffX=+val("pOffX");s.pOffY=+val("pOffY");save();renderPreview();}));
+document.getElementById("doPrint").onclick=()=>{
+  if(!state.queue.length){alert("印刷待ちが空です。");return;}
+  // 最終安全弁: 印刷直前にも送付済みチェック（前回印刷後に「送付済み」を押し忘れて再印刷、等を捕まえる）
+  const dup=state.queue.filter(p=>findSent(p));
+  if(dup.length&&!confirm(`⚠ 印刷待ちの中に送付済みの人が ${dup.length}人います:\n${dup.slice(0,5).map(p=>p.name).join("、")}${dup.length>5?" ほか":""}\n\nこのまま印刷すると二重発送になります。印刷しますか？`))return;
+  buildLabels(document.getElementById("sheet"));window.print();};
+document.getElementById("clearQueue").onclick=()=>{if(confirm("印刷待ちを空にしますか？")){state.queue=[];save();renderPreview();}};
+document.getElementById("markSent").onclick=()=>{if(!state.queue.length){alert("キューが空です。");return;}
+  const at=new Date().toLocaleString("ja-JP");let n=0;
+  state.queue.forEach(p=>{if(addSent(p,at))n++;});
+  state.history.unshift({at,count:state.queue.length,head:state.queue.slice(0,3).map(x=>x.name).join("、")});
+  state.queue=[];save();renderPreview();renderHist();renderSent();
+  alert(`履歴に記録し、${n}人を送付済み台帳へ登録しました。\n次回の取り込みから、同じ人は自動で除外されます。`);};
+
+// ===== 京成駅リスト =====
+function renderSta(){
+  const tb=document.querySelector("#staTable tbody");tb.innerHTML="";
+  state.stations.forEach((d,i)=>{const tr=document.createElement("tr");
+    tr.innerHTML=`<td><input data-i="${i}" data-k="name" value="${esc(d.name)}"></td>
+      <td><input type="number" data-i="${i}" data-k="train" value="${d.train}"></td>
+      <td><button data-del="${i}">削除</button></td>`;tb.appendChild(tr);});
+  tb.querySelectorAll("input").forEach(el=>el.onchange=()=>{const i=+el.dataset.i,k=el.dataset.k;state.stations[i][k]=(k==="train")?(+el.value):el.value;save();fillStationOptions();});
+  tb.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{state.stations.splice(+b.dataset.del,1);save();renderSta();fillStationOptions();});
+}
+document.getElementById("addSta").onclick=()=>{state.stations.push({name:"",train:0});save();renderSta();fillStationOptions();};
+document.getElementById("resetSta").onclick=()=>{if(confirm("京成本線の初期値に戻しますか？")){state.stations=JSON.parse(JSON.stringify(KEISEI));save();renderSta();renderGeo();}};
+
+// ===== 住所→駅 辞書 =====
+function stationOptions(sel){return state.stations.map(s=>`<option ${s.name===sel?"selected":""}>${esc(s.name)}</option>`).join("");}
+function renderGeo(){
+  const tb=document.querySelector("#geoTable tbody");tb.innerHTML="";
+  state.geo.forEach((d,i)=>{const tr=document.createElement("tr");
+    tr.innerHTML=`<td><input data-i="${i}" data-k="key" value="${esc(d.key)}"></td>
+      <td><select data-i="${i}" data-k="prec"><option ${d.prec==="高"?"selected":""}>高</option><option ${d.prec==="中"?"selected":""}>中</option><option ${d.prec==="低"?"selected":""}>低</option></select></td>
+      <td><select data-i="${i}" data-k="station">${stationOptions(d.station)}</select></td>
+      <td><input type="number" step="0.1" data-i="${i}" data-k="km" value="${d.km}"></td>
+      <td><button data-del="${i}">削除</button></td>`;tb.appendChild(tr);});
+  tb.querySelectorAll("input,select").forEach(el=>el.onchange=()=>{const i=+el.dataset.i,k=el.dataset.k;state.geo[i][k]=(k==="km")?(+el.value):el.value;save();});
+  tb.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{state.geo.splice(+b.dataset.del,1);save();renderGeo();});
+}
+function fillStationOptions(){renderGeo();}
+document.getElementById("addGeo").onclick=()=>{state.geo.push({key:"",prec:"中",station:state.stations[0]?state.stations[0].name:"",km:2});save();renderGeo();};
+document.getElementById("exportDict").onclick=()=>download("kisei_dict.json",JSON.stringify({stations:state.stations,geo:state.geo},null,2));
+document.getElementById("importDict").onchange=e=>readJSON(e.target.files[0],j=>{if(j.stations)state.stations=j.stations;if(j.geo)state.geo=j.geo;save();renderSta();renderGeo();alert("辞書を読み込みました。");});
+
+// ===== 送付済み台帳（二重発送防止） =====
+function renderSent(){
+  document.getElementById("sentCount").textContent=(state.sent||[]).length;
+  document.getElementById("seenCount").textContent=(state.seen||[]).length;
+  const q=normKey(document.getElementById("sentSearch").value||"");
+  const tb=document.querySelector("#sentTable tbody");tb.innerHTML="";
+  const list=(state.sent||[]).map((r,i)=>({r,i})).filter(o=>!q||normKey(o.r.name).includes(q)||normKey(o.r.address).includes(q));
+  if(!list.length){
+    const tr=document.createElement("tr");tr.className="emptyrow";
+    tr.innerHTML=`<td colspan="5">${q?"検索に一致する人がいません。":"まだ登録がありません。③で「送付済み」にすると自動で登録されます。"}</td>`;
+    tb.appendChild(tr);return;
+  }
+  list.forEach(o=>{const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${esc(o.r.name)}</td><td>${esc(o.r.postal)}</td><td>${esc(o.r.address)}</td><td class="small muted">${esc(o.r.at||"")}</td><td><button data-sdel="${o.i}">削除</button></td>`;
+    tb.appendChild(tr);});
+  tb.querySelectorAll("[data-sdel]").forEach(b=>b.onclick=()=>{
+    const r=state.sent[+b.dataset.sdel];
+    if(confirm(`「${r.name}」を送付済み台帳から削除しますか？\n（次回の取り込みから候補に戻ります）`)){
+      state.sent.splice(+b.dataset.sdel,1);sentDirty();save();renderSent();}});
+}
+document.getElementById("sentSearch").addEventListener("input",renderSent);
+document.getElementById("sentAdd").onclick=()=>{
+  const t=document.getElementById("sentPaste").value;if(!t.trim()){alert("テキストが空です。");return;}
+  const list=parseMessy(t);
+  if(!list.length){alert("名前・住所を読み取れませんでした。①の貼り付けと同じ形式で入れてください。");return;}
+  const at="手動登録 "+new Date().toLocaleDateString("ja-JP");let n=0;
+  list.forEach(p=>{if(addSent(p,at))n++;});
+  save();renderSent();document.getElementById("sentPaste").value="";
+  alert(`${n}人を送付済みに登録しました。`+(list.length-n?`（${list.length-n}人は登録済みでした）`:""));
+};
+document.getElementById("seenClear").onclick=()=>{
+  if(confirm("取り込み済み記録を全部消しますか？\n（送付済み台帳は残ります。過去に取り込んだ未送付の人が、次回また候補として出るようになります）")){
+    state.seen=[];seenDirty();save();renderSent();}};
+
+// ===== 履歴・バックアップ =====
+function renderHist(){const tb=document.querySelector("#histTable tbody");tb.innerHTML="";
+  state.history.forEach(h=>{const tr=document.createElement("tr");tr.innerHTML=`<td>${esc(h.at)}</td><td>${h.count}</td><td>${esc(h.head)}</td>`;tb.appendChild(tr);});}
+function download(name,text){const b=new Blob([text],{type:"application/json"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+function readJSON(f,cb){if(!f)return;const r=new FileReader();r.onload=e=>{try{cb(JSON.parse(e.target.result));}catch(err){alert("JSON読み込みエラー: "+err.message);}};r.readAsText(f);}
+document.getElementById("backup").onclick=()=>{const t=new Date().toISOString().replace(/[:T]/g,"-").slice(0,16);download("label_backup_"+t+".json",JSON.stringify(state,null,2));};
+
+/* ===== 学校台帳アプリへの書き出し =====
+   state.sent は {name,postal,address,at} しか持たず、距離帯は取り込みのたびに消える judged 側にある。
+   そこで書き出し時に、現在の辞書（state.geo / state.stations / state.settings）で
+   距離帯を計算し直す。辞書を育てたあとに書き出せば、過去分も同じ基準で揃う。
+   ※判定ロジックはここが正。学校台帳アプリ側で作り直さないこと（二重実装は必ずズレる）。 */
+const LEDGER_BANDS=[[10,"0-10分"],[20,"10-20分"],[30,"20-30分"],[45,"30-45分"],[Infinity,"45分〜"]];
+function ledgerBand(total){
+  if(total==null||!isFinite(total))return "判定不能";
+  for(const [lim,label] of LEDGER_BANDS){if(total<=lim)return label;}
+  return "45分〜";
+}
+function ledgerZone(p){
+  const g=matchGeo(p);
+  if(!g)return {station:null,trainMin:null,walkMin:null,totalMin:null,band:"判定不能",accuracy:"辞書に一致なし"};
+  const s=state.settings,speed=SPEED[s.cMode]||SPEED.bike;
+  const walk=(g.km/speed)*60*(s.cRoad||1);
+  const train=stationTrain(g.station);
+  const total=walk+train;
+  const acc=g.prec==="高"?"町名一致":(g.prec==="低"?"市区町村のみ一致":"中");
+  return {station:g.station,trainMin:Math.round(train),walkMin:Math.round(walk),
+          totalMin:Math.round(total),band:ledgerBand(total),accuracy:acc};
+}
+function ledgerDate(at){
+  // at は toLocaleString("ja-JP") の文字列（例 "2026/7/15 14:30:00"）。YYYY-MM-DD へ寄せる。
+  const m=String(at||"").match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(!m)return "";
+  return m[1]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[3]).padStart(2,"0");
+}
+function buildLedgerExport(){
+  const seenBatch={};
+  (state.seen||[]).forEach(s=>{const k=norm(s.name)+"|"+norm(s.postal);if(seenBatch[k]===undefined)seenBatch[k]=s.batch;});
+  return (state.sent||[]).map(s=>{
+    const p={name:norm(s.name),postal:norm(s.postal),address:norm(s.address)};
+    return {
+      id:(p.name+"|"+p.postal+"|"+(s.at||"")),
+      name:p.name,postal:p.postal,address:p.address,
+      sentAt:ledgerDate(s.at),sentAtRaw:s.at||"",
+      batch:seenBatch[p.name+"|"+p.postal]??null,
+      zone:ledgerZone(p),
+      matchedPersonId:null
+    };
+  });
+}
+document.getElementById("exportLedger").onclick=()=>{
+  const rows=buildLedgerExport();
+  if(!rows.length){alert("送付済みの記録がまだありません。");return;}
+  const t=new Date().toISOString().slice(0,10);
+  download("school_ledger_sends_"+t+".json",JSON.stringify({
+    exportedAt:new Date().toISOString(),
+    source:"資料請求ラベル管理",
+    dictNote:"距離帯は書き出し時点の辞書・設定で再計算した値",
+    settings:{mode:state.settings.cMode,road:state.settings.cRoad},
+    count:rows.length,
+    sends:rows
+  },null,2));
+  const bands={};rows.forEach(r=>{bands[r.zone.band]=(bands[r.zone.band]||0)+1;});
+  document.getElementById("exportLedgerInfo").textContent=
+    rows.length+"件書き出し（"+Object.entries(bands).map(([k,v])=>k+":"+v).join(" / ")+"）";
+};
+document.getElementById("restore").onchange=e=>readJSON(e.target.files[0],j=>{if(j&&j.recipients!==undefined){state=Object.assign(base(),j);save();refreshAll();alert("復元しました。");}else alert("形式が違います。");});
+function clearImportedList(){
+  if(!state.recipients.length&&!state.judged.length){
+    gotoTab("in");
+    document.getElementById("pasteArea").value="";
+    document.getElementById("xlsxFile").value="";
+    showFlow("warn","取り込みリストは空です","そのまま新しいExcelかテキストを取り込めます。");
+    return;
+  }
+  if(confirm("取り込みリストを空にします。判定も消えます。履歴・辞書・印刷待ちは残ります。")){
+    state.recipients=[];
+    state.judged=[];
+    save();
+    refreshAll();
+    gotoTab("in");
+    document.getElementById("pasteArea").value="";
+    document.getElementById("xlsxFile").value="";
+    document.getElementById("rawNote").textContent="";
+    document.getElementById("selNote").textContent="";
+    showFlow("success","取り込みリストを空にしました","新しいExcelまたはテキストを取り込めます。履歴・辞書・印刷待ちは残っています。");
+  }
+}
+document.getElementById("wipe").onclick=clearImportedList;
+document.getElementById("quickRefresh").onclick=clearImportedList;
+document.getElementById("clearImportedList").onclick=clearImportedList;
+
+// ===== 起動 =====
+function refreshAll(){
+  sentDirty();seenDirty();
+  renderRaw();
+  const s=state.settings;["cWalk","cTrain","cTotal","cMode","cRoad","pStart","pFont","pHon","pOffX","pOffY"].forEach(id=>{if(document.getElementById(id))document.getElementById(id).value=s[id];});
+  document.getElementById("cLow").checked=!!s.cLow;
+  renderSel();renderSta();renderGeo();renderHist();renderSent();document.getElementById("qCount").textContent=state.queue.length;
+  showStartupGuide();
+}
+refreshAll();
+
+// ===== 多重ウインドウ・保存分岐の見張り =====
+// 別ウインドウが同じデータを開いていたら警告する（両方で入力すると保存が上書きされるため）
+const HB=LS+"_hb";
+function heartbeat(){try{
+  const now=Date.now();
+  let hb={};try{hb=JSON.parse(localStorage.getItem(HB))||{};}catch(e){}
+  hb[IID]=now;
+  for(const k in hb){if(now-hb[k]>15000)delete hb[k];}
+  localStorage.setItem(HB,JSON.stringify(hb));
+  const others=Object.keys(hb).filter(k=>k!==IID).length;
+  document.getElementById("multiWarn").style.display=others?"block":"none";
+}catch(e){}}
+setInterval(heartbeat,4000);heartbeat();
+// ウインドウに戻ってきた時、別ウインドウの新しい保存があれば読み直す
+function adoptNewer(){try{
+  const s=JSON.parse(localStorage.getItem(LS));
+  if(s&&s._savedAt&&s._savedBy!==IID&&s._savedAt>(state._savedAt||0)){state=Object.assign(base(),s);refreshAll();}
+}catch(e){}}
+window.addEventListener("focus",adoptNewer);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)adoptNewer();});
+// Dockランチャー以外からの直開き注意（保存場所の分岐防止）
+try{if(location.protocol==="file:"&&!/[?&]app=1/.test(location.search))document.getElementById("openWarn").style.display="block";}catch(e){}
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# 個人情報を含む実データはGit管理・同期しない
+*.sqlite3
+history.sqlite3
+backup/
+.DS_Store

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1500" viewBox="0 0 1500 1500">
+  <rect width="1500" height="1500" fill="#F0E0B8"/>
+  <style>
+    .jp { font-family: "Hiragino Kaku Gothic ProN", sans-serif; font-weight: 900; }
+    .mono { font-family: Menlo, monospace; font-weight: 700; letter-spacing: 7px; }
+  </style>
+
+  <text x="80" y="78" class="mono" font-size="25" fill="#181B38">SHIRANGANA / LOGO SELECT</text>
+
+  <!-- A: cartridge badge -->
+  <g transform="translate(70 125)">
+    <rect x="14" y="18" width="400" height="300" fill="#482132"/>
+    <rect width="400" height="300" fill="#181B38"/>
+    <rect x="24" y="24" width="352" height="252" fill="#B11F2E"/>
+    <path d="M48 104V48H112M288 48H352V104M352 196V252H288M112 252H48V196"
+          fill="none" stroke="#E8AF35" stroke-width="16"/>
+    <text x="200" y="145" text-anchor="middle" class="jp" font-size="72" fill="#FFF7D7">シラン</text>
+    <text x="200" y="225" text-anchor="middle" class="jp" font-size="76" fill="#FFF7D7">ガナ</text>
+    <text x="200" y="352" text-anchor="middle" class="mono" font-size="19" fill="#181B38">A / CARTRIDGE</text>
+  </g>
+
+  <!-- B: catcher brackets -->
+  <g transform="translate(550 125)">
+    <rect x="14" y="18" width="400" height="300" fill="#482132"/>
+    <rect width="400" height="300" fill="#FFF7D7"/>
+    <path d="M40 115V40H115M285 40H360V115M360 185V260H285M115 260H40V185"
+          fill="none" stroke="#E8AF35" stroke-width="20"/>
+    <text x="200" y="174" text-anchor="middle" class="jp" font-size="68" fill="#181B38">シランガナ</text>
+    <rect x="104" y="207" width="192" height="32" fill="#167080"/>
+    <text x="200" y="231" text-anchor="middle" class="mono" font-size="13" fill="#FFF7D7">YOMIGANA GET!</text>
+    <text x="200" y="352" text-anchor="middle" class="mono" font-size="19" fill="#181B38">B / CATCHER</text>
+  </g>
+
+  <!-- C: title screen -->
+  <g transform="translate(1030 125)">
+    <rect x="14" y="18" width="400" height="300" fill="#482132"/>
+    <rect width="400" height="300" fill="#181B38"/>
+    <rect x="28" y="28" width="344" height="244" fill="none" stroke="#167080" stroke-width="8"/>
+    <text x="200" y="122" text-anchor="middle" class="jp" font-size="60" fill="#E8AF35">シランガナ</text>
+    <text x="200" y="170" text-anchor="middle" class="jp" font-size="25" fill="#FFF7D7">よみがなキャッチャー</text>
+    <rect x="112" y="206" width="176" height="43" fill="#B11F2E"/>
+    <text x="200" y="235" text-anchor="middle" class="mono" font-size="16" fill="#FFF7D7">PUSH A BUTTON</text>
+    <text x="200" y="352" text-anchor="middle" class="mono" font-size="19" fill="#181B38">C / TITLE SCREEN</text>
+  </g>
+
+  <g transform="translate(70 570)">
+    <rect width="1360" height="300" fill="#181B38"/>
+    <rect x="18" y="18" width="1324" height="264" fill="none" stroke="#E8AF35" stroke-width="8"/>
+    <text x="680" y="130" text-anchor="middle" class="jp" font-size="94" fill="#FFF7D7">シランガナ：</text>
+    <text x="680" y="218" text-anchor="middle" class="jp" font-size="58" fill="#E8AF35">よみがなキャッチャー</text>
+  </g>
+
+  <text x="750" y="960" text-anchor="middle" class="mono" font-size="19" fill="#181B38">C / TITLE SCREEN</text>
+  <text x="750" y="1110" text-anchor="middle" class="jp" font-size="34" fill="#B11F2E">A：アイコン向け　 B：機能が伝わる　 C：ゲーム感が強い</text>
+  <path d="M430 1195H1070" stroke="#181B38" stroke-width="8"/>
+  <text x="750" y="1300" text-anchor="middle" class="mono" font-size="23" fill="#167080">8-BIT PLAYFUL LOGO STUDY</text>
+</svg>

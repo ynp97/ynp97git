@@ -1,0 +1,16 @@
+Dictionary acknowledgement
+
+This application uses the JMdict dictionary file. JMdict is the property of
+the Electronic Dictionary Research and Development Group and is used in
+conformance with the Group's licence.
+
+Licence information:
+https://www.edrdg.org/edrdg/licence.html
+
+This application uses Japanese WordNet 1.1.
+Copyright 2009-2011 NICT, 2012-2015 Francis Bond, and
+2016-2024 Francis Bond and Takayuki Kuribayashi.
+Japanese WordNet is used and redistributed under its accompanying licence.
+
+Licence information:
+https://bond-lab.github.io/wnja/license.txt

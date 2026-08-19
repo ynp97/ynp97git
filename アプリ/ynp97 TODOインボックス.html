@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ynp97 TODOインボックス</title>
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --paper: #fffdf7;
+      --surface: #ffffff;
+      --line: #d8d2c4;
+      --line-strong: #b9ae9e;
+      --text: #24211d;
+      --muted: #756d63;
+      --ink: #14120f;
+      --blue: #2563eb;
+      --green: #187044;
+      --red: #b42318;
+      --shadow: 0 12px 30px rgba(34, 28, 18, .09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        linear-gradient(rgba(255, 255, 255, .64), rgba(255, 255, 255, .64)),
+        repeating-linear-gradient(0deg, transparent 0 35px, rgba(185, 174, 158, .2) 36px),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Yu Gothic UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 253, 247, .92);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .topbar {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 14px 0 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 22px;
+      letter-spacing: 0;
+      line-height: 1.25;
+    }
+
+    .sub {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .sync {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .sync.ok {
+      color: var(--green);
+      border-color: #b7dfc8;
+      background: #edf8f1;
+    }
+
+    .sync.warn {
+      color: #9a5b08;
+      border-color: #f2d38f;
+      background: #fff7e5;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0 34px;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel,
+    .task,
+    .capture {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      padding: 14px;
+    }
+
+    .panel + .panel {
+      margin-top: 12px;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      color: var(--ink);
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .capture {
+      padding: 14px;
+      margin-bottom: 14px;
+      background: #fffefa;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      padding: 10px;
+      outline: none;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .capture-row,
+    .tag-form,
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .capture-row {
+      margin-top: 9px;
+      justify-content: space-between;
+    }
+
+    .button {
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text);
+      min-height: 37px;
+      padding: 8px 11px;
+      font-weight: 800;
+    }
+
+    .button:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .button.primary {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .button.danger {
+      border-color: #fac5c1;
+      color: var(--red);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tag-shelf {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tag-note {
+      border: 1px solid rgba(0, 0, 0, .08);
+      border-radius: 4px 9px 5px 8px;
+      color: #2b2418;
+      padding: 9px 10px;
+      min-height: 38px;
+      text-align: left;
+      font-weight: 900;
+      box-shadow: 0 4px 10px rgba(32, 24, 10, .09);
+      transform: rotate(var(--tilt, -0.5deg));
+    }
+
+    .tag-note small {
+      display: block;
+      margin-top: 2px;
+      color: rgba(0, 0, 0, .54);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .tag-note.active {
+      outline: 3px solid rgba(37, 99, 235, .18);
+      border-color: var(--blue);
+    }
+
+    .tag-form {
+      margin-top: 10px;
+      align-items: stretch;
+    }
+
+    .tag-form input[type="text"] {
+      flex: 1 1 120px;
+    }
+
+    .tag-form input[type="color"] {
+      width: 44px;
+      padding: 4px;
+      min-height: 37px;
+    }
+
+    .toolbar {
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .view-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .tab.active {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 11px;
+      align-items: start;
+      background: #fffefb;
+      box-shadow: none;
+    }
+
+    .task.selected {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+
+    .task.done {
+      opacity: .65;
+    }
+
+    .check {
+      width: 25px;
+      height: 25px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--green);
+      display: grid;
+      place-items: center;
+      padding: 0;
+      font-weight: 900;
+    }
+
+    .task.done .check {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .task.done .title {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .note {
+      margin: 4px 0 0;
+      color: var(--muted);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }
+
+    .task-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      border: 1px solid rgba(0, 0, 0, .08);
+      border-radius: 4px 8px 5px 7px;
+      padding: 3px 8px;
+      color: #2b2418;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: 0 2px 6px rgba(32, 24, 10, .08);
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .mini {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--muted);
+      padding: 0;
+      font-weight: 900;
+    }
+
+    .mini:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .mini.delete:hover {
+      border-color: #fac5c1;
+      color: var(--red);
+    }
+
+    .empty {
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .64);
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    details {
+      margin-top: 12px;
+    }
+
+    summary {
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .hidden-output {
+      margin-top: 9px;
+      min-height: 150px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translate(-50%, 14px);
+      opacity: 0;
+      pointer-events: none;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 13px;
+      font-size: 13px;
+      font-weight: 900;
+      transition: .18s ease;
+      z-index: 50;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 820px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .task {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .actions {
+        grid-column: 2;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>TODOインボックス</h1>
+        <div class="sub">書く。並ぶ。付箋を貼る。</div>
+      </div>
+      <div class="sync" id="syncStatus">ブラウザ内に保存中</div>
+    </div>
+  </header>
+
+  <main>
+    <aside>
+      <section class="panel">
+        <h2>付箋</h2>
+        <div class="tag-shelf" id="tagShelf"></div>
+        <form class="tag-form" id="tagForm">
+          <input id="tagName" type="text" maxlength="16" placeholder="新しい付箋">
+          <input id="tagColor" type="color" value="#ffe08a" title="色">
+          <button class="button" type="submit">追加</button>
+        </form>
+        <p class="hint">TODOを選んでから付箋を押すと貼れます。もう一度押すとはがれます。</p>
+      </section>
+
+      <section class="panel">
+        <h2>絞り込み</h2>
+        <div class="view-tabs" id="viewTabs"></div>
+        <input id="searchInput" style="margin-top:10px" placeholder="検索">
+      </section>
+
+      <section class="panel">
+        <h2>Obsidian</h2>
+        <p class="hint">開いているローカルサーバー経由なら、変更は自動で `TODOインボックス.md` に保存されます。</p>
+        <button class="button" id="copyYnpButton" type="button">ynp97用をコピー</button>
+        <details>
+          <summary>Markdownを見る</summary>
+          <textarea class="hidden-output" id="markdownOutput" readonly></textarea>
+        </details>
+      </section>
+    </aside>
+
+    <section>
+      <form class="capture" id="taskForm">
+        <textarea id="taskInput" placeholder="やらなきゃと思ったことを書く。改行して補足を書いてもOK。"></textarea>
+        <div class="capture-row">
+          <div class="hint">⌘ + Enter でも追加</div>
+          <button class="button primary" type="submit">追加</button>
+        </div>
+      </form>
+
+      <div class="toolbar">
+        <div class="hint" id="countText">0件</div>
+        <div>
+          <button class="button" id="seedButton" type="button">現在地TODO</button>
+          <button class="button danger" id="clearDoneButton" type="button">完了を消す</button>
+        </div>
+      </div>
+
+      <div class="task-list" id="taskList"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = "ynp97_todo_inbox_simple_v1";
+
+    const defaultTags = [
+      { id: "today", name: "今日中", color: "#ffe08a" },
+      { id: "week", name: "今週中", color: "#c9f2d2" },
+      { id: "urgent", name: "急ぎ", color: "#ffc6bd" },
+      { id: "waiting", name: "待機", color: "#cfe1ff" }
+    ];
+
+    const starterTasks = [
+      "Pastor DennisへWise送金用の口座情報を聞く\n口座名義、銀行名、口座番号、口座通貨、個人口座かプロジェクト/ビジネス用口座か。",
+      "Pastor Dennisへ孤児院用地候補を見たいことを伝える\n海と夕陽が見える山側、土地価格、所有関係、道路、水道電気、整地費、地元案内役。",
+      "家庭ゲートの説明要点を4行にする\n教会、KG・教育事業、150万円を超えるビジョン、最大リスクと資金見通し。",
+      "航空券の予約内容とターミナルを確定する\n9/1朝MNL→DGT、9/4夜DGT→MNLを軸に確認。"
+    ];
+
+    const views = [
+      { id: "all", label: "全部" },
+      { id: "open", label: "未完了" },
+      { id: "done", label: "完了" }
+    ];
+
+    let state = loadState();
+    let saveTimer = null;
+
+    const els = {
+      syncStatus: document.getElementById("syncStatus"),
+      tagShelf: document.getElementById("tagShelf"),
+      tagForm: document.getElementById("tagForm"),
+      tagName: document.getElementById("tagName"),
+      tagColor: document.getElementById("tagColor"),
+      viewTabs: document.getElementById("viewTabs"),
+      searchInput: document.getElementById("searchInput"),
+      copyYnpButton: document.getElementById("copyYnpButton"),
+      markdownOutput: document.getElementById("markdownOutput"),
+      taskForm: document.getElementById("taskForm"),
+      taskInput: document.getElementById("taskInput"),
+      countText: document.getElementById("countText"),
+      seedButton: document.getElementById("seedButton"),
+      clearDoneButton: document.getElementById("clearDoneButton"),
+      taskList: document.getElementById("taskList"),
+      toast: document.getElementById("toast")
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return { tasks: [], tags: defaultTags, selectedTaskId: null, view: "open", search: "" };
+        }
+        const parsed = JSON.parse(raw);
+        return {
+          tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+          tags: Array.isArray(parsed.tags) && parsed.tags.length ? parsed.tags : defaultTags,
+          selectedTaskId: parsed.selectedTaskId || null,
+          view: parsed.view || "open",
+          search: parsed.search || ""
+        };
+      } catch (error) {
+        return { tasks: [], tags: defaultTags, selectedTaskId: null, view: "open", search: "" };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(syncToObsidian, 350);
+    }
+
+    function uid(prefix = "id") {
+      return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function splitTask(text) {
+      const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+      return { title: lines[0] || text.trim(), note: lines.slice(1).join("\n") };
+    }
+
+    function addTask(text) {
+      const raw = (text || els.taskInput.value).trim();
+      if (!raw) {
+        toast("書いてから追加します。");
+        els.taskInput.focus();
+        return;
+      }
+      const parsed = splitTask(raw);
+      const now = new Date().toISOString();
+      const task = {
+        id: uid("task"),
+        title: parsed.title,
+        note: parsed.note,
+        tagIds: [],
+        done: false,
+        createdAt: now,
+        updatedAt: now
+      };
+      state.tasks.unshift(task);
+      state.selectedTaskId = task.id;
+      state.view = "open";
+      els.taskInput.value = "";
+      render();
+      toast("追加しました。");
+    }
+
+    function addStarterTasks() {
+      const existing = new Set(state.tasks.map(task => task.title));
+      let added = 0;
+      for (const raw of starterTasks) {
+        const parsed = splitTask(raw);
+        if (existing.has(parsed.title)) continue;
+        const now = new Date().toISOString();
+        state.tasks.unshift({
+          id: uid("task"),
+          title: parsed.title,
+          note: parsed.note,
+          tagIds: ["week"],
+          done: false,
+          createdAt: now,
+          updatedAt: now
+        });
+        added++;
+      }
+      if (!added) {
+        toast("現在地TODOは入っています。");
+        return;
+      }
+      render();
+      toast(`${added}件入れました。`);
+    }
+
+    function addTag(name, color) {
+      const clean = name.trim();
+      if (!clean) {
+        toast("付箋名を書いてください。");
+        return;
+      }
+      if (state.tags.some(tag => tag.name === clean)) {
+        toast("同じ名前の付箋があります。");
+        return;
+      }
+      state.tags.push({ id: uid("tag"), name: clean, color });
+      els.tagName.value = "";
+      render();
+      toast("付箋を追加しました。");
+    }
+
+    function toggleTag(tagId) {
+      const task = state.tasks.find(item => item.id === state.selectedTaskId);
+      if (!task) {
+        toast("先にTODOを選んでください。");
+        return;
+      }
+      task.tagIds = Array.isArray(task.tagIds) ? task.tagIds : [];
+      if (task.tagIds.includes(tagId)) {
+        task.tagIds = task.tagIds.filter(id => id !== tagId);
+      } else {
+        task.tagIds.push(tagId);
+      }
+      task.updatedAt = new Date().toISOString();
+      render();
+    }
+
+    function toggleDone(id) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task) return;
+      task.done = !task.done;
+      task.updatedAt = new Date().toISOString();
+      state.selectedTaskId = task.id;
+      render();
+    }
+
+    function deleteTask(id) {
+      const task = state.tasks.find(item => item.id === id);
+      if (!task) return;
+      if (!window.confirm(`削除しますか?\n${task.title}`)) return;
+      state.tasks = state.tasks.filter(item => item.id !== id);
+      if (state.selectedTaskId === id) state.selectedTaskId = null;
+      render();
+      toast("削除しました。");
+    }
+
+    function clearDone() {
+      const doneCount = state.tasks.filter(task => task.done).length;
+      if (!doneCount) {
+        toast("完了TODOはありません。");
+        return;
+      }
+      if (!window.confirm(`完了TODO ${doneCount}件を消しますか?`)) return;
+      state.tasks = state.tasks.filter(task => !task.done);
+      render();
+      toast("完了TODOを消しました。");
+    }
+
+    function filteredTasks() {
+      const query = state.search.trim().toLowerCase();
+      return state.tasks.filter(task => {
+        if (state.view === "open" && task.done) return false;
+        if (state.view === "done" && !task.done) return false;
+        if (!query) return true;
+        const tagNames = (task.tagIds || []).map(id => getTag(id)?.name || "").join(" ");
+        return `${task.title} ${task.note} ${tagNames}`.toLowerCase().includes(query);
+      });
+    }
+
+    function getTag(id) {
+      return state.tags.find(tag => tag.id === id);
+    }
+
+    function render() {
+      saveState();
+      renderTags();
+      renderViews();
+      renderTasks();
+      renderMarkdown();
+    }
+
+    function renderTags() {
+      const selected = state.tasks.find(task => task.id === state.selectedTaskId);
+      els.tagShelf.innerHTML = state.tags.map((tag, index) => {
+        const active = selected && (selected.tagIds || []).includes(tag.id);
+        const count = state.tasks.filter(task => (task.tagIds || []).includes(tag.id) && !task.done).length;
+        return `
+          <button class="tag-note ${active ? "active" : ""}" data-tag="${escapeAttr(tag.id)}" style="background:${escapeAttr(tag.color)};--tilt:${index % 2 ? "0.6deg" : "-0.4deg"}" type="button">
+            ${escapeHtml(tag.name)}
+            <small>${count}件</small>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderViews() {
+      els.searchInput.value = state.search;
+      els.viewTabs.innerHTML = views.map(view => `
+        <button class="tab ${state.view === view.id ? "active" : ""}" data-view="${view.id}" type="button">${escapeHtml(view.label)}</button>
+      `).join("");
+    }
+
+    function renderTasks() {
+      const tasks = filteredTasks();
+      const openCount = state.tasks.filter(task => !task.done).length;
+      els.countText.textContent = `${openCount}件の未完了`;
+      if (!tasks.length) {
+        els.taskList.innerHTML = `<div class="empty">まだ何もありません。上に書いて追加してください。</div>`;
+        return;
+      }
+      els.taskList.innerHTML = tasks.map(task => {
+        const tags = (task.tagIds || []).map(getTag).filter(Boolean);
+        return `
+          <article class="task ${task.done ? "done" : ""} ${state.selectedTaskId === task.id ? "selected" : ""}" data-select="${escapeAttr(task.id)}">
+            <button class="check" data-done="${escapeAttr(task.id)}" title="完了" type="button">${task.done ? "✓" : ""}</button>
+            <div>
+              <p class="title">${escapeHtml(task.title)}</p>
+              ${task.note ? `<p class="note">${escapeHtml(task.note)}</p>` : ""}
+              <div class="task-tags">
+                ${tags.map(tag => `<span class="chip" style="background:${escapeAttr(tag.color)}">${escapeHtml(tag.name)}</span>`).join("")}
+              </div>
+            </div>
+            <div class="actions">
+              <button class="mini delete" data-delete="${escapeAttr(task.id)}" title="削除" type="button">×</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderMarkdown() {
+      els.markdownOutput.value = buildMarkdown();
+    }
+
+    function buildMarkdown() {
+      const date = localDate();
+      const open = state.tasks.filter(task => !task.done);
+      const done = state.tasks.filter(task => task.done);
+      return [
+        `# TODOインボックス`,
+        "",
+        `最終更新: ${date}`,
+        "",
+        "## 未完了",
+        ...markdownLines(open),
+        "",
+        "## 完了",
+        ...markdownLines(done)
+      ].join("\n");
+    }
+
+    function markdownLines(tasks) {
+      if (!tasks.length) return ["- なし"];
+      return tasks.map(task => {
+        const tags = (task.tagIds || []).map(getTag).filter(Boolean).map(tag => `#${tag.name}`).join(" ");
+        const base = `- [${task.done ? "x" : " "}] ${task.title}${tags ? ` ${tags}` : ""}`;
+        return task.note ? `${base}\n  - ${task.note.replace(/\n/g, "\n  - ")}` : base;
+      });
+    }
+
+    function buildYnpPack() {
+      const open = state.tasks.filter(task => !task.done);
+      const todayTag = state.tags.find(tag => tag.name === "今日中");
+      const weekTag = state.tags.find(tag => tag.name === "今週中");
+      const urgentTag = state.tags.find(tag => tag.name === "急ぎ");
+      const waitingTag = state.tags.find(tag => tag.name === "待機");
+      return [
+        "ynp97",
+        "",
+        "## TODO相談パック",
+        `生成日: ${localDate()}`,
+        "",
+        "### 今日中",
+        ...packLines(byTag(open, todayTag?.id)),
+        "",
+        "### 急ぎ",
+        ...packLines(byTag(open, urgentTag?.id)),
+        "",
+        "### 今週中",
+        ...packLines(byTag(open, weekTag?.id)),
+        "",
+        "### 待機",
+        ...packLines(byTag(open, waitingTag?.id)),
+        "",
+        "### その他",
+        ...packLines(open.filter(task => !(task.tagIds || []).length)),
+        "",
+        "### 相談したいこと",
+        "- この中から、今日の主成果物1つと、短く触れるもの2つまでに絞ってください。"
+      ].join("\n");
+    }
+
+    function byTag(tasks, tagId) {
+      if (!tagId) return [];
+      return tasks.filter(task => (task.tagIds || []).includes(tagId));
+    }
+
+    function packLines(tasks) {
+      if (!tasks.length) return ["- なし"];
+      return tasks.slice(0, 8).map(task => `- ${task.title}`);
+    }
+
+    function localDate() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      return new Date(now.getTime() - offset * 60000).toISOString().slice(0, 16).replace("T", " ");
+    }
+
+    async function syncToObsidian() {
+      const markdown = buildMarkdown();
+      const data = JSON.stringify(state, null, 2);
+      try {
+        const res = await fetch("/api/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ markdown, data })
+        });
+        if (!res.ok) throw new Error("save failed");
+        els.syncStatus.textContent = "Obsidianへ自動保存済み";
+        els.syncStatus.className = "sync ok";
+      } catch (error) {
+        els.syncStatus.textContent = "ブラウザ内に保存中";
+        els.syncStatus.className = "sync warn";
+      }
+    }
+
+    function copyText(text, message) {
+      navigator.clipboard.writeText(text).then(() => toast(message), () => {
+        const box = document.createElement("textarea");
+        box.value = text;
+        document.body.appendChild(box);
+        box.select();
+        document.execCommand("copy");
+        box.remove();
+        toast(message);
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/'/g, "&#039;");
+    }
+
+    function toast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      window.clearTimeout(toast.timer);
+      toast.timer = window.setTimeout(() => els.toast.classList.remove("show"), 1600);
+    }
+
+    els.taskForm.addEventListener("submit", event => {
+      event.preventDefault();
+      addTask();
+    });
+
+    els.taskInput.addEventListener("keydown", event => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        event.preventDefault();
+        addTask();
+      }
+    });
+
+    els.tagForm.addEventListener("submit", event => {
+      event.preventDefault();
+      addTag(els.tagName.value, els.tagColor.value);
+    });
+
+    els.tagShelf.addEventListener("click", event => {
+      const button = event.target.closest("[data-tag]");
+      if (button) toggleTag(button.dataset.tag);
+    });
+
+    els.viewTabs.addEventListener("click", event => {
+      const button = event.target.closest("[data-view]");
+      if (!button) return;
+      state.view = button.dataset.view;
+      render();
+    });
+
+    els.searchInput.addEventListener("input", event => {
+      state.search = event.target.value;
+      render();
+    });
+
+    els.taskList.addEventListener("click", event => {
+      const done = event.target.closest("[data-done]");
+      const del = event.target.closest("[data-delete]");
+      const select = event.target.closest("[data-select]");
+      if (done) {
+        event.stopPropagation();
+        toggleDone(done.dataset.done);
+        return;
+      }
+      if (del) {
+        event.stopPropagation();
+        deleteTask(del.dataset.delete);
+        return;
+      }
+      if (select) {
+        state.selectedTaskId = select.dataset.select;
+        render();
+      }
+    });
+
+    els.seedButton.addEventListener("click", addStarterTasks);
+    els.clearDoneButton.addEventListener("click", clearDone);
+    els.copyYnpButton.addEventListener("click", () => copyText(buildYnpPack(), "ynp97用をコピーしました。"));
+
+    render();
+  </script>
+</body>
+</html>

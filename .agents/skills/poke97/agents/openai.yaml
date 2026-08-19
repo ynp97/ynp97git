@@ -1,0 +1,4 @@
+interface:
+  display_name: "ポケカ"
+  short_description: "ポケカの条件検索・対戦・収集・アプリをまとる専用モード"
+  default_prompt: "Use $poke97 to find Japanese Pokémon cards matching my conditions or continue from the Vault handoff."

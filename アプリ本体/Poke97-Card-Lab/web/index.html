@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>poke97 カード研究室</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div><span class="eyebrow">POKE97</span><h1>カード研究室</h1></div>
+      <div id="stats" class="stats">データを確認中…</div>
+    </header>
+    <section class="ask-panel">
+      <div class="ask-head">
+        <h2>AIへの質問</h2>
+        <button id="aiSettingsToggle" class="link">接続先の設定</button>
+      </div>
+      <textarea id="question" rows="2" placeholder="例：水エネルギーを特性で持ってこれるポケモンをあげて"></textarea>
+      <div class="actions">
+        <button id="ask">AIに聞く</button>
+        <button id="packet" class="secondary">AIに貼る文を作る</button>
+        <span id="askNotice" class="ask-notice"></span>
+      </div>
+      <div id="aiSettings" class="ai-settings" hidden>
+        <label><span>接続先（OpenAI互換）</span><input id="base_url" placeholder="http://127.0.0.1:1234/v1"></label>
+        <label><span>モデル</span><input id="model" placeholder="空なら接続先の1つ目"></label>
+        <label><span>APIキー（LM Studioは不要）</span><input id="api_key" type="password" placeholder="変更するときだけ入力"></label>
+        <label><span>AIに読ませる候補の上限</span><input id="max_cards" inputmode="numeric"></label>
+        <div class="actions">
+          <button id="saveAi" class="secondary">保存</button>
+          <button id="checkAi" class="secondary">つながるか試す</button>
+          <span id="aiStatus" class="ask-notice"></span>
+        </div>
+      </div>
+      <div id="aiAnswer" class="ai-answer" hidden></div>
+    </section>
+    <section class="search-panel">
+      <label class="wide"><span>名前・カード本文</span><input id="q" placeholder="例：相手のベンチ　ダメカン"></label>
+      <label><span>特性の文だけ</span><input id="ability_q" placeholder="例：【水】 エネルギー"></label>
+      <label><span>ワザの文だけ</span><input id="attack_q" placeholder="例：ベンチ　いれかえ"></label>
+      <label><span>カード名だけ</span><input id="name_q" placeholder="例：ゲッコウガ"></label>
+      <label><span>ワザに必要なエネルギー</span><select id="attack_energy"><option value="">すべて</option><option value="grass">草</option><option value="fire">炎</option><option value="water">水</option><option value="electric">雷</option><option value="psychic">超</option><option value="fighting">闘</option><option value="dark">悪</option><option value="steel">鋼</option><option value="dragon">ドラゴン</option><option value="none">無色</option></select></label>
+      <label><span>カード種別</span><select id="category"><option value="">すべて</option><option>ポケモン</option><option>トレーナーズ</option><option>エネルギー</option></select></label>
+      <label><span>トレーナーズ種別</span><select id="subcategory"><option value="">すべて</option><option>グッズ</option><option>サポート</option><option>スタジアム</option><option>ポケモンのどうぐ</option><option>基本エネルギー</option><option>特殊エネルギー</option></select></label>
+      <label><span>タイプ</span><select id="type"><option value="">すべて</option><option value="grass">草</option><option value="fire">炎</option><option value="water">水</option><option value="electric">雷</option><option value="psychic">超</option><option value="fighting">闘</option><option value="dark">悪</option><option value="steel">鋼</option><option value="dragon">ドラゴン</option><option value="none">無色</option></select></label>
+      <label><span>進化</span><select id="stage"><option value="">すべて</option><option>たね</option><option>1進化</option><option>2進化</option></select></label>
+      <label><span>特性</span><select id="ability"><option value="">どちらでも</option><option value="yes">あり</option><option value="no">なし</option></select></label>
+      <label><span>HP 最小</span><input id="hp_min" inputmode="numeric"></label>
+      <label><span>HP 最大</span><input id="hp_max" inputmode="numeric"></label>
+      <label><span>ワザのダメージ 最小</span><input id="damage_min" inputmode="numeric" placeholder="例：240"></label>
+      <label><span>ダメージの数え方</span><select id="damage_certain"><option value="">条件つき（×・＋）も残す</option><option value="yes">印刷ダメージだけで確定するもの</option></select></label>
+      <div class="actions"><button id="search">全カードから探す</button></div>
+    </section>
+    <section class="result-head"><h2 id="resultTitle">検索結果</h2><p id="notice">条件を入れて検索してください。</p></section>
+    <section id="results" class="results"></section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+

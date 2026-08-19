@@ -1,0 +1,4 @@
+interface:
+  display_name: "早天メッセージ st97"
+  short_description: "一読で話せる早天メッセージ用ガイドを作成します"
+  default_prompt: "Use $st97 to prepare a clear Japanese morning devotional guide that can be spoken from live."

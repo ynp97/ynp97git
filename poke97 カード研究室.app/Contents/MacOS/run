@@ -1,0 +1,9 @@
+#!/bin/zsh
+# poke97 カード研究室 ランチャー（Dock用の入口）
+#
+# 実処理は本体の .command が行う。書類フォルダの保護により、
+# 署名の無いこのアプリからは直接 python3 を動かせないため、
+# 許可を持つターミナルへ渡している。
+set -u
+CMD="/Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/Poke97-Card-Lab/poke97 カード研究室.command"
+exec /usr/bin/open -a Terminal "$CMD"

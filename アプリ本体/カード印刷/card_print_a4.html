@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>カード印刷 A4 9面付け（63×88mm）</title>
+<style>
+  :root{
+    --card-w: 63mm;
+    --card-h: 88mm;
+    --gap: 0mm;
+    --fit: cover;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:#f2f3f5;
+    font-family: "Hiragino Sans", "Meiryo UI", system-ui, sans-serif;
+    color:#222;
+  }
+
+  /* ================= UI（印刷されない） ================= */
+  .ui{
+    position: sticky; top:0; z-index:100;
+    background:#fff; border-bottom:1px solid #d8dade;
+    padding:10px 14px;
+    box-shadow:0 1px 4px rgba(0,0,0,.06);
+  }
+  .ui h1{ font-size:15px; margin:0 0 8px; font-weight:700; }
+  .row{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin-bottom:8px; }
+  .row:last-child{ margin-bottom:0; }
+  .grp{ display:flex; gap:6px; align-items:center; font-size:13px; }
+  .grp>span.lbl{ color:#666; }
+  button{
+    font: inherit; font-size:13px;
+    padding:6px 12px; border:1px solid #c3c6cc; background:#fff;
+    border-radius:6px; cursor:pointer;
+  }
+  button:hover{ background:#f0f1f3; }
+  button.primary{ background:#006699; color:#fff; border-color:#006699; font-weight:700; }
+  button.primary:hover{ background:#00587f; }
+  button.danger{ color:#a11; }
+  label.chk{ display:flex; gap:4px; align-items:center; cursor:pointer; }
+  select{ font:inherit; font-size:13px; padding:3px 6px; border:1px solid #c3c6cc; border-radius:5px; }
+
+  #drop{
+    border:2px dashed #b9bdc4; border-radius:8px;
+    padding:14px; text-align:center; color:#666; font-size:13px;
+    background:#fafbfc; cursor:pointer;
+  }
+  #drop.over{ border-color:#006699; background:#eaf4f9; color:#006699; }
+
+  #thumbs{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .th{
+    border:1px solid #d8dade; border-radius:6px; background:#fff;
+    padding:4px; display:flex; flex-direction:column; gap:4px; align-items:center;
+    width:86px;
+  }
+  .th img{ width:76px; height:106px; object-fit:contain; background:#eee; }
+  .th .ops{ display:flex; gap:3px; align-items:center; }
+  .th .ops select{ font-size:11px; padding:1px 2px; }
+  .th .ops button{ padding:1px 6px; font-size:11px; }
+
+  #count{ font-size:13px; color:#444; font-weight:700; }
+  #toast{
+    position:fixed; left:50%; top:12px; transform:translateX(-50%);
+    background:#222; color:#fff; padding:8px 16px; border-radius:20px;
+    font-size:13px; z-index:999; opacity:0; pointer-events:none;
+    transition:opacity .15s;
+  }
+  #toast.on{ opacity:.92; }
+
+  /* ================= 用紙 ================= */
+  #sheets{ padding:18px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .page{
+    width:210mm; height:297mm;
+    background:#fff; position:relative; overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,.18);
+  }
+  .grid{
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    display:grid;
+    grid-template-columns: repeat(3, var(--card-w));
+    grid-auto-rows: var(--card-h);
+    gap: var(--gap);
+  }
+  .card{
+    width: var(--card-w); height: var(--card-h);
+    overflow:hidden; position:relative; background:#fff;
+  }
+  .card img{
+    width:100%; height:100%;
+    object-fit: var(--fit);
+    display:block;
+  }
+  body.borders .card{ outline:0.2mm solid #999; outline-offset:-0.1mm; }
+  .mark{ position:absolute; background:#000; }
+
+  /* ================= 印刷 ================= */
+  @page{ size: A4 portrait; margin: 0; }
+  @media print{
+    body{ background:#fff; }
+    .ui, #toast{ display:none !important; }
+    #sheets{ padding:0; gap:0; display:block; }
+    .page{
+      box-shadow:none; margin:0;
+      break-after: page; page-break-after: always;
+    }
+    .page:last-child{ break-after: auto; page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ui">
+  <h1>カード印刷 — A4縦・3×3の9面付け（1枚 63×88mm）</h1>
+
+  <div class="row">
+    <button class="primary" onclick="window.print()">印刷 / PDFで保存</button>
+    <span id="count">0枚 / 0ページ</span>
+    <button class="danger" id="clearBtn">すべて消去</button>
+  </div>
+
+  <div class="row">
+    <span class="grp"><span class="lbl">カード間隔</span>
+      <select id="gap">
+        <option value="0">0mm（隙間なし）</option>
+        <option value="2">2mm</option>
+        <option value="4">4mm</option>
+      </select>
+    </span>
+    <span class="grp"><span class="lbl">画像の収め方</span>
+      <select id="fit">
+        <option value="cover">全面に合わせる（はみ出しを切る）</option>
+        <option value="contain">全体を収める（余白が出る）</option>
+      </select>
+    </span>
+    <label class="chk"><input type="checkbox" id="marks" checked> トンボ（裁断ガイド）</label>
+    <label class="chk"><input type="checkbox" id="borders"> カード枠線（確認用・印刷にも出る）</label>
+  </div>
+
+  <div id="drop">
+    ここに画像をドラッグ＆ドロップ　／　<b>⌘V で貼り付け</b>（スクショ・コピーした画像・画像URL）　／　クリックでファイルを選ぶ
+    <input type="file" id="file" accept="image/*" multiple hidden>
+  </div>
+
+  <div id="thumbs"></div>
+</div>
+
+<div id="sheets"></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+/* ---- 定数（mm） ---- */
+const CARD_W = 63, CARD_H = 88, PAGE_W = 210, PAGE_H = 297;
+const PER_PAGE = 9, COLS = 3, ROWS = 3, MARK_LEN = 5;
+
+/* ---- 状態 ---- */
+let items = [];      // {id, src, count}
+let seq = 0;
+let gap = 0;
+
+const $ = id => document.getElementById(id);
+
+/* ---- トースト ---- */
+let toastTimer = null;
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove("on"), 1200);
+}
+
+/* ---- 画像の追加 ---- */
+function addSrc(src){
+  items.push({ id: ++seq, src, count: 1 });
+}
+function addFiles(fileList){
+  const files = Array.from(fileList).filter(f => f.type.startsWith("image/"));
+  if(!files.length) return Promise.resolve(0);
+  return Promise.all(files.map(f => new Promise(res => {
+    const r = new FileReader();
+    r.onload = e => { addSrc(e.target.result); res(); };
+    r.onerror = () => res();
+    r.readAsDataURL(f);
+  }))).then(()=>{ render(); return files.length; });
+}
+function looksLikeImageUrl(s){
+  s = s.trim();
+  if(s.startsWith("data:image/")) return true;
+  return /^https?:\/\/\S+\.(png|jpe?g|gif|webp|bmp|avif)(\?\S*)?$/i.test(s);
+}
+
+/* ---- 入力3系統 ---- */
+const drop = $("drop");
+drop.addEventListener("click", ()=> $("file").click());
+$("file").addEventListener("change", e => {
+  addFiles(e.target.files).then(n => { if(n) toast(n + "枚を追加しました"); });
+  e.target.value = "";
+});
+
+["dragenter","dragover"].forEach(ev =>
+  drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev =>
+  drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => e.preventDefault());
+
+drop.addEventListener("drop", e => {
+  e.preventDefault();
+  const dt = e.dataTransfer;
+  if(dt.files && dt.files.length){
+    addFiles(dt.files).then(n => { if(n) toast(n + "枚を貼り付けました"); });
+    return;
+  }
+  const txt = dt.getData("text/plain");
+  if(txt && looksLikeImageUrl(txt)){ addSrc(txt.trim()); render(); toast("1枚を貼り付けました"); }
+});
+
+document.addEventListener("paste", e => {
+  const cd = e.clipboardData;
+  if(!cd) return;
+  // ① 画像そのもの（スクショ・Web上の「画像をコピー」・Finderでコピーした画像ファイル）
+  const imgs = Array.from(cd.items || []).filter(i => i.type.startsWith("image/"));
+  if(imgs.length){
+    e.preventDefault();
+    const files = imgs.map(i => i.getAsFile()).filter(Boolean);
+    addFiles(files).then(n => { if(n) toast(n + "枚を貼り付けました"); });
+    return;
+  }
+  if(cd.files && cd.files.length){
+    const n0 = Array.from(cd.files).filter(f => f.type.startsWith("image/")).length;
+    if(n0){ e.preventDefault(); addFiles(cd.files).then(n => { if(n) toast(n + "枚を貼り付けました"); }); return; }
+  }
+  // ② テキストとしての画像URL / data URL
+  const txt = cd.getData("text/plain");
+  if(txt && looksLikeImageUrl(txt)){
+    e.preventDefault();
+    addSrc(txt.trim()); render(); toast("1枚を貼り付けました");
+  }
+});
+
+/* ---- 操作 ---- */
+$("clearBtn").addEventListener("click", ()=>{
+  if(items.length && !confirm("すべて消去します。よろしいですか。")) return;
+  items = []; render();
+});
+$("gap").addEventListener("change", e =>{
+  gap = Number(e.target.value);
+  document.documentElement.style.setProperty("--gap", gap + "mm");
+  render();
+});
+$("fit").addEventListener("change", e =>{
+  document.documentElement.style.setProperty("--fit", e.target.value);
+});
+$("marks").addEventListener("change", render);
+$("borders").addEventListener("change", e =>{
+  document.body.classList.toggle("borders", e.target.checked);
+});
+
+/* ---- トンボ ---- */
+function addMarks(page){
+  const gridW = CARD_W*COLS + gap*(COLS-1);
+  const gridH = CARD_H*ROWS + gap*(ROWS-1);
+  const ox = (PAGE_W - gridW)/2;
+  const oy = (PAGE_H - gridH)/2;
+
+  const xs = [], ys = [];
+  for(let c=0; c<COLS; c++){
+    const l = ox + c*(CARD_W+gap);
+    xs.push(l, l+CARD_W);
+  }
+  for(let r=0; r<ROWS; r++){
+    const t = oy + r*(CARD_H+gap);
+    ys.push(t, t+CARD_H);
+  }
+  const uniq = a => [...new Set(a.map(v => Math.round(v*100)/100))];
+
+  const mk = st => { const d = document.createElement("div"); d.className="mark";
+    Object.assign(d.style, st); page.appendChild(d); };
+
+  uniq(xs).forEach(x => {
+    mk({ left:(x-0.1)+"mm", top:(oy-MARK_LEN)+"mm", width:"0.2mm", height:MARK_LEN+"mm" });
+    mk({ left:(x-0.1)+"mm", top:(oy+gridH)+"mm",   width:"0.2mm", height:MARK_LEN+"mm" });
+  });
+  uniq(ys).forEach(y => {
+    mk({ top:(y-0.1)+"mm", left:(ox-MARK_LEN)+"mm", height:"0.2mm", width:MARK_LEN+"mm" });
+    mk({ top:(y-0.1)+"mm", left:(ox+gridW)+"mm",    height:"0.2mm", width:MARK_LEN+"mm" });
+  });
+}
+
+/* ---- 描画 ---- */
+function expand(){
+  const out = [];
+  items.forEach(it => { for(let i=0;i<it.count;i++) out.push(it.src); });
+  return out;
+}
+
+function render(){
+  // サムネイル
+  const tw = $("thumbs");
+  tw.innerHTML = "";
+  items.forEach(it => {
+    const d = document.createElement("div"); d.className = "th";
+    const im = document.createElement("img"); im.src = it.src; d.appendChild(im);
+    const ops = document.createElement("div"); ops.className = "ops";
+    const sel = document.createElement("select");
+    for(let n=1;n<=9;n++){
+      const o = document.createElement("option");
+      o.value = n; o.textContent = "×"+n;
+      if(n===it.count) o.selected = true;
+      sel.appendChild(o);
+    }
+    sel.addEventListener("change", e =>{ it.count = Number(e.target.value); render(); });
+    const del = document.createElement("button");
+    del.textContent = "削除";
+    del.addEventListener("click", ()=>{ items = items.filter(x => x.id !== it.id); render(); });
+    ops.appendChild(sel); ops.appendChild(del); d.appendChild(ops);
+    tw.appendChild(d);
+  });
+
+  // 用紙
+  const list = expand();
+  const pages = Math.ceil(list.length / PER_PAGE);
+  $("count").textContent = list.length + "枚 / " + pages + "ページ";
+
+  const sheets = $("sheets");
+  sheets.innerHTML = "";
+  const showMarks = $("marks").checked;
+
+  for(let p=0; p<pages; p++){
+    const page = document.createElement("div"); page.className = "page";
+    const grid = document.createElement("div"); grid.className = "grid";
+    for(let i=0; i<PER_PAGE; i++){
+      const idx = p*PER_PAGE + i;
+      const cell = document.createElement("div"); cell.className = "card";
+      if(idx < list.length){
+        const im = document.createElement("img");
+        im.src = list[idx];
+        cell.appendChild(im);
+      }
+      grid.appendChild(cell);
+    }
+    page.appendChild(grid);
+    if(showMarks) addMarks(page);
+    sheets.appendChild(page);
+  }
+}
+
+render();
+</script>
+</body>
+</html>

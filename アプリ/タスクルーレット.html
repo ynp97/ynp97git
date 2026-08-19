@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タスクルーレット</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef1f4;
+      --panel: #ffffff;
+      --text: #1f2933;
+      --muted: #637083;
+      --line: #d9e0e7;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --red: #dc2626;
+      --green: #12805c;
+      --yellow: #f59e0b;
+      --shadow: 0 16px 42px rgba(31, 41, 51, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, #f8fafc 0%, var(--bg) 52%, #e7ebef 100%);
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    .app {
+      width: min(1120px, calc(100vw - 32px));
+      margin: 24px auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 34px;
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--muted);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .status strong {
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfd;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .roulette-wrap {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      padding: 18px 16px 20px;
+    }
+
+    .roulette {
+      width: min(320px, 74vw);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      color: white;
+      background:
+        conic-gradient(from 12deg, #2563eb, #0f766e, #f59e0b, #dc2626, #2563eb);
+      box-shadow: inset 0 0 0 10px rgba(255, 255, 255, 0.22), 0 18px 34px rgba(31, 41, 51, 0.25);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 160ms ease, filter 160ms ease;
+    }
+
+    .roulette:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.04);
+    }
+
+    .roulette.is-spinning {
+      animation: spinPulse 140ms linear infinite;
+    }
+
+    @keyframes spinPulse {
+      0% { transform: rotate(0deg) scale(1); }
+      100% { transform: rotate(18deg) scale(1.01); }
+    }
+
+    .roulette-text {
+      display: -webkit-box;
+      -webkit-line-clamp: 7;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-width: 100%;
+      text-align: center;
+      font-size: clamp(18px, 5vw, 28px);
+      line-height: 1.24;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn {
+      min-height: 40px;
+      padding: 9px 14px;
+      border-radius: 8px;
+      background: #edf2f7;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+
+    .btn:hover {
+      background: #dfe7ef;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn.primary {
+      background: var(--blue);
+      color: white;
+    }
+
+    .btn.primary:hover {
+      background: var(--blue-dark);
+    }
+
+    .btn.danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .btn.danger:hover {
+      background: #fecaca;
+    }
+
+    .btn.small {
+      min-height: 32px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .result-actions {
+      display: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .result-actions.is-visible {
+      display: flex;
+    }
+
+    .input-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-input {
+      width: 100%;
+      min-height: 132px;
+      resize: vertical;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: #fbfcfd;
+      line-height: 1.5;
+    }
+
+    .task-input:focus {
+      outline: 3px solid rgba(37, 99, 235, 0.18);
+      border-color: var(--blue);
+      background: white;
+    }
+
+    .input-row,
+    .list-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .input-row {
+      justify-content: space-between;
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .message {
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .message.error {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .message.success {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 8px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 44px;
+      padding: 9px 10px 9px 12px;
+      border: 1px solid #dde4eb;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .task-text {
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .task-item.is-selected {
+      border-color: rgba(245, 158, 11, 0.8);
+      background: #fff7e6;
+    }
+
+    .empty {
+      padding: 24px 12px;
+      border: 1px dashed #c9d3de;
+      border-radius: 8px;
+      color: var(--muted);
+      text-align: center;
+      background: #fbfcfd;
+    }
+
+    .history {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .history-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 6px;
+      max-height: 116px;
+      overflow: auto;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .time {
+      color: #7b8794;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        width: min(100vw - 18px, 680px);
+        margin: 10px auto 18px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .status {
+        width: 100%;
+        justify-content: space-between;
+        white-space: normal;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 23px;
+      }
+
+      .panel-body {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <h1>タスクルーレット</h1>
+      <div class="status" aria-live="polite">
+        <span>候補 <strong id="taskCount">0</strong></span>
+        <span>最終保存 <strong id="savedAt">未保存</strong></span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">抽選</h2>
+        </div>
+        <div class="roulette-wrap">
+          <div id="roulette" class="roulette" role="button" tabindex="0" aria-label="タスクを抽選">
+            <div id="rouletteText" class="roulette-text">回す</div>
+          </div>
+          <div class="controls">
+            <button id="drawButton" class="btn primary" type="button">回す</button>
+            <button id="clearResultButton" class="btn" type="button">結果を戻す</button>
+          </div>
+          <div id="resultActions" class="result-actions">
+            <button id="completeSelectedButton" class="btn primary" type="button">完了して外す</button>
+            <button id="keepSelectedButton" class="btn" type="button">候補に残す</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">タスク投入</h2>
+          <button id="fileButton" class="btn small" type="button">ファイル</button>
+          <input id="fileInput" class="file-input" type="file" accept=".txt,.md,.csv,.docx">
+        </div>
+        <div class="panel-body">
+          <div class="input-stack">
+            <textarea id="taskInput" class="task-input" placeholder="1行1タスクで貼り付け"></textarea>
+            <div class="input-row">
+              <label class="check">
+                <input id="dedupeInput" type="checkbox" checked>
+                重複を除く
+              </label>
+              <div class="controls">
+                <button id="addButton" class="btn primary" type="button">追加</button>
+                <button id="sampleButton" class="btn" type="button">サンプル</button>
+              </div>
+            </div>
+            <div id="message" class="message" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">候補リスト</h2>
+          <div class="list-actions">
+            <button id="copyButton" class="btn small" type="button">コピー</button>
+            <button id="exportButton" class="btn small" type="button">書き出し</button>
+            <button id="clearAllButton" class="btn small danger" type="button">全削除</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="taskList" class="task-list"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">履歴</h2>
+          <button id="clearHistoryButton" class="btn small" type="button">履歴削除</button>
+        </div>
+        <div class="panel-body">
+          <div id="historyList" class="history-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "task_roulette_v1";
+    const state = {
+      tasks: [],
+      history: [],
+      selectedTaskId: null,
+      savedAt: null
+    };
+
+    const els = {
+      taskCount: document.getElementById("taskCount"),
+      savedAt: document.getElementById("savedAt"),
+      roulette: document.getElementById("roulette"),
+      rouletteText: document.getElementById("rouletteText"),
+      drawButton: document.getElementById("drawButton"),
+      clearResultButton: document.getElementById("clearResultButton"),
+      resultActions: document.getElementById("resultActions"),
+      completeSelectedButton: document.getElementById("completeSelectedButton"),
+      keepSelectedButton: document.getElementById("keepSelectedButton"),
+      taskInput: document.getElementById("taskInput"),
+      dedupeInput: document.getElementById("dedupeInput"),
+      addButton: document.getElementById("addButton"),
+      sampleButton: document.getElementById("sampleButton"),
+      fileButton: document.getElementById("fileButton"),
+      fileInput: document.getElementById("fileInput"),
+      message: document.getElementById("message"),
+      taskList: document.getElementById("taskList"),
+      copyButton: document.getElementById("copyButton"),
+      exportButton: document.getElementById("exportButton"),
+      clearAllButton: document.getElementById("clearAllButton"),
+      historyList: document.getElementById("historyList"),
+      clearHistoryButton: document.getElementById("clearHistoryButton")
+    };
+
+    let spinning = false;
+
+    function createId() {
+      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+      return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        if (Array.isArray(saved.tasks)) state.tasks = saved.tasks;
+        if (Array.isArray(saved.history)) state.history = saved.history;
+        if (typeof saved.selectedTaskId === "string") state.selectedTaskId = saved.selectedTaskId;
+        if (typeof saved.savedAt === "string") state.savedAt = saved.savedAt;
+      } catch (error) {
+        setMessage("保存データを読み込めませんでした。", "error");
+      }
+    }
+
+    function saveState() {
+      state.savedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderMeta();
+    }
+
+    function normalizeLine(line) {
+      return line
+        .trim()
+        .replace(/^\[[ xX]\]\s*/, "")
+        .replace(/^[-*・]\s*/, "")
+        .replace(/^[0-9０-９]+[.)．、]\s*/, "")
+        .trim();
+    }
+
+    function parseTasks(text) {
+      return text
+        .split(/\r?\n/)
+        .map(normalizeLine)
+        .filter(Boolean);
+    }
+
+    function addTasks(lines, source) {
+      const existing = new Set(state.tasks.map(task => task.text));
+      const dedupe = els.dedupeInput.checked;
+      let added = 0;
+      let skipped = 0;
+
+      lines.forEach(line => {
+        const text = normalizeLine(line);
+        if (!text) return;
+        if (dedupe && existing.has(text)) {
+          skipped += 1;
+          return;
+        }
+        state.tasks.push({
+          id: createId(),
+          text,
+          source,
+          createdAt: new Date().toISOString()
+        });
+        existing.add(text);
+        added += 1;
+      });
+
+      if (added > 0) {
+        saveState();
+        render();
+      }
+
+      if (added && skipped) setMessage(`${added}件追加、重複${skipped}件を除外しました。`, "success");
+      else if (added) setMessage(`${added}件追加しました。`, "success");
+      else if (skipped) setMessage(`重複${skipped}件を除外しました。`, "error");
+      else setMessage("追加できるタスクがありません。", "error");
+    }
+
+    function removeTask(id) {
+      state.tasks = state.tasks.filter(task => task.id !== id);
+      if (state.selectedTaskId === id) state.selectedTaskId = null;
+      saveState();
+      render();
+    }
+
+    function selectedTask() {
+      return state.tasks.find(task => task.id === state.selectedTaskId) || null;
+    }
+
+    function drawTask() {
+      if (spinning) return;
+      if (state.tasks.length === 0) {
+        setMessage("候補がありません。", "error");
+        return;
+      }
+
+      spinning = true;
+      els.drawButton.disabled = true;
+      els.roulette.classList.add("is-spinning");
+      els.resultActions.classList.remove("is-visible");
+      setMessage("");
+
+      const finalTask = state.tasks[Math.floor(Math.random() * state.tasks.length)];
+      const startedAt = performance.now();
+      const duration = 1700;
+
+      function tick(now) {
+        const progress = Math.min((now - startedAt) / duration, 1);
+        const randomTask = state.tasks[Math.floor(Math.random() * state.tasks.length)];
+        els.rouletteText.textContent = progress < 1 ? randomTask.text : finalTask.text;
+
+        if (progress < 1) {
+          requestAnimationFrame(tick);
+          return;
+        }
+
+        spinning = false;
+        els.drawButton.disabled = false;
+        els.roulette.classList.remove("is-spinning");
+        state.selectedTaskId = finalTask.id;
+        state.history.unshift({
+          id: createId(),
+          text: finalTask.text,
+          at: new Date().toISOString()
+        });
+        state.history = state.history.slice(0, 40);
+        saveState();
+        render();
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    function completeSelected() {
+      const task = selectedTask();
+      if (!task) return;
+      removeTask(task.id);
+      els.rouletteText.textContent = "回す";
+      state.selectedTaskId = null;
+      saveState();
+      render();
+      setMessage("選ばれたタスクを候補から外しました。", "success");
+    }
+
+    function clearResult() {
+      state.selectedTaskId = null;
+      els.rouletteText.textContent = "回す";
+      saveState();
+      render();
+    }
+
+    function setMessage(text, type = "") {
+      els.message.textContent = text;
+      els.message.className = `message ${type}`.trim();
+    }
+
+    function formatTime(iso) {
+      if (!iso) return "未保存";
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return "未保存";
+      return date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function renderMeta() {
+      els.taskCount.textContent = state.tasks.length;
+      els.savedAt.textContent = formatTime(state.savedAt);
+    }
+
+    function renderTasks() {
+      els.taskList.textContent = "";
+
+      if (state.tasks.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "タスクがありません";
+        els.taskList.appendChild(empty);
+        return;
+      }
+
+      state.tasks.forEach(task => {
+        const item = document.createElement("div");
+        item.className = "task-item";
+        if (task.id === state.selectedTaskId) item.classList.add("is-selected");
+
+        const text = document.createElement("div");
+        text.className = "task-text";
+        text.textContent = task.text;
+
+        const button = document.createElement("button");
+        button.className = "btn small danger";
+        button.type = "button";
+        button.textContent = "削除";
+        button.addEventListener("click", () => removeTask(task.id));
+
+        item.append(text, button);
+        els.taskList.appendChild(item);
+      });
+    }
+
+    function renderHistory() {
+      els.historyList.textContent = "";
+
+      if (state.history.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "まだ履歴がありません";
+        els.historyList.appendChild(empty);
+        return;
+      }
+
+      state.history.forEach(entry => {
+        const row = document.createElement("div");
+        row.className = "history-item";
+
+        const time = document.createElement("span");
+        time.className = "time";
+        time.textContent = formatTime(entry.at);
+
+        const text = document.createElement("span");
+        text.textContent = entry.text;
+
+        row.append(time, text);
+        els.historyList.appendChild(row);
+      });
+    }
+
+    function renderResultActions() {
+      const task = selectedTask();
+      els.resultActions.classList.toggle("is-visible", Boolean(task));
+      if (task) els.rouletteText.textContent = task.text;
+    }
+
+    function render() {
+      renderMeta();
+      renderTasks();
+      renderHistory();
+      renderResultActions();
+    }
+
+    function decodeTextFile(buffer) {
+      let text = new TextDecoder("utf-8").decode(buffer);
+      const replacementCount = (text.match(/\uFFFD/g) || []).length;
+      if (replacementCount > 0) {
+        try {
+          text = new TextDecoder("shift_jis").decode(buffer);
+        } catch (error) {
+          return text;
+        }
+      }
+      return text;
+    }
+
+    function readFile(file) {
+      if (!file) return;
+      if (/\.docx$/i.test(file.name)) {
+        setMessage("Wordファイルは本文をコピーして貼り付けてください。", "error");
+        els.fileInput.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = event => {
+        const text = decodeTextFile(event.target.result);
+        addTasks(parseTasks(text), file.name);
+        els.fileInput.value = "";
+      };
+      reader.onerror = () => setMessage("ファイルを読み込めませんでした。", "error");
+      reader.readAsArrayBuffer(file);
+    }
+
+    function exportTasks() {
+      if (state.tasks.length === 0) {
+        setMessage("書き出すタスクがありません。", "error");
+        return;
+      }
+
+      const text = state.tasks.map(task => task.text).join("\n");
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      const date = new Date().toISOString().slice(0, 10);
+      anchor.href = url;
+      anchor.download = `task-roulette-${date}.txt`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      setMessage("テキストを書き出しました。", "success");
+    }
+
+    async function copyTasks() {
+      if (state.tasks.length === 0) {
+        setMessage("コピーするタスクがありません。", "error");
+        return;
+      }
+
+      const text = state.tasks.map(task => task.text).join("\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        setMessage("候補リストをコピーしました。", "success");
+      } catch (error) {
+        els.taskInput.value = text;
+        els.taskInput.select();
+        setMessage("コピーできないため、入力欄に戻しました。", "error");
+      }
+    }
+
+    function clearAll() {
+      if (state.tasks.length === 0) return;
+      if (!confirm("すべてのタスクを削除しますか？")) return;
+      state.tasks = [];
+      state.selectedTaskId = null;
+      els.rouletteText.textContent = "回す";
+      saveState();
+      render();
+      setMessage("全タスクを削除しました。", "success");
+    }
+
+    function loadSample() {
+      els.taskInput.value = [
+        "10分だけ机を片付ける",
+        "今日の主役タスクを1つ進める",
+        "未返信の連絡を1件返す",
+        "バックアップを1つ書き出す",
+        "次の30分ユニットを決める"
+      ].join("\n");
+      els.taskInput.focus();
+    }
+
+    els.drawButton.addEventListener("click", drawTask);
+    els.roulette.addEventListener("click", drawTask);
+    els.roulette.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        drawTask();
+      }
+    });
+    els.clearResultButton.addEventListener("click", clearResult);
+    els.completeSelectedButton.addEventListener("click", completeSelected);
+    els.keepSelectedButton.addEventListener("click", clearResult);
+    els.addButton.addEventListener("click", () => {
+      addTasks(parseTasks(els.taskInput.value), "manual");
+      els.taskInput.value = "";
+    });
+    els.sampleButton.addEventListener("click", loadSample);
+    els.fileButton.addEventListener("click", () => els.fileInput.click());
+    els.fileInput.addEventListener("change", event => readFile(event.target.files[0]));
+    els.copyButton.addEventListener("click", copyTasks);
+    els.exportButton.addEventListener("click", exportTasks);
+    els.clearAllButton.addEventListener("click", clearAll);
+    els.clearHistoryButton.addEventListener("click", () => {
+      state.history = [];
+      saveState();
+      render();
+    });
+
+    loadState();
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5A7BFF"/>
+      <stop offset="1" stop-color="#3F5AE0"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#bg)"/>
+  <g fill="#FFFFFF">
+    <!-- spout -->
+    <path d="M470 250
+             C 470 205, 505 180, 520 150
+             C 535 180, 570 205, 570 250
+             C 545 240, 495 240, 470 250 Z" opacity="0.95"/>
+    <!-- whale body -->
+    <path d="M300 560
+             C 300 430, 415 350, 545 350
+             C 660 350, 745 415, 770 505
+             C 800 490, 845 495, 872 520
+             C 852 545, 815 552, 788 545
+             C 782 640, 700 705, 590 720
+             C 640 745, 700 748, 748 735
+             C 705 792, 618 812, 545 800
+             C 400 780, 300 690, 300 560 Z"/>
+    <!-- belly curve cut -->
+  </g>
+  <!-- eye -->
+  <circle cx="430" cy="520" r="26" fill="#3F5AE0"/>
+  <circle cx="440" cy="510" r="8" fill="#FFFFFF"/>
+  <!-- smile -->
+  <path d="M360 585 C 385 615, 435 620, 470 600" stroke="#3F5AE0" stroke-width="16" fill="none" stroke-linecap="round"/>
+</svg>

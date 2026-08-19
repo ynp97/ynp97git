@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>俺は世界を変える！</title>
+  <style>
+    :root {
+      --bg: #0d0f13;
+      --panel: #171a21;
+      --panel-2: #20242d;
+      --line: #303642;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --cafe: #f97316;
+      --orphanage: #38bdf8;
+      --good: #a78bfa;
+      --success: #34d399;
+      --danger: #fb7185;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .25);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 5%, rgba(249, 115, 22, .14), transparent 24rem),
+        radial-gradient(circle at 88% 12%, rgba(167, 139, 250, .12), transparent 27rem),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    }
+
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 80px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #fbbf24;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 7vw, 74px);
+      line-height: .95;
+      letter-spacing: -.06em;
+    }
+
+    .lead {
+      max-width: 680px;
+      margin: 18px 0 0;
+      color: #c7cbd4;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 30px;
+    }
+
+    .world-meter {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(23, 26, 33, .88);
+      box-shadow: var(--shadow);
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .meter-label strong {
+      color: var(--text);
+      font-size: 32px;
+    }
+
+    .progress {
+      height: 10px;
+      overflow: hidden;
+      margin-top: 12px;
+      border-radius: 99px;
+      background: #292e38;
+    }
+
+    .progress > span {
+      display: block;
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cafe), #fbbf24, var(--good));
+      transition: width .45s ease;
+    }
+
+    .today-moved {
+      margin-top: 14px;
+      color: var(--success);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .foundation-meter {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .foundation-meter .progress > span {
+      background: linear-gradient(90deg, #10b981, #6ee7b7);
+    }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .stage-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 196px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(145deg, rgba(32, 36, 45, .95), rgba(20, 23, 29, .95));
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+
+    .stage-card:hover, .stage-card.active {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+    }
+
+    .stage-card::after {
+      content: "";
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      right: -60px;
+      bottom: -75px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: .13;
+      filter: blur(2px);
+    }
+
+    .stage-number {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .16em;
+    }
+
+    .stage-card h2 {
+      margin: 24px 0 6px;
+      font-size: 24px;
+      letter-spacing: -.04em;
+    }
+
+    .stage-card p {
+      min-height: 42px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .stage-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      margin-top: 18px;
+    }
+
+    .stage-percent {
+      color: var(--accent);
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: -.05em;
+    }
+
+    .stage-count {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(320px, .85fr);
+      gap: 20px;
+    }
+
+    .panel {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(23, 26, 33, .9);
+      box-shadow: var(--shadow);
+    }
+
+    .panel + .panel { margin-top: 20px; }
+
+    .roadmap-panel {
+      margin-bottom: 22px;
+    }
+
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+
+    .roadmap-step {
+      min-height: 142px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #1d2129;
+    }
+
+    .roadmap-step strong {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .roadmap-step p {
+      min-height: 46px;
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .roadmap-step .progress {
+      height: 6px;
+      margin: 0;
+    }
+
+    .roadmap-step span {
+      color: #fbbf24;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .panel h3 {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: -.03em;
+    }
+
+    .muted { color: var(--muted); }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab, .small-button, .primary-button {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    .tab {
+      padding: 8px 11px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-color: var(--active-color, #6b7280);
+    }
+
+    .milestone {
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .freedom-goal {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+      padding: 17px;
+      border: 1px solid rgba(52, 211, 153, .35);
+      border-radius: 16px;
+      background: rgba(16, 185, 129, .08);
+    }
+
+    .freedom-goal h4 {
+      margin: 0 0 5px;
+      font-size: 16px;
+    }
+
+    .freedom-goal p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .student-input {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      color: #6ee7b7;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .student-input input {
+      width: 68px;
+      padding: 8px;
+      color: #ecfdf5;
+      text-align: center;
+      border-color: rgba(52, 211, 153, .45);
+    }
+
+    .freedom-goal .progress {
+      grid-column: 1 / -1;
+      width: 100%;
+      margin: 0;
+    }
+
+    .freedom-goal .progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: #34d399;
+    }
+
+    .milestone:first-child { border-top: 0; padding-top: 0; }
+
+    .milestone-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 11px;
+    }
+
+    .milestone-title {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .milestone-meta {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .milestone-progress {
+      grid-column: 1 / -1;
+      height: 5px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #292e38;
+    }
+
+    .milestone-progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--stage-color);
+      transition: width .35s ease;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 11px;
+      align-items: center;
+      padding: 11px 12px;
+      border: 1px solid transparent;
+      border-radius: 13px;
+      background: #1d2129;
+    }
+
+    .task:hover { border-color: #363c48; }
+    .task.done { opacity: .62; }
+    .task.done .task-title { text-decoration: line-through; }
+
+    .check {
+      width: 23px;
+      height: 23px;
+      border: 2px solid #596170;
+      border-radius: 7px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .task.done .check {
+      border-color: var(--success);
+      background: var(--success);
+      color: #08251b;
+    }
+
+    .task-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .task-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-button {
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 8px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .icon-button:hover { color: var(--text); background: #2b303b; }
+    .icon-button.today-on { color: #fbbf24; }
+
+    .empty {
+      padding: 26px 12px;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .today-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .today-item {
+      padding: 12px;
+      border-left: 3px solid var(--task-color);
+      border-radius: 10px;
+      background: #1d2129;
+      cursor: pointer;
+    }
+
+    .today-item strong { display: block; font-size: 13px; }
+    .today-item span { color: var(--muted); font-size: 11px; }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      outline: 0;
+      color: var(--text);
+      background: #11141a;
+    }
+
+    input:focus, select:focus { border-color: #64748b; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .checkbox-label input { width: auto; }
+
+    .primary-button {
+      padding: 12px 16px;
+      border-color: #f59e0b;
+      color: #1b1203;
+      background: #fbbf24;
+      font-weight: 900;
+    }
+
+    .small-button {
+      padding: 8px 10px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .small-button:hover { color: var(--text); border-color: #596170; }
+
+    .history {
+      display: grid;
+      gap: 11px;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: 8px 1fr;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .history-dot {
+      width: 8px;
+      height: 8px;
+      margin-top: 5px;
+      border-radius: 50%;
+      background: var(--history-color);
+    }
+
+    .history-item strong { color: var(--text); }
+
+    .toast {
+      position: fixed;
+      z-index: 20;
+      right: 22px;
+      bottom: 22px;
+      width: min(390px, calc(100% - 44px));
+      padding: 19px;
+      border: 1px solid #496155;
+      border-radius: 17px;
+      background: rgba(17, 29, 24, .97);
+      box-shadow: var(--shadow);
+      transform: translateY(130%);
+      transition: transform .3s ease;
+    }
+
+    .toast.show { transform: translateY(0); }
+    .toast-kicker { color: var(--success); font-size: 12px; font-weight: 900; }
+    .toast h4 { margin: 5px 0 8px; font-size: 18px; }
+    .toast p { margin: 0; color: #c6d6ce; font-size: 13px; line-height: 1.6; }
+
+    .footer-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .stage-grid { grid-template-columns: 1fr; }
+      .roadmap-grid { grid-template-columns: repeat(2, 1fr); }
+      .stage-card { min-height: 170px; }
+    }
+
+    @media (max-width: 560px) {
+      .app { width: min(100% - 20px, 1180px); padding-top: 22px; }
+      .panel, .world-meter, .stage-card { border-radius: 16px; }
+      .roadmap-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .panel-head { align-items: flex-start; flex-direction: column; }
+      .task { grid-template-columns: auto 1fr; }
+      .task-actions { grid-column: 2; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Personal Mission Control</p>
+        <h1>俺は世界を<br>変える！</h1>
+        <p class="lead">巨大な目標は、今日の小さな一歩でしか動かない。完了したタスクが、カフェ・孤児院・いい人システムを何％進めたかを見る。</p>
+      </div>
+      <aside class="world-meter">
+        <div class="meter-label">
+          <span>世界を変える全体進捗</span>
+          <strong id="overallPercent">0%</strong>
+        </div>
+        <div class="progress"><span id="overallBar"></span></div>
+        <div class="today-moved" id="todayMoved">今日はまだ動かしていない。</div>
+        <div class="foundation-meter">
+          <div class="meter-label">
+            <span>動ける自由の基盤</span>
+            <strong id="foundationPercent" style="font-size:24px;color:#6ee7b7">0%</strong>
+          </div>
+          <div class="progress"><span id="foundationBar"></span></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="stage-grid" id="stageCards"></section>
+
+    <section class="panel roadmap-panel">
+      <div class="panel-head">
+        <div>
+          <h3>POP第一期ロードマップ</h3>
+          <div class="muted" style="font-size:12px;margin-top:5px">コードではなく、この流れが画面で見えるかを確認する。</div>
+        </div>
+      </div>
+      <div class="roadmap-grid" id="roadmapSteps"></div>
+    </section>
+
+    <section class="layout">
+      <div>
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>目標を動かすタスク</h3>
+              <div class="muted" style="font-size:12px;margin-top:5px">節目ごとの重みで進捗を計算します。</div>
+            </div>
+            <div class="tabs" id="stageTabs"></div>
+          </div>
+          <div id="milestoneList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>行動の記録</h3>
+            <span class="muted" style="font-size:11px">新しい順</span>
+          </div>
+          <div class="history" id="historyList"></div>
+        </section>
+      </div>
+
+      <aside>
+        <section class="panel">
+          <div class="panel-head">
+            <h3>今日の一歩</h3>
+            <span class="muted" id="todayDate" style="font-size:11px"></span>
+          </div>
+          <div class="today-list" id="todayList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>タスクを細分化する</h3>
+          </div>
+          <form id="taskForm">
+            <label>
+              今日できる小さな行動
+              <input id="taskTitle" required maxlength="90" placeholder="例：デニスへ確認項目を送る">
+            </label>
+            <div class="form-row">
+              <label>
+                三段階
+                <select id="taskStage"></select>
+              </label>
+              <label>
+                節目
+                <select id="taskMilestone"></select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                重要度
+                <select id="taskImpact">
+                  <option value="1">1 小さい一歩</option>
+                  <option value="2">2</option>
+                  <option value="3" selected>3 標準</option>
+                  <option value="5">5 大きな一歩</option>
+                  <option value="8">8 決定的な一歩</option>
+                </select>
+              </label>
+              <label>
+                期限
+                <input id="taskDue" type="date">
+              </label>
+            </div>
+            <label class="checkbox-label">
+              <input id="taskToday" type="checkbox" checked>
+              今日の一歩に表示する
+            </label>
+            <button class="primary-button" type="submit">この一歩を追加</button>
+          </form>
+        </section>
+
+        <div class="footer-actions">
+          <button class="small-button" id="exportButton" type="button">データを書き出す</button>
+          <button class="small-button" id="resetButton" type="button">初期状態に戻す</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <div class="toast-kicker">今日、世界を動かした。</div>
+    <h4 id="toastTitle"></h4>
+    <p id="toastBody"></p>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "change-the-world-v05";
+
+    const stages = [
+      {
+        id: "cafe",
+        number: "STAGE 01",
+        title: "カフェの設立",
+        subtitle: "共同経営の店を開き、2027年3月の一週間営業まで進める。",
+        color: "#f97316",
+        milestones: [
+          { id: "agreement", title: "共同経営の土台", weight: 15 },
+          { id: "construction", title: "建設", weight: 25 },
+          { id: "opening", title: "開業準備", weight: 20 },
+          { id: "operation", title: "通常営業", weight: 15 },
+          { id: "week", title: "一週間営業", weight: 15 },
+          { id: "review", title: "共有と検証", weight: 10 }
+        ]
+      },
+      {
+        id: "orphanage",
+        number: "STAGE 02",
+        title: "孤児院の設立",
+        subtitle: "現地の必要を確かめ、土地・資金・運営を現実の計画にする。",
+        color: "#38bdf8",
+        milestones: [
+          { id: "research", title: "現地調査", weight: 15 },
+          { id: "definition", title: "事業定義", weight: 15 },
+          { id: "land", title: "土地・施設", weight: 20 },
+          { id: "funding", title: "資金", weight: 20 },
+          { id: "organization", title: "運営体制", weight: 15 },
+          { id: "launch", title: "開始", weight: 15 }
+        ]
+      },
+      {
+        id: "good",
+        number: "STAGE 03",
+        title: "いい人システムの確立",
+        subtitle: "参加行動と現地の結果をつなぎ、喜びが本人へ返る循環を作る。",
+        color: "#a78bfa",
+        milestones: [
+          { id: "principles", title: "思想と原則", weight: 15 },
+          { id: "actions", title: "参加行動の定義", weight: 20 },
+          { id: "manual", title: "POP内での手作業実証", weight: 20 },
+          { id: "feedback", title: "参加者の反応確認", weight: 15 },
+          { id: "prototype", title: "簡単なWeb試作", weight: 15 },
+          { id: "repeat", title: "継続運用", weight: 15 }
+        ]
+      },
+      {
+        id: "foundation",
+        number: "BASE",
+        title: "活動基盤",
+        subtitle: "学校・教会・資金・時間・体力を整え、三段階を動かす自由を作る。",
+        color: "#34d399",
+        isFoundation: true,
+        milestones: [
+          { id: "school", title: "学校事業の安定と委任", weight: 25 },
+          { id: "church", title: "教会の安定と委任", weight: 20 },
+          { id: "finance", title: "資金の確保", weight: 25 },
+          { id: "time", title: "時間の確保", weight: 15 },
+          { id: "health", title: "体力の維持", weight: 15 }
+        ]
+      }
+    ];
+
+    const roadmapSteps = [
+      {
+        title: "1. 送金と共同経営確認",
+        body: "150万円、所有、利益、追加費用、許認可を送金前に確認する。",
+        refs: [["cafe", "agreement"]]
+      },
+      {
+        title: "2. 建設台帳",
+        body: "工事、予算、写真、やりとりを後で説明できる形で残す。",
+        refs: [["cafe", "construction"]]
+      },
+      {
+        title: "3. 8月建設参加・撮影",
+        body: "現地で確認し、3月と発信につながる素材を残す。",
+        refs: [["cafe", "construction"]]
+      },
+      {
+        title: "4. 通常営業の記録",
+        body: "デニスによる通常営業の売上、課題、反応を記録する。",
+        refs: [["cafe", "operation"]]
+      },
+      {
+        title: "5. 3月一週間営業",
+        body: "日本側チームで約1週間営業し、楽しさと目的を形にする。",
+        refs: [["cafe", "week"]]
+      },
+      {
+        title: "6. 共有・検証",
+        body: "4月に体験、収支、課題、参加者への返答を共有する。",
+        refs: [["cafe", "review"], ["good", "manual"], ["good", "feedback"]]
+      }
+    ];
+
+    const seedTasks = [
+      task("A-1 資金の性質を仮決めする", "cafe", "agreement", 4, "2026-06-18", true),
+      task("A-3 利益の定義を仮決めする", "cafe", "agreement", 4, "2026-06-18", true),
+      task("A-5 追加費用の扱いを仮決めする", "cafe", "agreement", 4, "2026-06-18", false),
+      task("デニスへ所有と許認可を確認する英語メッセージを書く", "cafe", "agreement", 5, "2026-06-20", true),
+      task("150万円の使途記録フォーマットを作る", "cafe", "agreement", 4, "2026-06-20", false),
+      task("工事進捗・予算・写真の共有方法を決める", "cafe", "construction", 3, "2026-06-23", true),
+      task("8月に撮るものリストを作る", "cafe", "construction", 3, "2026-06-30", false),
+      task("8月の作業・確認リストを作る", "cafe", "construction", 3, "2026-06-30", false),
+      task("開業に必要な許可と設備をデニスに確認する", "cafe", "opening", 5, "", false),
+      task("月次経営レポートのひな型を作る", "cafe", "operation", 4, "", false),
+      task("3月のチームを外部募集か身内か仮置きする", "cafe", "week", 5, "", false),
+      task("3月一週間営業でやりたいメニュー案を3つ出す", "cafe", "week", 4, "", false),
+      task("POPカフェ一週間企画書の見出しを作る", "cafe", "week", 4, "", false),
+      task("4月共有レポートの見出しを作る", "cafe", "review", 4, "", false),
+      task("第一期の共有動画で見せる場面を列挙する", "cafe", "review", 4, "", false),
+      task("ジーに孤児院訪問の目的と候補を確認する", "orphanage", "research", 3, "2026-06-24", false),
+      task("8月にマニラへ立ち寄るか決める", "orphanage", "research", 2, "", false),
+      task("孤児院の目的と運営モデルを一枚にする", "orphanage", "definition", 4, "", false),
+      task("海が見える土地の確認項目を作る", "orphanage", "land", 3, "", false),
+      task("カフェ・簡易宿・孤児院の位置関係を考える", "orphanage", "land", 3, "", false),
+      task("1500万円を段階別の目標額に分ける", "orphanage", "funding", 5, "", false),
+      task("現地と日本の役割一覧を作る", "orphanage", "organization", 4, "", false),
+      task("POPで参加できる行動を列挙する", "good", "actions", 3, "", false),
+      task("参加者に返せるものを洗い出す", "good", "manual", 3, "", false),
+      task("参加台帳の項目を決める", "good", "manual", 4, "", false),
+      task("参加者へ返す言葉を3案作る", "good", "feedback", 3, "", false),
+      task("共同ゲージの画面を一枚作る", "good", "prototype", 4, "", false),
+      task("結果報告ページの試作を作る", "good", "prototype", 4, "", false),
+      task("参加記録の公開範囲を決める", "good", "repeat", 3, "", false),
+      task("生徒数・卒業見込み・新規見込みを更新する", "foundation", "school", 3, "", false),
+      task("学校業務を「自分だけ・任せられる」に分ける", "foundation", "school", 4, "", false),
+      task("教会で任せられる実務を一つ手順化する", "foundation", "church", 3, "", false),
+      task("教会債返済・生活費・POP資金の区分表を作る", "foundation", "finance", 5, "", false),
+      task("一週間にPOPへ使う固定時間を3枠確保する", "foundation", "time", 5, "", true),
+      task("体調を5段階で一週間記録する", "foundation", "health", 3, "", false)
+    ];
+
+    function task(title, stage, milestone, impact, due, today) {
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        title, stage, milestone, impact, due, today,
+        done: false, completedAt: null
+      };
+    }
+
+    function freshState() {
+      return {
+        tasks: seedTasks.map(item => ({ ...item })),
+        history: [],
+        activeStage: "cafe",
+        metrics: {
+          studentsCurrent: 12,
+          studentsGraduatingNextYear: 8,
+          studentsGraduatingYearTwo: 8,
+          studentsRecruitThisYear: 10,
+          studentsRecruitNextYear: 16,
+          studentsTarget: 30,
+          schoolAnnualRevenueTarget: 10000000
+        }
+      };
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && Array.isArray(saved.tasks)) {
+          saved.metrics = {
+            studentsCurrent: 12,
+            studentsGraduatingNextYear: 8,
+            studentsGraduatingYearTwo: 8,
+            studentsRecruitThisYear: 10,
+            studentsRecruitNextYear: 16,
+            studentsTarget: 30,
+            schoolAnnualRevenueTarget: 10000000,
+            ...(saved.metrics || {})
+          };
+          return saved;
+        }
+      } catch (_) {}
+      return freshState();
+    }
+
+    let state = loadState();
+    let toastTimer;
+    let studentMetricTimer;
+
+    const el = id => document.getElementById(id);
+    const round = value => Math.round(value * 10) / 10;
+    const todayKey = () => new Date().toLocaleDateString("sv-SE");
+    const stageById = id => stages.find(stage => stage.id === id);
+    const milestoneById = (stageId, milestoneId) =>
+      stageById(stageId).milestones.find(milestone => milestone.id === milestoneId);
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function taskMilestoneProgress(stageId, milestoneId, tasks = state.tasks) {
+      const relevant = tasks.filter(item => item.stage === stageId && item.milestone === milestoneId);
+      const total = relevant.reduce((sum, item) => sum + Number(item.impact || 1), 0);
+      const complete = relevant.filter(item => item.done)
+        .reduce((sum, item) => sum + Number(item.impact || 1), 0);
+      return total ? (complete / total) * 100 : 0;
+    }
+
+    function milestoneProgress(stageId, milestoneId, tasks = state.tasks) {
+      const taskProgress = taskMilestoneProgress(stageId, milestoneId, tasks);
+      if (stageId === "foundation" && milestoneId === "school") {
+        const current = Number(state.metrics.studentsCurrent || 0);
+        const graduating = Number(state.metrics.studentsGraduatingNextYear || 0);
+        const graduatingYearTwo = Number(state.metrics.studentsGraduatingYearTwo || 0);
+        const recruitThisYear = Number(state.metrics.studentsRecruitThisYear || 0);
+        const recruitNextYear = Number(state.metrics.studentsRecruitNextYear || 0);
+        const projected = Math.max(0, current - graduating + recruitThisYear - graduatingYearTwo + recruitNextYear);
+        const target = Number(state.metrics.studentsTarget || 30);
+        const studentProgress = Math.min(100, (projected / target) * 100);
+        return studentProgress * .7 + taskProgress * .3;
+      }
+      return taskProgress;
+    }
+
+    function stageProgress(stageId, tasks = state.tasks) {
+      const stage = stageById(stageId);
+      return stage.milestones.reduce((sum, milestone) => {
+        return sum + milestoneProgress(stageId, milestone.id, tasks) * (milestone.weight / 100);
+      }, 0);
+    }
+
+    function overallProgress(tasks = state.tasks) {
+      const missionStages = stages.filter(stage => !stage.isFoundation);
+      return missionStages.reduce((sum, stage) => sum + stageProgress(stage.id, tasks), 0)
+        / missionStages.length;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(value) {
+      if (!value) return "期限なし";
+      const [year, month, day] = value.split("-");
+      return `${Number(month)}/${Number(day)}`;
+    }
+
+    function render() {
+      renderHeader();
+      renderStages();
+      renderRoadmap();
+      renderTabs();
+      renderMilestones();
+      renderToday();
+      renderHistory();
+      renderFormOptions();
+    }
+
+    function renderHeader() {
+      const overall = round(overallProgress());
+      el("overallPercent").textContent = `${overall}%`;
+      el("overallBar").style.width = `${overall}%`;
+      const foundation = round(stageProgress("foundation"));
+      el("foundationPercent").textContent = `${foundation}%`;
+      el("foundationBar").style.width = `${foundation}%`;
+
+      const moved = state.history
+        .filter(item => item.date === todayKey() && item.type === "complete")
+        .reduce((sum, item) => sum + Number(item.overallDelta || 0), 0);
+      const foundationMoved = state.history
+        .filter(item => item.date === todayKey() && item.type === "complete")
+        .reduce((sum, item) => sum + Number(item.foundationDelta || 0), 0);
+      const messages = [];
+      if (moved > 0) messages.push(`三段階を ${round(moved)}% 動かした`);
+      if (foundationMoved > 0) messages.push(`自由の基盤を ${round(foundationMoved)}% 整えた`);
+      el("todayMoved").textContent = messages.length
+        ? `今日は${messages.join("。")}。`
+        : "今日はまだ動かしていない。";
+    }
+
+    function renderStages() {
+      el("stageCards").innerHTML = stages.filter(stage => !stage.isFoundation).map(stage => {
+        const progress = round(stageProgress(stage.id));
+        const tasks = state.tasks.filter(item => item.stage === stage.id);
+        const done = tasks.filter(item => item.done).length;
+        return `
+          <article class="stage-card ${state.activeStage === stage.id ? "active" : ""}"
+            style="--accent:${stage.color}" data-stage-card="${stage.id}">
+            <div class="stage-number">${stage.number}</div>
+            <h2>${escapeHtml(stage.title)}</h2>
+            <p>${escapeHtml(stage.subtitle)}</p>
+            <div class="stage-bottom">
+              <div class="stage-percent">${progress}%</div>
+              <div class="stage-count">${done} / ${tasks.length} 完了</div>
+            </div>
+          </article>`;
+      }).join("");
+
+      document.querySelectorAll("[data-stage-card]").forEach(card => {
+        card.addEventListener("click", () => {
+          state.activeStage = card.dataset.stageCard;
+          saveState();
+          render();
+          el("milestoneList").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function roadmapProgress(step) {
+      const total = step.refs.reduce((sum, [stageId, milestoneId]) => {
+        return sum + milestoneProgress(stageId, milestoneId);
+      }, 0);
+      return step.refs.length ? total / step.refs.length : 0;
+    }
+
+    function renderRoadmap() {
+      el("roadmapSteps").innerHTML = roadmapSteps.map(step => {
+        const progress = round(roadmapProgress(step));
+        return `
+          <article class="roadmap-step">
+            <strong>${escapeHtml(step.title)}</strong>
+            <p>${escapeHtml(step.body)}</p>
+            <div class="progress"><span style="width:${progress}%"></span></div>
+            <span>${progress}%</span>
+          </article>`;
+      }).join("");
+    }
+
+    function renderTabs() {
+      el("stageTabs").innerHTML = stages.map(stage => `
+        <button class="tab ${state.activeStage === stage.id ? "active" : ""}"
+          style="--active-color:${stage.color}" data-stage-tab="${stage.id}">
+          ${escapeHtml(stage.title)}
+        </button>`).join("");
+
+      document.querySelectorAll("[data-stage-tab]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.activeStage = button.dataset.stageTab;
+          saveState();
+          render();
+        });
+      });
+    }
+
+    function renderMilestones() {
+      const stage = stageById(state.activeStage);
+      const foundationGoal = stage.isFoundation ? renderFoundationGoal() : "";
+      el("milestoneList").innerHTML = foundationGoal + stage.milestones.map(milestone => {
+        const tasks = state.tasks.filter(item =>
+          item.stage === stage.id && item.milestone === milestone.id);
+        const progress = round(milestoneProgress(stage.id, milestone.id));
+        return `
+          <section class="milestone" style="--stage-color:${stage.color}">
+            <div class="milestone-head">
+              <div class="milestone-title">${escapeHtml(milestone.title)}</div>
+              <div class="milestone-meta">段階内 ${milestone.weight}% / 現在 ${progress}%</div>
+              <div class="milestone-progress"><span style="width:${progress}%"></span></div>
+            </div>
+            <div class="task-list">
+              ${tasks.length ? tasks.map(renderTask).join("") :
+                `<div class="empty">まだタスクがありません。小さな一歩に分解してください。</div>`}
+            </div>
+          </section>`;
+      }).join("");
+      const studentInput = el("studentCurrent");
+      const graduatingInput = el("studentsGraduatingNextYear");
+      const graduatingYearTwoInput = el("studentsGraduatingYearTwo");
+      const recruitThisYearInput = el("studentsRecruitThisYear");
+      const recruitNextYearInput = el("studentsRecruitNextYear");
+      if (studentInput || graduatingInput || graduatingYearTwoInput || recruitThisYearInput || recruitNextYearInput) {
+        const saveStudentMetric = event => {
+          const value = Math.max(0, Math.min(999, Number(event.target.value || 0)));
+          if (event.target.id === "studentCurrent") state.metrics.studentsCurrent = value;
+          if (event.target.id === "studentsGraduatingNextYear") state.metrics.studentsGraduatingNextYear = value;
+          if (event.target.id === "studentsGraduatingYearTwo") state.metrics.studentsGraduatingYearTwo = value;
+          if (event.target.id === "studentsRecruitThisYear") state.metrics.studentsRecruitThisYear = value;
+          if (event.target.id === "studentsRecruitNextYear") state.metrics.studentsRecruitNextYear = value;
+          saveState();
+        };
+        [studentInput, graduatingInput, graduatingYearTwoInput, recruitThisYearInput, recruitNextYearInput].filter(Boolean).forEach(input => {
+          input.addEventListener("input", event => {
+            saveStudentMetric(event);
+            clearTimeout(studentMetricTimer);
+            studentMetricTimer = setTimeout(render, 350);
+          });
+          input.addEventListener("change", event => {
+            saveStudentMetric(event);
+            clearTimeout(studentMetricTimer);
+            render();
+          });
+        });
+      }
+      bindTaskButtons();
+    }
+
+    function renderFoundationGoal() {
+      const current = Number(state.metrics.studentsCurrent || 0);
+      const graduating = Number(state.metrics.studentsGraduatingNextYear || 0);
+      const graduatingYearTwo = Number(state.metrics.studentsGraduatingYearTwo || 0);
+      const recruitThisYear = Number(state.metrics.studentsRecruitThisYear || 0);
+      const recruitNextYear = Number(state.metrics.studentsRecruitNextYear || 0);
+      const projectedOneYear = Math.max(0, current - graduating + recruitThisYear);
+      const projected = Math.max(0, projectedOneYear - graduatingYearTwo + recruitNextYear);
+      const target = Number(state.metrics.studentsTarget || 30);
+      const currentProgress = round(Math.min(100, (current / target) * 100));
+      const projectedProgress = round(Math.min(100, (projected / target) * 100));
+      const neededFromProjected = Math.max(0, target - projected);
+      return `
+        <section class="freedom-goal">
+          <div>
+            <h4>自由を作る具体条件：生徒30人</h4>
+            <p>毎年卒業で減る前提。2年後見込みは ${projected}人。30人まではあと ${neededFromProjected}人。</p>
+          </div>
+          <div class="student-input">
+            <label>
+              現在
+              <input id="studentCurrent" type="number" min="0" max="999" value="${current}" aria-label="現在の生徒数">
+            </label>
+            <span>/ ${target}人</span>
+            <label>
+              来年卒業
+              <input id="studentsGraduatingNextYear" type="number" min="0" max="999" value="${graduating}" aria-label="来年卒業する生徒数">
+            </label>
+            <label>
+              今年入学
+              <input id="studentsRecruitThisYear" type="number" min="0" max="999" value="${recruitThisYear}" aria-label="今年増やす生徒数">
+            </label>
+            <label>
+              2年目卒業
+              <input id="studentsGraduatingYearTwo" type="number" min="0" max="999" value="${graduatingYearTwo}" aria-label="2年目に卒業する生徒数">
+            </label>
+            <label>
+              2年目入学
+              <input id="studentsRecruitNextYear" type="number" min="0" max="999" value="${recruitNextYear}" aria-label="2年目に増やす生徒数">
+            </label>
+          </div>
+          <div class="progress" title="現在値 ${currentProgress}% / 2年後見込み ${projectedProgress}%"><span style="width:${projectedProgress}%"></span></div>
+        </section>`;
+    }
+
+    function renderTask(item) {
+      return `
+        <article class="task ${item.done ? "done" : ""}" data-task="${item.id}">
+          <button class="check" data-toggle="${item.id}" title="完了を切り替える">${item.done ? "✓" : ""}</button>
+          <div>
+            <div class="task-title">${escapeHtml(item.title)}</div>
+            <div class="task-meta">重要度 ${item.impact} ・ ${formatDate(item.due)}</div>
+          </div>
+          <div class="task-actions">
+            <button class="icon-button ${item.today ? "today-on" : ""}" data-today="${item.id}" title="今日の一歩">★</button>
+            <button class="icon-button" data-delete="${item.id}" title="削除">×</button>
+          </div>
+        </article>`;
+    }
+
+    function bindTaskButtons() {
+      document.querySelectorAll("[data-toggle]").forEach(button => {
+        button.addEventListener("click", () => toggleTask(button.dataset.toggle));
+      });
+      document.querySelectorAll("[data-today]").forEach(button => {
+        button.addEventListener("click", () => {
+          const item = state.tasks.find(task => task.id === button.dataset.today);
+          item.today = !item.today;
+          saveState();
+          render();
+        });
+      });
+      document.querySelectorAll("[data-delete]").forEach(button => {
+        button.addEventListener("click", () => {
+          const item = state.tasks.find(task => task.id === button.dataset.delete);
+          if (!confirm(`「${item.title}」を削除しますか？`)) return;
+          state.tasks = state.tasks.filter(task => task.id !== item.id);
+          saveState();
+          render();
+        });
+      });
+    }
+
+    function toggleTask(id) {
+      const item = state.tasks.find(task => task.id === id);
+      const wasDone = item.done;
+      const beforeStage = stageProgress(item.stage);
+      const beforeOverall = overallProgress();
+
+      item.done = !item.done;
+      item.completedAt = item.done ? new Date().toISOString() : null;
+
+      const afterStage = stageProgress(item.stage);
+      const afterOverall = overallProgress();
+      const stageDelta = round(afterStage - beforeStage);
+      const overallDelta = round(afterOverall - beforeOverall);
+      const foundationDelta = item.stage === "foundation" ? stageDelta : 0;
+
+      if (!wasDone && item.done) {
+        const stage = stageById(item.stage);
+        state.history.unshift({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+          type: "complete",
+          date: todayKey(),
+          at: new Date().toISOString(),
+          taskTitle: item.title,
+          stage: item.stage,
+          stageDelta,
+          overallDelta,
+          foundationDelta
+        });
+        showToast(item, stageDelta, overallDelta);
+      }
+
+      saveState();
+      render();
+    }
+
+    function showToast(item, stageDelta, overallDelta) {
+      const stage = stageById(item.stage);
+      el("toastTitle").textContent = `「${item.title}」を完了`;
+      el("toastBody").textContent = stage.isFoundation
+        ? `動ける自由の基盤を ${stageDelta}% 整えた。三段階の達成率は水増ししない。`
+        : `${stage.title}を ${stageDelta}%、三段階全体を ${overallDelta}% 動かした。`;
+      el("toast").classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el("toast").classList.remove("show"), 5200);
+    }
+
+    function renderToday() {
+      el("todayDate").textContent = new Date().toLocaleDateString("ja-JP", {
+        year: "numeric", month: "long", day: "numeric", weekday: "short"
+      });
+
+      const today = todayKey();
+      const tasks = state.tasks.filter(item =>
+        !item.done && (item.today || (item.due && item.due <= today)));
+
+      el("todayList").innerHTML = tasks.length ? tasks.map(item => {
+        const stage = stageById(item.stage);
+        return `
+          <div class="today-item" style="--task-color:${stage.color}" data-jump="${item.id}">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>${escapeHtml(stage.title)} ・ ${formatDate(item.due)} ・ 重要度 ${item.impact}</span>
+          </div>`;
+      }).join("") : `<div class="empty">今日の一歩は空です。休む日でもかまいません。</div>`;
+
+      document.querySelectorAll("[data-jump]").forEach(item => {
+        item.addEventListener("click", () => {
+          const taskItem = state.tasks.find(task => task.id === item.dataset.jump);
+          state.activeStage = taskItem.stage;
+          saveState();
+          render();
+          setTimeout(() => {
+            document.querySelector(`[data-task="${taskItem.id}"]`)
+              ?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 20);
+        });
+      });
+    }
+
+    function renderHistory() {
+      el("historyList").innerHTML = state.history.length
+        ? state.history.slice(0, 12).map(item => {
+            const stage = stageById(item.stage);
+            return `
+              <div class="history-item" style="--history-color:${stage.color}">
+                <span class="history-dot"></span>
+                <div><strong>${escapeHtml(item.taskTitle)}</strong><br>
+                ${stage.isFoundation
+                  ? `動ける自由の基盤を ${item.stageDelta}% 整えた。`
+                  : `${escapeHtml(stage.title)}を ${item.stageDelta}%、全体を ${item.overallDelta}% 動かした。`}
+                </div>
+              </div>`;
+          }).join("")
+        : `<div class="empty">タスクを完了すると、世界を動かした記録が残ります。</div>`;
+    }
+
+    function renderFormOptions() {
+      const stageSelect = el("taskStage");
+      stageSelect.innerHTML = stages.map(stage =>
+        `<option value="${stage.id}">${escapeHtml(stage.title)}</option>`).join("");
+      stageSelect.value = state.activeStage;
+      renderMilestoneOptions(stageSelect.value);
+    }
+
+    function renderMilestoneOptions(stageId) {
+      el("taskMilestone").innerHTML = stageById(stageId).milestones.map(milestone =>
+        `<option value="${milestone.id}">${escapeHtml(milestone.title)}</option>`).join("");
+    }
+
+    el("taskStage").addEventListener("change", event => {
+      renderMilestoneOptions(event.target.value);
+    });
+
+    el("taskForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const title = el("taskTitle").value.trim();
+      if (!title) return;
+      const newTask = task(
+        title,
+        el("taskStage").value,
+        el("taskMilestone").value,
+        Number(el("taskImpact").value),
+        el("taskDue").value,
+        el("taskToday").checked
+      );
+      state.tasks.push(newTask);
+      state.activeStage = newTask.stage;
+      saveState();
+      event.target.reset();
+      el("taskToday").checked = true;
+      render();
+    });
+
+    el("exportButton").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `俺は世界を変える-${todayKey()}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    });
+
+    el("resetButton").addEventListener("click", () => {
+      if (!confirm("入力した内容を消して、初期状態に戻しますか？")) return;
+      state = freshState();
+      saveState();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

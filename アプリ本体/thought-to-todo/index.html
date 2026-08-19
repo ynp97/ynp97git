@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>思いつき TODO</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #f5f3ef;
+    --card: #ffffff;
+    --text: #2d2a24;
+    --muted: #8a8580;
+    --accent: #e07c3c;
+    --accent-light: #faf0e8;
+    --done: #7a9a7a;
+    --border: #e2ddd7;
+    --shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro JP", "Hiragino Sans", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .app {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Input area */
+  .input-area {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+  }
+
+  textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--text);
+    background: transparent;
+    resize: none;
+    min-height: 4rem;
+    line-height: 1.6;
+  }
+  textarea::placeholder {
+    color: #bbb5ae;
+  }
+
+  .input-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.4rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover { background: #ce6e2e; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    padding: 0.3rem 0.6rem;
+  }
+  .btn-ghost:hover { background: var(--accent-light); color: var(--accent); }
+
+  .btn-danger {
+    background: transparent;
+    color: #b55;
+  }
+  .btn-danger:hover { background: #fdf0f0; }
+
+  /* Sections */
+  section { margin-bottom: 1.8rem; }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.6rem;
+  }
+  .section-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .section-header .count {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .section-header .count span { font-weight: 600; }
+
+  /* Thought cards */
+  .thought-list, .todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .thought-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .thought-text {
+    flex: 1;
+    line-height: 1.5;
+    font-size: 0.92rem;
+    word-break: break-word;
+  }
+
+  .thought-time {
+    font-size: 0.7rem;
+    color: #bbb;
+    white-space: nowrap;
+    margin-top: 0.2rem;
+  }
+
+  .thought-actions {
+    display: flex;
+    gap: 0.3rem;
+    flex-shrink: 0;
+  }
+
+  /* Todo items */
+  .todo-item {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    transition: all 0.2s;
+  }
+
+  .todo-item.done {
+    opacity: 0.5;
+  }
+  .todo-item.done .todo-text {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .todo-check {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-size: 0.7rem;
+    color: transparent;
+  }
+  .todo-check:hover { border-color: var(--accent); }
+  .todo-item.done .todo-check {
+    background: var(--done);
+    border-color: var(--done);
+    color: white;
+  }
+
+  .todo-text {
+    flex: 1;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .todo-delete {
+    background: transparent;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.2rem;
+    line-height: 1;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .todo-delete:hover { color: #b55; background: #fdf0f0; }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .empty-state .emoji { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    body { padding: 1.2rem 0.8rem; }
+    h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>🧠 思いつき TODO</h1>
+  <p class="subtitle">思いついたことを書くと、TODO っぽいやつを自動で見つけます</p>
+
+  <div class="input-area">
+    <textarea id="thoughtInput" rows="2" placeholder="なんでも書いてみて…&#10;例：「週末に本を買いに行く」「書類を送るのを忘れた」"></textarea>
+    <div class="input-actions">
+      <span class="hint" id="detectedHint">↵ Enter で送信</span>
+      <button class="btn-primary" id="submitBtn">書いた →</button>
+    </div>
+  </div>
+
+  <section id="todoSection">
+    <div class="section-header">
+      <h2>✅ TODO</h2>
+      <div class="count"><span id="todoCount">0</span> 件</div>
+    </div>
+    <div class="todo-list" id="todoList">
+      <div class="empty-state">
+        <span class="emoji">✨</span>
+        まだ TODO はありません<br>上の入力欄に思いついたことを書いてみて
+      </div>
+    </div>
+  </section>
+
+  <section id="thoughtSection">
+    <div class="section-header">
+      <h2>📝 その他の思いつき</h2>
+      <div class="count"><span id="thoughtCount">0</span> 件</div>
+    </div>
+    <div class="thought-list" id="thoughtList">
+      <div class="empty-state">
+        <span class="emoji">💭</span>
+        まだ何も書かれていません
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// --- state ---
+let state = { thoughts: [], todos: [] };
+const STORAGE_KEY = 'thought_to_todo_state';
+
+// TODO detection patterns (Japanese)
+const TODO_PATTERNS = [
+  // Ends with volitional/plan markers
+  /(する|しよう|したい|しないと|しなきゃ|しなくちゃ|するつもり|する予定|やる|やろう|やりたい|やらないと|やらなきゃ)$/,
+  // "〜を〜する" type patterns
+  /(買う|買いに|行く|行こう|行きたい|送る|送ろう|送りたい|作る|作ろう|作りたい|頼む|頼もう|頼みたい|連絡|予約|申し込む|問い合わせ|確認|返事|返信|片付け|掃除|洗濯|料理|練習|勉強|準備|予習|復習|提出|登録|更新|削除|変更|修理|直す)$/,
+  // "〜ておく" patterns
+  /(ておく|とく|ておこう|ておかないと)$/,
+  // Explicit task markers
+  /^(TODO|todo|TASK|やること|タスク|課題|宿題|用事|やらなきゃ|やらないと|しないと|しなきゃ|必要|忘れずに|忘れる前に|メモ)/,
+  // "〜が必要" / "〜を忘れた" / "〜を思い出した"
+  /(が必要|を忘れ|を思い出し|を思い付い|思いつい)/
+];
+
+function looksLikeTodo(text) {
+  return TODO_PATTERNS.some(p => p.test(text));
+}
+
+// --- storage ---
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state.thoughts = parsed.thoughts || [];
+      state.todos = parsed.todos || [];
+    }
+  } catch (_) {}
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// --- render ---
+function render() {
+  const todoList = document.getElementById('todoList');
+  const thoughtList = document.getElementById('thoughtList');
+
+  // Todos
+  const activeTodos = state.todos.filter(t => !t.done);
+  const doneTodos = state.todos.filter(t => t.done);
+  const allTodos = [...activeTodos, ...doneTodos];
+
+  document.getElementById('todoCount').textContent = allTodos.length;
+
+  if (allTodos.length === 0) {
+    todoList.innerHTML = '<div class="empty-state"><span class="emoji">✨</span>まだ TODO はありません<br>上の入力欄に思いついたことを書いてみて</div>';
+  } else {
+    todoList.innerHTML = allTodos.map(t => `
+      <div class="todo-item ${t.done ? 'done' : ''}" data-id="${t.id}">
+        <div class="todo-check" data-action="toggle">${t.done ? '✓' : ''}</div>
+        <div class="todo-text">${escapeHtml(t.text)}</div>
+        <button class="todo-delete" data-action="delete">✕</button>
+      </div>
+    `).join('');
+  }
+
+  // Thoughts
+  document.getElementById('thoughtCount').textContent = state.thoughts.length;
+
+  if (state.thoughts.length === 0) {
+    thoughtList.innerHTML = '<div class="empty-state"><span class="emoji">💭</span>まだ何も書かれていません</div>';
+  } else {
+    thoughtList.innerHTML = state.thoughts.map(t => {
+      const timeStr = formatTime(t.createdAt);
+      return `
+        <div class="thought-card" data-id="${t.id}">
+          <div class="thought-text">
+            ${escapeHtml(t.text)}
+            <div class="thought-time">${timeStr}</div>
+          </div>
+          <div class="thought-actions">
+            <button class="btn-ghost" data-action="promote">TODOにする</button>
+            <button class="btn-danger" data-action="deleteThought">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+// --- actions ---
+function submitThought(text) {
+  text = text.trim();
+  if (!text) return;
+
+  const thought = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    text,
+    createdAt: Date.now()
+  };
+
+  if (looksLikeTodo(text)) {
+    state.todos.unshift({ ...thought, done: false });
+    updateHint(`「${text.slice(0, 20)}${text.length > 20 ? '…' : ''}」を TODO に追加したよ`);
+  } else {
+    state.thoughts.unshift(thought);
+    updateHint('思いつきをメモしたよ');
+  }
+
+  saveState();
+  render();
+}
+
+function promoteToTodo(thoughtId) {
+  const idx = state.thoughts.findIndex(t => t.id === thoughtId);
+  if (idx === -1) return;
+  const [thought] = state.thoughts.splice(idx, 1);
+  state.todos.unshift({ ...thought, done: false });
+  saveState();
+  render();
+}
+
+function toggleTodo(todoId) {
+  const t = state.todos.find(t => t.id === todoId);
+  if (t) {
+    t.done = !t.done;
+    saveState();
+    render();
+  }
+}
+
+function deleteTodo(todoId) {
+  state.todos = state.todos.filter(t => t.id !== todoId);
+  saveState();
+  render();
+}
+
+function deleteThought(thoughtId) {
+  state.thoughts = state.thoughts.filter(t => t.id !== thoughtId);
+  saveState();
+  render();
+}
+
+function updateHint(msg) {
+  const el = document.getElementById('detectedHint');
+  el.textContent = msg;
+  el.style.color = 'var(--accent)';
+  setTimeout(() => {
+    el.style.color = '';
+    el.textContent = '↵ Enter で送信';
+  }, 2500);
+}
+
+// --- event handlers ---
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  render();
+
+  const input = document.getElementById('thoughtInput');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function handleSubmit() {
+    submitThought(input.value);
+    input.value = '';
+    input.style.height = 'auto';
+    input.focus();
+  }
+
+  submitBtn.addEventListener('click', handleSubmit);
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  });
+
+  // auto-resize textarea
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 200) + 'px';
+  });
+
+  // delegated clicks
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+
+    const action = target.dataset.action;
+    const item = target.closest('[data-id]');
+    if (!item) return;
+    const id = item.dataset.id;
+
+    switch (action) {
+      case 'promote': promoteToTodo(id); break;
+      case 'toggle': toggleTodo(id); break;
+      case 'delete': deleteTodo(id); break;
+      case 'deleteThought': deleteThought(id); break;
+    }
+  });
+});
+</script>
+</body>
+</html>

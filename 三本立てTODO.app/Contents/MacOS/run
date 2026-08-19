@@ -1,0 +1,22 @@
+#!/bin/bash
+# 三本立てTODO ランチャー
+#
+# 保存はChromeプロファイル別のlocalStorageに入るため、通常の `open -a`
+# では最後に使ったプロファイルへ寄って保存先が分かれることがある。
+# 2026-07-02時点で最新データがあるDefaultプロファイルへ固定して開く。
+HTML="/Users/yoshiakinagumo/Documents/Obsidian Vault/🗓 三本立て毎日TODO（アプリ）.html"
+SERVER="/Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ/three_todo_calendar_server.py"
+URL="file:///Users/yoshiakinagumo/Documents/Obsidian%20Vault/%F0%9F%97%93%20%E4%B8%89%E6%9C%AC%E7%AB%8B%E3%81%A6%E6%AF%8E%E6%97%A5TODO%EF%BC%88%E3%82%A2%E3%83%95%E3%82%9A%E3%83%AA%EF%BC%89.html?dock=1"
+if ! curl -fsS "http://127.0.0.1:8769/health" >/dev/null 2>&1; then
+  nohup /usr/bin/python3 "$SERVER" >>/tmp/three_todo_calendar.log 2>&1 &
+  # サーバーが立ち上がるまで最大3秒待つ（同期ボタンの空振り防止）
+  for _ in 1 2 3 4 5 6; do
+    sleep 0.5
+    curl -fsS "http://127.0.0.1:8769/health" >/dev/null 2>&1 && break
+  done
+fi
+if [ -d "/Applications/Google Chrome.app" ]; then
+  open -na "Google Chrome" --args --profile-directory=Default --app="$URL"
+else
+  open "$URL"
+fi

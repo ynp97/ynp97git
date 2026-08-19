@@ -1,0 +1,21 @@
+#!/bin/zsh
+set -euo pipefail
+
+project_dir="/Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/ZatsuTodo"
+app_source="/Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/ZatsuTodo/dist/ZatsuTodo.app"
+app_target="/Applications/ZatsuTodo.app"
+agent_source="/Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/ZatsuTodo/com.ynp97.zatsutodo.plist"
+agent_target="/Users/yoshiakinagumo/Library/LaunchAgents/com.ynp97.zatsutodo.plist"
+data_file="/Users/yoshiakinagumo/Library/Application Support/ZatsuTodo/todos.json"
+data_backup="/Users/yoshiakinagumo/Library/Application Support/ZatsuTodo/todos.before-v2.5-20260811.json"
+
+"$project_dir/build_app.sh"
+
+if [[ -f "$data_file" ]]; then
+    cp "$data_file" "$data_backup"
+fi
+
+launchctl bootout gui/501/com.ynp97.zatsutodo 2>/dev/null || true
+ditto "$app_source" "$app_target"
+cp "$agent_source" "$agent_target"
+launchctl bootstrap gui/501 "$agent_target"

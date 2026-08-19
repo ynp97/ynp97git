@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI関連"
+  short_description: "AIモデル・実行環境・連携・役割分担をまとめる専用モード"
+  default_prompt: "Use $ai97 to continue the AI setup and coordination from the current handoff."

@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eBay Record Lister</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Vinyl listing desk</p>
+          <h1>eBay Record Lister</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="secondary" id="importJsonButton" type="button">JSON取込</button>
+          <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
+          <button class="secondary" id="exportJsonButton" type="button">JSON保存</button>
+          <button class="primary" id="exportCsvButton" type="button">CSV出力</button>
+        </div>
+      </header>
+
+      <section class="stats-strip" aria-label="集計">
+        <div class="metric">
+          <span>登録</span>
+          <strong id="totalCount">0</strong>
+        </div>
+        <div class="metric">
+          <span>未出品</span>
+          <strong id="draftCount">0</strong>
+        </div>
+        <div class="metric">
+          <span>想定利益</span>
+          <strong id="profitTotal">¥0</strong>
+        </div>
+        <div class="metric">
+          <span>平均USD</span>
+          <strong id="averageUsd">$0.00</strong>
+        </div>
+      </section>
+
+      <main class="workspace">
+        <aside class="inventory-panel" aria-label="商品一覧">
+          <div class="panel-toolbar">
+            <button class="primary full" id="newItemButton" type="button">新規レコード</button>
+          </div>
+          <div class="filters">
+            <label>
+              <span>検索</span>
+              <input id="searchInput" type="search" placeholder="アーティスト / タイトル / 型番">
+            </label>
+            <label>
+              <span>状態</span>
+              <select id="statusFilter">
+                <option value="all">すべて</option>
+                <option value="未出品">未出品</option>
+                <option value="下書き">下書き</option>
+                <option value="出品済み">出品済み</option>
+                <option value="売却済み">売却済み</option>
+                <option value="発送済み">発送済み</option>
+              </select>
+            </label>
+          </div>
+          <div class="list" id="itemList" role="list"></div>
+        </aside>
+
+        <section class="editor-panel" aria-label="商品編集">
+          <form id="itemForm">
+            <div class="editor-head">
+              <div>
+                <p class="eyebrow" id="activeSku">No record selected</p>
+                <h2 id="editorTitle">レコードを登録</h2>
+              </div>
+              <div class="editor-actions">
+                <button class="secondary" id="duplicateButton" type="button">複製</button>
+                <button class="danger" id="deleteButton" type="button">削除</button>
+                <button class="primary" type="submit">保存</button>
+              </div>
+            </div>
+
+            <section class="plain-section simulator" aria-label="出品シミュレーター">
+              <div class="section-head">
+                <div>
+                  <h3>出品シミュレーター</h3>
+                  <p class="section-note">重さと送り先から送料を自動計算。損益分岐（これ未満は赤字）と、今の価格での利益が出ます。送料別ならeBayのPrice欄は商品価格(USD)です。</p>
+                </div>
+                <button class="secondary" id="calculateButton" type="button">おすすめ価格を商品価格へ入れる</button>
+              </div>
+              <div class="form-grid compact">
+                <label>
+                  <span>仕入れ(円)</span>
+                  <input data-field="purchasePriceJPY" type="number" min="0" step="1">
+                </label>
+                <label>
+                  <span>梱包(円)</span>
+                  <input data-field="packingJPY" type="number" min="0" step="1">
+                </label>
+                <label>
+                  <span>重量(g・梱包込み)</span>
+                  <input data-field="weightGram" type="number" min="0" step="1">
+                </label>
+                <label>
+                  <span>発送方法</span>
+                  <select data-field="shipMethod" id="shipMethodSelect"></select>
+                </label>
+                <label>
+                  <span>送り先</span>
+                  <select data-field="shipZone" id="shipZoneSelect"></select>
+                </label>
+                <label>
+                  <span>送料コスト</span>
+                  <select data-field="shipCostMode">
+                    <option>自動</option>
+                    <option>手動</option>
+                  </select>
+                </label>
+                <label>
+                  <span>海外送料コスト(円)</span>
+                  <input data-field="shippingJPY" type="number" min="0" step="1">
+                </label>
+                <label>
+                  <span>送料の出し方</span>
+                  <select data-field="shippingMode">
+                    <option>送料別</option>
+                    <option>送料無料</option>
+                  </select>
+                </label>
+                <label>
+                  <span>手数料(%)</span>
+                  <input data-field="feeRate" type="number" min="0" max="80" step="0.1">
+                </label>
+                <label>
+                  <span>為替 円/USD</span>
+                  <input data-field="exchangeRate" type="number" min="1" step="0.01">
+                </label>
+                <label>
+                  <span>目標利益(円)</span>
+                  <input data-field="targetProfitJPY" type="number" min="0" step="1">
+                </label>
+                <label>
+                  <span>商品価格(USD)</span>
+                  <input data-field="priceUSD" type="number" min="0" step="0.01">
+                </label>
+                <label>
+                  <span>商品価格(円)</span>
+                  <input data-field="priceJPY" type="number" min="0" step="1">
+                </label>
+              </div>
+              <div class="sim-readout">
+                <div class="sim-box"><span>送料コスト</span><strong id="shipAutoPreview">-</strong></div>
+                <div class="sim-box accent"><span>損益分岐・送料別</span><strong id="breakEvenPreview">$0.00</strong></div>
+                <div class="sim-box accent"><span>損益分岐・送料無料</span><strong id="breakEvenFreePreview">$0.00</strong></div>
+                <div class="sim-box"><span>目標利益を出す価格</span><strong id="recommendPreview">$0.00</strong></div>
+                <div class="sim-box accent"><span>今の価格での利益</span><strong id="profitPreview">¥0</strong></div>
+                <div class="sim-box"><span>利益率</span><strong id="marginPreview">-</strong></div>
+                <div class="sim-box"><span>購入者総額</span><strong id="buyerTotalPreview">¥0</strong></div>
+                <div class="sim-box"><span>手数料</span><strong id="feePreview">¥0</strong></div>
+                <div class="sim-box"><span>コスト計</span><strong id="costPreview">¥0</strong></div>
+              </div>
+              <details class="rate-details">
+                <summary>送料表を編集（発送方法 × 送り先 × 重さ → 円）</summary>
+                <p class="section-note"><b>今の中身は仮の目安です。</b>実際の料金表を下の欄に貼って取り込んでください。重さは「上限g」以下で一番小さい行が使われます。</p>
+                <table class="rate-table" id="rateTable">
+                  <thead><tr><th>発送方法</th><th>送り先</th><th>上限g</th><th>円</th><th></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+                <div class="inline-actions" style="margin:10px 0 14px">
+                  <button class="secondary" id="addRateRowButton" type="button">＋ 行を追加</button>
+                </div>
+                <label class="textarea-label">
+                  <span>料金表を貼り付けて取り込む（1行 =「発送方法 送り先 上限g 円」。空白・タブ・カンマ区切り、"500g" "1,450円" 表記もOK）</span>
+                  <textarea id="ratePasteArea" rows="4" placeholder="小形包装物 アメリカ 500 1450&#10;小形包装物 アメリカ 1000 2150"></textarea>
+                </label>
+                <div class="inline-actions">
+                  <button class="secondary" id="importRatesButton" type="button">貼り付けを取り込む（追加）</button>
+                  <button class="secondary" id="replaceRatesButton" type="button">貼り付けで全部置き換え</button>
+                </div>
+              </details>
+            </section>
+
+            <section class="automation-panel" aria-label="自動入力">
+              <div class="section-head">
+                <h3>自動入力</h3>
+                <span class="status-message" id="automationStatus">待機中</span>
+              </div>
+              <div class="automation-grid">
+                <div class="automation-card">
+                  <div class="card-head">
+                    <h4>Discogs</h4>
+                    <button class="secondary" id="fetchDiscogsButton" type="button">取込</button>
+                  </div>
+                  <label>
+                    <span>Release URL / ID</span>
+                    <input id="discogsInput" type="text" autocomplete="off" placeholder="https://www.discogs.com/release/...">
+                  </label>
+                  <div class="token-row">
+                    <label>
+                      <span>Token</span>
+                      <input id="discogsTokenInput" type="password" autocomplete="off">
+                    </label>
+                    <button class="secondary" id="saveDiscogsTokenButton" type="button">保存</button>
+                  </div>
+                  <div class="discogs-results" id="discogsResults" aria-live="polite"></div>
+                </div>
+
+                <div class="automation-card">
+                  <div class="card-head">
+                    <h4>写真</h4>
+                    <div class="inline-actions">
+                      <button class="secondary" id="applyPhotoCluesButton" type="button">反映</button>
+                      <button class="secondary" id="openDiscogsSearchButton" type="button">検索</button>
+                    </div>
+                  </div>
+                  <label class="photo-picker">
+                    <span>撮影 / 選択</span>
+                    <input id="photoInput" type="file" accept="image/*" capture="environment">
+                  </label>
+                  <div class="photo-preview" id="photoPreview"></div>
+                  <label class="textarea-label">
+                    <span>OCRテキスト</span>
+                    <textarea id="ocrText" rows="5"></textarea>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <div class="form-grid">
+              <label>
+                <span>管理番号</span>
+                <input data-field="sku" type="text" autocomplete="off">
+              </label>
+              <label>
+                <span>ステータス</span>
+                <select data-field="status">
+                  <option>未出品</option>
+                  <option>下書き</option>
+                  <option>出品済み</option>
+                  <option>売却済み</option>
+                  <option>発送済み</option>
+                </select>
+              </label>
+              <label>
+                <span>アーティスト</span>
+                <input data-field="artist" type="text" autocomplete="off">
+              </label>
+              <label>
+                <span>タイトル</span>
+                <input data-field="recordTitle" type="text" autocomplete="off">
+              </label>
+              <label>
+                <span>盤種</span>
+                <select data-field="recordType">
+                  <option>EP</option>
+                  <option>LP</option>
+                  <option>7 inch</option>
+                  <option>10 inch</option>
+                  <option>12 inch</option>
+                  <option>Single</option>
+                  <option>Album</option>
+                </select>
+              </label>
+              <label>
+                <span>回転数</span>
+                <select data-field="speed">
+                  <option>45 RPM</option>
+                  <option>33 RPM</option>
+                  <option>78 RPM</option>
+                </select>
+              </label>
+              <label>
+                <span>レーベル</span>
+                <input data-field="labelName" type="text" autocomplete="off">
+              </label>
+              <label>
+                <span>型番</span>
+                <input data-field="catalogNo" type="text" autocomplete="off">
+              </label>
+              <label>
+                <span>バーコード</span>
+                <input data-field="barcode" type="text" inputmode="numeric" autocomplete="off">
+              </label>
+              <label>
+                <span>Discogs ID</span>
+                <input data-field="discogsReleaseId" type="text" inputmode="numeric" autocomplete="off">
+              </label>
+              <label>
+                <span>国</span>
+                <input data-field="country" type="text" autocomplete="off">
+              </label>
+              <label>
+                <span>年</span>
+                <input data-field="year" type="text" inputmode="numeric" autocomplete="off">
+              </label>
+              <label>
+                <span>ジャンル</span>
+                <input data-field="genre" type="text" autocomplete="off">
+              </label>
+              <label>
+                <span>盤質</span>
+                <select data-field="mediaGrade">
+                  <option>M</option>
+                  <option>NM</option>
+                  <option>EX+</option>
+                  <option>EX</option>
+                  <option>VG+</option>
+                  <option>VG</option>
+                  <option>G+</option>
+                  <option>G</option>
+                  <option>Fair</option>
+                  <option>Poor</option>
+                </select>
+              </label>
+              <label>
+                <span>ジャケット</span>
+                <select data-field="sleeveGrade">
+                  <option>M</option>
+                  <option>NM</option>
+                  <option>EX+</option>
+                  <option>EX</option>
+                  <option>VG+</option>
+                  <option>VG</option>
+                  <option>G+</option>
+                  <option>G</option>
+                  <option>Fair</option>
+                  <option>Poor</option>
+                </select>
+              </label>
+              <label>
+                <span>帯</span>
+                <select data-field="obi">
+                  <option>なし</option>
+                  <option>あり</option>
+                  <option>不明</option>
+                </select>
+              </label>
+              <label>
+                <span>インサート</span>
+                <select data-field="insertSheet">
+                  <option>不明</option>
+                  <option>あり</option>
+                  <option>なし</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="split">
+              <section class="plain-section" aria-label="メモ">
+                <div class="section-head">
+                  <h3>検品メモ</h3>
+                </div>
+                <div class="phrase-box">
+                  <div class="phrase-head">
+                    <span class="phrase-title">コンディション定型文（クリックで選択 → 出品文に入ります）</span>
+                    <button class="secondary" id="editPhrasesButton" type="button">定型文を編集</button>
+                  </div>
+                  <div id="phraseChips" class="phrase-chips"></div>
+                  <div id="phraseEditor" class="phrase-editor" hidden>
+                    <div id="phraseEditorList"></div>
+                    <div class="phrase-add">
+                      <input id="newPhraseJa" type="text" placeholder="日本語ラベル（例: リングウェアあり）">
+                      <input id="newPhraseEn" type="text" placeholder="英語表記（例: Ring wear on cover）">
+                      <button class="secondary" id="addPhraseButton" type="button">追加</button>
+                    </div>
+                  </div>
+                </div>
+                <label class="textarea-label">
+                  <span>日本語メモ</span>
+                  <textarea data-field="conditionMemo" rows="9"></textarea>
+                </label>
+                <label>
+                  <span>写真フォルダ</span>
+                  <input data-field="photoFolder" type="text" autocomplete="off">
+                </label>
+                <label>
+                  <span>出典URL</span>
+                  <input data-field="sourceUrl" type="url" autocomplete="off">
+                </label>
+                <label>
+                  <span>カバー画像URL</span>
+                  <input data-field="coverImageUrl" type="url" autocomplete="off">
+                </label>
+              </section>
+            </div>
+
+            <section class="listing-section" aria-label="出品文">
+              <div class="section-head">
+                <h3>英語出品データ</h3>
+                <div class="inline-actions">
+                  <button class="secondary" id="generateTitleButton" type="button">タイトル生成</button>
+                  <button class="secondary" id="generateDescriptionButton" type="button">説明文生成</button>
+                </div>
+              </div>
+              <label class="textarea-label">
+                <span>英語タイトル</span>
+                <textarea data-field="englishTitle" rows="2"></textarea>
+              </label>
+              <label class="textarea-label">
+                <span>英語説明文</span>
+                <textarea data-field="englishDescription" rows="13"></textarea>
+              </label>
+            </section>
+
+            <section class="copy-section" aria-label="出品コピペ">
+              <div class="section-head">
+                <div>
+                  <h3>出品コピペ</h3>
+                  <p class="section-note">eBayの出品画面へ上から順に貼るための完成フォーマットです。</p>
+                </div>
+                <div class="inline-actions">
+                  <span class="status-message" id="copyStatus">待機中</span>
+                  <button class="secondary" id="refreshCopyPackButton" type="button">再生成</button>
+                  <button class="primary" id="copyAllButton" type="button">全部コピー</button>
+                </div>
+              </div>
+
+              <div class="copy-grid">
+                <div class="copy-card wide">
+                  <div class="card-head">
+                    <h4>一括コピペ用</h4>
+                    <button class="secondary" data-copy-target="copyAllText" type="button">コピー</button>
+                  </div>
+                  <textarea id="copyAllText" rows="16" readonly></textarea>
+                </div>
+
+                <div class="copy-card">
+                  <div class="card-head">
+                    <h4>Title</h4>
+                    <button class="secondary" data-copy-target="copyTitleText" type="button">コピー</button>
+                  </div>
+                  <textarea id="copyTitleText" rows="3" readonly></textarea>
+                </div>
+
+                <div class="copy-card">
+                  <div class="card-head">
+                    <h4>Price / SKU</h4>
+                    <button class="secondary" data-copy-target="copyPriceText" type="button">コピー</button>
+                  </div>
+                  <textarea id="copyPriceText" rows="5" readonly></textarea>
+                </div>
+
+                <div class="copy-card">
+                  <div class="card-head">
+                    <h4>Item specifics</h4>
+                    <button class="secondary" data-copy-target="copySpecificsText" type="button">コピー</button>
+                  </div>
+                  <textarea id="copySpecificsText" rows="12" readonly></textarea>
+                </div>
+
+                <div class="copy-card">
+                  <div class="card-head">
+                    <h4>Condition</h4>
+                    <button class="secondary" data-copy-target="copyConditionText" type="button">コピー</button>
+                  </div>
+                  <textarea id="copyConditionText" rows="12" readonly></textarea>
+                </div>
+
+                <div class="copy-card wide">
+                  <div class="card-head">
+                    <h4>Description</h4>
+                    <button class="secondary" data-copy-target="copyDescriptionText" type="button">コピー</button>
+                  </div>
+                  <textarea id="copyDescriptionText" rows="18" readonly></textarea>
+                </div>
+
+                <div class="copy-card wide">
+                  <div class="card-head">
+                    <h4>Shipping / Returns</h4>
+                    <button class="secondary" data-copy-target="copyShippingText" type="button">コピー</button>
+                  </div>
+                  <textarea id="copyShippingText" rows="10" readonly></textarea>
+                </div>
+              </div>
+
+              <div class="verification-links" id="verificationLinks" aria-label="相場確認リンク"></div>
+            </section>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <template id="emptyStateTemplate">
+      <div class="empty-state">
+        <strong>まだ登録がありません</strong>
+        <span>新規レコードから始めます。</span>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

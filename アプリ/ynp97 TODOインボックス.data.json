@@ -1,0 +1,28 @@
+{
+  "tasks": [],
+  "tags": [
+    {
+      "id": "today",
+      "name": "今日中",
+      "color": "#ffe08a"
+    },
+    {
+      "id": "week",
+      "name": "今週中",
+      "color": "#c9f2d2"
+    },
+    {
+      "id": "urgent",
+      "name": "急ぎ",
+      "color": "#ffc6bd"
+    },
+    {
+      "id": "waiting",
+      "name": "待機",
+      "color": "#cfe1ff"
+    }
+  ],
+  "selectedTaskId": null,
+  "view": "open",
+  "search": ""
+}

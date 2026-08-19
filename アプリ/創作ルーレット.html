@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>音楽制作ルーレット</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --surface-soft: #eef3f4;
+      --ink: #20252a;
+      --muted: #62707c;
+      --line: #d6dee4;
+      --line-strong: #aebac4;
+      --accent: #1d766d;
+      --accent-dark: #145b54;
+      --blue: #2c67b8;
+      --rose: #a84467;
+      --green: #1f7e60;
+      --violet: #6558a6;
+      --copper: #a85f2c;
+      --danger: #b63f3f;
+      --warn: #9b671d;
+      --shadow: 0 16px 38px rgba(31, 42, 52, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #15191d;
+        --surface: #20262b;
+        --surface-soft: #263238;
+        --ink: #eef3f5;
+        --muted: #aab6be;
+        --line: #39464f;
+        --line-strong: #5a6872;
+        --accent: #53b8a9;
+        --accent-dark: #8bd7ce;
+        --blue: #7aa8ee;
+        --rose: #e07b9b;
+        --green: #63c69e;
+        --violet: #a99cf0;
+        --copper: #dc995a;
+        --danger: #e27272;
+        --warn: #e0b25f;
+        --shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(120deg, rgba(29, 118, 109, 0.08), transparent 32%),
+        linear-gradient(240deg, rgba(44, 103, 184, 0.08), transparent 34%),
+        var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Yu Gothic UI", Meiryo, sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled,
+    input:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar {
+      width: min(1240px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 14px 0 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 23px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    main {
+      width: min(1240px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0 40px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .tool,
+    .section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .tool {
+      min-height: 100%;
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .section {
+      padding: 16px;
+    }
+
+    .section + .section {
+      margin-top: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 18px;
+    }
+
+    h3 {
+      font-size: 15px;
+    }
+
+    .micro {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .roulette-wrap {
+      display: grid;
+      place-items: center;
+      padding: 4px 0 2px;
+    }
+
+    .roulette {
+      width: min(100%, 318px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background:
+        conic-gradient(
+          from var(--wheel-turn, 0deg),
+          var(--blue) 0 90deg,
+          var(--rose) 90deg 180deg,
+          var(--green) 180deg 270deg,
+          var(--copper) 270deg 360deg
+        );
+      border: 12px solid color-mix(in srgb, var(--surface) 86%, var(--line));
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+        0 18px 38px rgba(31, 42, 52, 0.16);
+      transition: transform 900ms cubic-bezier(.18, .78, .22, 1);
+    }
+
+    .roulette.spinning {
+      transform: rotate(730deg) scale(1.015);
+    }
+
+    .roulette::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      opacity: 0.7;
+    }
+
+    .roulette::after {
+      content: "";
+      position: absolute;
+      top: -13px;
+      width: 0;
+      height: 0;
+      border-left: 13px solid transparent;
+      border-right: 13px solid transparent;
+      border-bottom: 24px solid var(--ink);
+      filter: drop-shadow(0 4px 6px rgba(31, 42, 52, 0.18));
+    }
+
+    .roulette-center {
+      position: relative;
+      z-index: 1;
+      width: 44%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+      color: var(--ink);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 10px 22px rgba(31, 42, 52, 0.14);
+      padding: 12px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .roulette-center span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+      font-weight: 800;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .legend li {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      background: var(--track-color);
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .primary,
+    .secondary,
+    .ghost,
+    .danger {
+      min-height: 38px;
+      border-radius: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .primary:hover {
+      background: var(--accent-dark);
+    }
+
+    .secondary {
+      color: var(--blue);
+      border-color: color-mix(in srgb, var(--blue) 42%, var(--line));
+    }
+
+    .ghost {
+      color: var(--muted);
+    }
+
+    .danger {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 42%, var(--line));
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--surface-soft);
+      min-width: 0;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.05;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .today-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .today-overview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .today-chip {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--surface-soft);
+      border-left: 7px solid var(--track-color);
+    }
+
+    .today-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      margin-bottom: 3px;
+    }
+
+    .today-chip strong {
+      display: block;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .unit {
+      display: grid;
+      grid-template-columns: 7px minmax(0, 1fr);
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .unit.done {
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+      background: color-mix(in srgb, var(--surface) 88%, var(--accent) 12%);
+    }
+
+    .unit-bar {
+      background: var(--track-color);
+    }
+
+    .unit-body {
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .unit-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+
+    .unit-name {
+      min-width: 0;
+    }
+
+    .unit-name strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .unit-name span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 24px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+      background: var(--surface);
+    }
+
+    .unit-actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .unit-actions button {
+      min-height: 32px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .unit-note {
+      width: 100%;
+      min-height: 42px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 9px;
+      background: var(--surface-soft);
+      color: var(--ink);
+      outline: none;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .timer {
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      padding: 9px 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .empty {
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      padding: 18px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .setup-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid color-mix(in srgb, var(--warn) 36%, var(--line));
+      background: color-mix(in srgb, var(--surface) 84%, var(--warn) 16%);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .setup-row.done {
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+      background: color-mix(in srgb, var(--surface) 88%, var(--accent) 12%);
+    }
+
+    .setup-row strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .lanes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .lane {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .lane-head {
+      border-left: 7px solid var(--track-color);
+      padding: 12px 12px 10px;
+      display: grid;
+      gap: 6px;
+      background: color-mix(in srgb, var(--track-color) 10%, var(--surface));
+    }
+
+    .lane-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .lane-title strong {
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .lane-motto {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .lane-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .progress-bar {
+      height: 9px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--track-color);
+      width: var(--progress);
+    }
+
+    .lane-next {
+      color: var(--ink);
+      font-weight: 850;
+      overflow-wrap: anywhere;
+    }
+
+    .lane-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .lane-meta .stat {
+      padding: 8px;
+      background: var(--surface);
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      padding: 8px 9px;
+      outline: none;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    .toggle-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      display: grid;
+      grid-template-columns: 7px minmax(0, 1fr);
+      gap: 9px;
+      background: var(--surface);
+    }
+
+    .history-color {
+      border-radius: 999px;
+      background: var(--track-color);
+    }
+
+    .history-item strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .history-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+      font-weight: 750;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%) translateY(16px);
+      z-index: 50;
+      min-width: min(440px, calc(100vw - 28px));
+      max-width: calc(100vw - 28px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--ink);
+      color: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 11px 14px;
+      font-weight: 850;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 980px) {
+      .dashboard,
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+
+      .tool {
+        min-height: auto;
+      }
+
+      .roulette {
+        max-width: 280px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .header-actions button {
+        flex: 1 1 140px;
+      }
+
+      .stats,
+      .today-overview,
+      .lanes-grid,
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .setup-row {
+        grid-template-columns: 1fr;
+      }
+
+      .unit-top {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="topbar">
+      <div>
+        <h1>音楽制作ルーレット</h1>
+        <div class="subtitle" id="todayLabel">賛美固定 + ルーレット1本 / 30分ユニット</div>
+      </div>
+      <div class="header-actions">
+        <button class="secondary" type="button" data-action="copy-md">AI用Markdown</button>
+        <button class="ghost" type="button" data-action="download-json">JSON保存</button>
+        <button class="ghost" type="button" data-action="download-md">MD保存</button>
+        <button class="ghost" type="button" data-action="import-json">復元</button>
+        <input class="hidden" id="importFile" type="file" accept="application/json,.json">
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="dashboard">
+      <section class="tool" aria-labelledby="rouletteTitle">
+        <div>
+          <h2 id="rouletteTitle">今日の組み立て</h2>
+          <div class="micro">1本目は賛美固定、2本目はルーレット</div>
+        </div>
+
+        <div class="roulette-wrap">
+          <div class="roulette" id="rouletteWheel" aria-hidden="true">
+            <div class="roulette-center">
+              <div>
+                <div id="wheelMain">2 Units</div>
+                <span id="wheelSub">6:00-10:00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ul class="legend" id="legend"></ul>
+
+        <div class="controls-grid">
+          <button class="primary wide" type="button" data-action="roll-today">賛美＋ルーレットを作る</button>
+          <button class="secondary" type="button" data-action="reroll-open">2本目を振り直す</button>
+          <button class="secondary" type="button" data-action="add-unit">抽選を1つ追加</button>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="todayTitle">
+        <div class="section-title">
+          <div>
+            <h2 id="todayTitle">今日やること</h2>
+            <div class="micro" id="planStatus">未抽選</div>
+          </div>
+          <span class="badge" id="timerBadge">30:00</span>
+        </div>
+
+        <div class="stats" id="stats"></div>
+        <div class="today-list" id="todayList"></div>
+      </section>
+    </div>
+
+    <div class="two-column">
+      <section class="section" aria-labelledby="lanesTitle">
+        <div class="section-title">
+          <div>
+            <h2 id="lanesTitle">進行中の制作ライン</h2>
+            <div class="micro">曲名・案件名と抽選対象をここで調整</div>
+          </div>
+        </div>
+        <div class="lanes-grid" id="lanesGrid"></div>
+      </section>
+
+      <section class="section" aria-labelledby="historyTitle">
+        <div class="section-title">
+          <div>
+            <h2 id="historyTitle">完了履歴</h2>
+            <div class="micro" id="historyCount">0ユニット</div>
+          </div>
+          <button class="danger" type="button" data-action="clear-history">履歴整理</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </section>
+    </div>
+
+    <section class="section" aria-labelledby="settingsTitle">
+      <div class="section-title">
+        <div>
+          <h2 id="settingsTitle">運用設定</h2>
+          <div class="micro">制作の現実に合わせて微調整</div>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <label class="field">
+          1ユニットの分数
+          <input type="number" min="5" max="180" step="5" data-setting="minutesPerUnit">
+        </label>
+        <label class="field">
+          開始時刻
+          <input type="text" data-setting="startTime" inputmode="numeric">
+        </label>
+        <label class="field">
+          終了時刻
+          <input type="text" data-setting="endTime" inputmode="numeric">
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "music_production_roulette_v1";
+    const DAILY_TRACK_ID = "praise";
+    const ROULETTE_UNITS_PER_DAY = 1;
+
+    const tracks = [
+      {
+        id: "praise",
+        name: "賛美",
+        kind: "毎日固定 / 歌もの",
+        motto: "毎日1ユニット。順番に積み上げて、完成まで運ぶ。",
+        color: "var(--violet)",
+        rawColor: "#6558a6",
+        targetPieces: 1,
+        targetLabel: "毎日固定",
+        pieceLabel: "曲目",
+        daily: true,
+        steps: [
+          "作曲、作詞",
+          "構成",
+          "キューベースで、コードを打ち込む",
+          "仮歌、仮ギター",
+          "ドラム音源調整",
+          "ドラム打ち込み",
+          "ドラム構成",
+          "キューベースのコードを移植し、ロジックで、生成",
+          "キューベースへ移行、キューベース側で生成。追加",
+          "ギター録音（コード）",
+          "ギター録音（リフ、ソロ）",
+          "ベース録音",
+          "歌入れ",
+          "コーラス",
+          "歌入れ補足",
+          "音源整理、構成、書き出し",
+          "ミックス",
+          "ミックス後のプロジェクト・ファイルの整理",
+          "ミックス再確認",
+          "動画作成",
+          "アップロード"
+        ]
+      },
+      {
+        id: "electro",
+        name: "エレクトロ",
+        kind: "新規制作",
+        motto: "楽しんで、しかし作り上げる方向を意識する。",
+        color: "var(--blue)",
+        rawColor: "#2c67b8",
+        targetPieces: 1,
+        targetLabel: "目標 1曲",
+        pieceLabel: "曲目",
+        steps: [
+          "コード作成＆3音源生成",
+          "リズム作成、音色",
+          "3音源",
+          "第一次構成",
+          "書き出し",
+          "3音源",
+          "フィル、ギミック、オートメーション",
+          "ミックス",
+          "プロジェクト整理",
+          "動画化"
+        ]
+      },
+      {
+        id: "wipElectro",
+        name: "作りかけエレクトロ",
+        kind: "仕上げ",
+        motto: "さっさと仕上げる。それなりに気に入っているはずだろ。",
+        color: "var(--rose)",
+        rawColor: "#a84467",
+        targetPieces: 1,
+        targetLabel: "目標 1曲",
+        pieceLabel: "曲目",
+        steps: [
+          "フレーズ再チェック",
+          "繰り返し、色分け",
+          "書き出し",
+          "構成",
+          "フィル、ギミック、オートメーション",
+          "ミックス",
+          "プロジェクト整理",
+          "動画化"
+        ]
+      },
+      {
+        id: "soundArt",
+        name: "ガチ音響",
+        kind: "実験",
+        motto: "これぐらいのスパンで作れるものを作る。",
+        color: "var(--green)",
+        rawColor: "#1f7e60",
+        targetPieces: 1,
+        targetLabel: "目標 1作",
+        pieceLabel: "作目",
+        steps: [
+          "やってみる。なんか起こしてみる。実験の嵐（時間制30分）",
+          "なんか構成してみる（時間制30分）",
+          "なんか構成してみる（時間制30分）",
+          "なんかミックスしてみる"
+        ]
+      },
+      {
+        id: "salvage",
+        name: "古い音源サルベージ",
+        kind: "整理・公開",
+        motto: "発掘して、墓場に登録して、出せるものは出す。",
+        color: "var(--copper)",
+        rawColor: "#a85f2c",
+        targetPieces: 1,
+        targetLabel: "目標 1巡",
+        pieceLabel: "巡目",
+        randomizeSteps: true,
+        steps: [
+          "ワンボックスの音源発掘整理",
+          "Windowsの中の整理",
+          "歌詞のテキスト化",
+          "墓場登録",
+          "YouTubeアップ"
+        ]
+      }
+    ];
+
+    const defaultProjects = {
+      praise: "賛美 1曲目",
+      electro: "エレクトロ 1曲目",
+      wipElectro: "作りかけ曲",
+      soundArt: "ガチ音響 1作目",
+      salvage: "サルベージ 1巡目"
+    };
+
+    let state = loadState();
+    let activeTimer = null;
+    let toastTimer = null;
+
+    function createDefaultState() {
+      const progress = {};
+      tracks.forEach((track) => {
+        progress[track.id] = {
+          piece: 1,
+          step: 1,
+          completedPieces: 0,
+          enabled: true,
+          projectName: defaultProjects[track.id] || track.name
+        };
+      });
+
+      return {
+        version: 3,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        options: {
+          dailyUnits: 2,
+          minutesPerUnit: 30,
+          startTime: "6:00",
+          endTime: "10:00"
+        },
+        progress,
+        todayPlan: {
+          date: todayKey(),
+          units: []
+        },
+        setup: {},
+        history: []
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return createDefaultState();
+        return normalizeState(JSON.parse(raw));
+      } catch (error) {
+        console.warn(error);
+        return createDefaultState();
+      }
+    }
+
+    function normalizeState(input) {
+      const base = createDefaultState();
+      const migratedProgress = { ...(input.progress || {}) };
+      if (migratedProgress.vocalSong && !migratedProgress.praise) {
+        migratedProgress.praise = migratedProgress.vocalSong;
+        migratedProgress.praise.projectName = migratedProgress.praise.projectName || defaultProjects.praise;
+      }
+      const migrateUnit = (unit) => unit?.trackId === "vocalSong"
+        ? { ...unit, trackId: DAILY_TRACK_ID, trackName: "賛美", source: unit.source || "daily" }
+        : unit;
+      const next = {
+        ...base,
+        ...input,
+        options: { ...base.options, ...(input.options || {}) },
+        setup: { ...base.setup, ...(input.setup || {}) },
+        progress: { ...base.progress, ...migratedProgress },
+        todayPlan: input.todayPlan || base.todayPlan,
+        history: Array.isArray(input.history) ? input.history.map(migrateUnit) : []
+      };
+      if (Array.isArray(next.todayPlan?.units)) {
+        next.todayPlan.units = next.todayPlan.units.map(migrateUnit);
+      }
+
+      tracks.forEach((track) => {
+        next.progress[track.id] = {
+          ...base.progress[track.id],
+          ...(next.progress[track.id] || {})
+        };
+      });
+
+      if (!next.todayPlan || next.todayPlan.date !== todayKey()) {
+        next.todayPlan = { date: todayKey(), units: [] };
+      }
+
+      return next;
+    }
+
+    function saveState() {
+      state.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+    }
+
+    function todayKey(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatDateTime(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString("ja-JP", {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function getTrack(trackId) {
+      return tracks.find((track) => track.id === trackId);
+    }
+
+    function cloneProgress() {
+      return JSON.parse(JSON.stringify(state.progress));
+    }
+
+    function nextStepFor(track, progress) {
+      const item = progress[track.id];
+      const stepIndex = track.randomizeSteps
+        ? Math.floor(Math.random() * track.steps.length)
+        : Math.max(0, Math.min(track.steps.length - 1, item.step - 1));
+      return {
+        trackId: track.id,
+        trackName: track.name,
+        projectName: item.projectName || `${track.name} ${item.piece}作目`,
+        piece: item.piece,
+        step: stepIndex + 1,
+        totalSteps: track.steps.length,
+        title: track.steps[stepIndex],
+        minutes: state.options.minutesPerUnit
+      };
+    }
+
+    function advanceProgressFor(track, progress) {
+      const item = progress[track.id];
+      if (track.randomizeSteps) {
+        item.step = Math.floor(Math.random() * track.steps.length) + 1;
+        return;
+      }
+      if (item.step >= track.steps.length) {
+        item.step = 1;
+        item.piece += 1;
+        item.completedPieces += 1;
+        if (!item.projectName || item.projectName === defaultProjects[track.id]) {
+          item.projectName = `${track.name} ${item.piece}${track.pieceLabel || "作目"}`;
+        }
+      } else {
+        item.step += 1;
+      }
+    }
+
+    function advanceActualByUnit(unit) {
+      if (unit.kind === "setup") return;
+      const track = getTrack(unit.trackId);
+      if (!track) return;
+      const item = state.progress[track.id];
+
+      if (unit.piece > item.piece) {
+        item.piece = unit.piece;
+        item.step = unit.step;
+      }
+
+      if (unit.piece === item.piece && unit.step >= item.step) {
+        item.step = unit.step;
+      }
+
+      advanceProgressFor(track, state.progress);
+    }
+
+    function createUnitFromNext(next, source = "roulette") {
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : `unit-${Date.now()}-${Math.random()}`,
+        kind: "track",
+        source,
+        date: todayKey(),
+        trackId: next.trackId,
+        trackName: next.trackName,
+        projectName: next.projectName,
+        piece: next.piece,
+        step: next.step,
+        totalSteps: next.totalSteps,
+        title: next.title,
+        minutes: next.minutes,
+        status: "planned",
+        note: "",
+        createdAt: new Date().toISOString(),
+        completedAt: null
+      };
+    }
+
+    function drawTrack(virtualProgress) {
+      const rouletteTracks = tracks.filter((track) => !track.daily);
+      const enabled = rouletteTracks.filter((track) => state.progress[track.id]?.enabled);
+      const candidates = enabled.length ? enabled : rouletteTracks;
+      const recent = recentTrackCounts(14);
+      const weighted = candidates.map((track) => {
+        const done = recent[track.id] || 0;
+        const progress = state.progress[track.id];
+        const targetPressure = track.bonus ? 0.78 : 1;
+        const completedPenalty = progress.completedPieces >= track.targetPieces && !track.bonus ? 0.45 : 1;
+        return {
+          track,
+          weight: Math.max(0.2, targetPressure * completedPenalty / (1 + done * 0.34))
+        };
+      });
+      const total = weighted.reduce((sum, item) => sum + item.weight, 0);
+      let point = Math.random() * total;
+      for (const item of weighted) {
+        point -= item.weight;
+        if (point <= 0) return item.track;
+      }
+      return weighted[weighted.length - 1].track;
+    }
+
+    function recentTrackCounts(days) {
+      const threshold = Date.now() - days * 24 * 60 * 60 * 1000;
+      return state.history.reduce((counts, item) => {
+        const time = new Date(item.completedAt || item.createdAt).getTime();
+        if (time >= threshold && item.trackId) {
+          counts[item.trackId] = (counts[item.trackId] || 0) + 1;
+        }
+        return counts;
+      }, {});
+    }
+
+    function buildVirtualProgress(preservedUnits) {
+      const virtualProgress = cloneProgress();
+      preservedUnits
+        .filter((unit) => unit.kind === "track" && unit.status !== "done" && unit.status !== "skipped")
+        .forEach((unit) => {
+          const track = getTrack(unit.trackId);
+          if (!track) return;
+          const item = virtualProgress[track.id];
+          if (unit.piece > item.piece || (unit.piece === item.piece && unit.step >= item.step)) {
+            item.piece = unit.piece;
+            item.step = unit.step;
+            advanceProgressFor(track, virtualProgress);
+          }
+        });
+      return virtualProgress;
+    }
+
+    function isDailyUnit(unit) {
+      return unit.trackId === DAILY_TRACK_ID || unit.source === "daily";
+    }
+
+    function isRouletteUnit(unit) {
+      return unit.kind === "track" && !isDailyUnit(unit);
+    }
+
+    function createNextUnit(track, virtualProgress, source) {
+      const next = nextStepFor(track, virtualProgress);
+      const unit = createUnitFromNext(next, source);
+      advanceProgressFor(track, virtualProgress);
+      return unit;
+    }
+
+    function sortTodayUnits(units) {
+      return units.slice().sort((left, right) => {
+        const leftOrder = isDailyUnit(left) ? 0 : 1;
+        const rightOrder = isDailyUnit(right) ? 0 : 1;
+        if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+        return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+      });
+    }
+
+    function rollTodayUnits({ preserveDone = true, rouletteCount = ROULETTE_UNITS_PER_DAY } = {}) {
+      const today = ensureTodayPlan();
+      const preserved = preserveDone ? today.units.filter((unit) => unit.status === "done") : [];
+      const virtualProgress = buildVirtualProgress(preserved);
+      const units = [...preserved];
+
+      if (!units.some(isDailyUnit)) {
+        const dailyTrack = getTrack(DAILY_TRACK_ID);
+        if (dailyTrack) units.push(createNextUnit(dailyTrack, virtualProgress, "daily"));
+      }
+
+      const neededRoulette = Math.max(0, rouletteCount - units.filter(isRouletteUnit).length);
+      for (let index = 0; index < neededRoulette; index += 1) {
+        const track = drawTrack(virtualProgress);
+        units.push(createNextUnit(track, virtualProgress, "roulette"));
+      }
+      state.todayPlan = { date: todayKey(), units: sortTodayUnits(units) };
+      spinWheel();
+      saveState();
+      showToast("今日の2ユニットを作りました。1本目は賛美、2本目はルーレットです。");
+    }
+
+    function addRouletteUnits(count = 1) {
+      const today = ensureTodayPlan();
+      const virtualProgress = buildVirtualProgress(today.units);
+      const units = today.units.slice();
+      for (let index = 0; index < count; index += 1) {
+        const track = drawTrack(virtualProgress);
+        units.push(createNextUnit(track, virtualProgress, "roulette"));
+      }
+      state.todayPlan = { date: todayKey(), units: sortTodayUnits(units) };
+      spinWheel();
+      saveState();
+      showToast("ルーレット枠を追加しました。");
+    }
+
+    function ensureTodayPlan() {
+      if (!state.todayPlan || state.todayPlan.date !== todayKey()) {
+        state.todayPlan = { date: todayKey(), units: [] };
+      }
+      return state.todayPlan;
+    }
+
+    function completeUnit(unitId) {
+      const unit = state.todayPlan.units.find((item) => item.id === unitId);
+      if (!unit || unit.status === "done") return;
+      const noteInput = document.querySelector(`[data-note-for="${unitId}"]`);
+      if (noteInput) unit.note = noteInput.value.trim();
+
+      unit.status = "done";
+      unit.completedAt = new Date().toISOString();
+      if (unit.kind === "setup") {
+        state.setup.micInputDone = true;
+        state.setup.micInputNote = unit.note;
+      } else {
+        advanceActualByUnit(unit);
+      }
+
+      state.history.unshift({ ...unit });
+      saveState();
+      showToast("1ユニット完了。ちゃんと作品側へ進みました。");
+    }
+
+    function undoUnit(unitId) {
+      const unit = state.todayPlan.units.find((item) => item.id === unitId);
+      if (!unit) return;
+      unit.status = "planned";
+      unit.completedAt = null;
+      state.history = state.history.filter((item) => item.id !== unitId);
+      saveState();
+      showToast("今日のユニットに戻しました。進捗数字は必要なら手で調整してください。");
+    }
+
+    function removeUnit(unitId) {
+      state.todayPlan.units = state.todayPlan.units.filter((unit) => unit.id !== unitId);
+      saveState();
+      showToast("今日のリストから外しました。");
+    }
+
+    function saveUnitNote(unitId, note) {
+      const unit = state.todayPlan.units.find((item) => item.id === unitId);
+      if (!unit) return;
+      unit.note = note;
+      persistOnly();
+    }
+
+    function persistOnly() {
+      state.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function startTimer(unitId) {
+      stopTimer(false);
+      const unit = state.todayPlan.units.find((item) => item.id === unitId);
+      const minutes = unit?.minutes || state.options.minutesPerUnit;
+      activeTimer = {
+        unitId,
+        endsAt: Date.now() + minutes * 60 * 1000,
+        totalMs: minutes * 60 * 1000
+      };
+      activeTimer.interval = window.setInterval(updateTimer, 500);
+      updateTimer();
+      showToast("30分タイマーを開始しました。");
+    }
+
+    function stopTimer(withToast = true) {
+      if (activeTimer?.interval) {
+        window.clearInterval(activeTimer.interval);
+      }
+      activeTimer = null;
+      updateTimer();
+      if (withToast) showToast("タイマーを止めました。");
+    }
+
+    function updateTimer() {
+      const badge = document.getElementById("timerBadge");
+      if (!badge) return;
+      if (!activeTimer) {
+        badge.textContent = `${String(state.options.minutesPerUnit).padStart(2, "0")}:00`;
+        return;
+      }
+      const remaining = Math.max(0, activeTimer.endsAt - Date.now());
+      const minutes = Math.floor(remaining / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      badge.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      if (remaining <= 0) {
+        stopTimer(false);
+        showToast("30分完了。書き出せる粒度で閉じましょう。");
+      }
+    }
+
+    function spinWheel() {
+      const wheel = document.getElementById("rouletteWheel");
+      if (!wheel) return;
+      wheel.style.setProperty("--wheel-turn", `${Math.floor(Math.random() * 360)}deg`);
+      wheel.classList.remove("spinning");
+      void wheel.offsetWidth;
+      wheel.classList.add("spinning");
+      window.setTimeout(() => wheel.classList.remove("spinning"), 950);
+    }
+
+    function render() {
+      ensureTodayPlan();
+      renderHeader();
+      renderLegend();
+      renderStats();
+      renderToday();
+      renderLanes();
+      renderHistory();
+      renderSettings();
+    }
+
+    function renderHeader() {
+      const label = document.getElementById("todayLabel");
+      const wheelMain = document.getElementById("wheelMain");
+      const wheelSub = document.getElementById("wheelSub");
+      const plan = ensureTodayPlan();
+      const done = plan.units.filter((unit) => unit.status === "done").length;
+      const target = Math.max(2, plan.units.length || 2);
+      label.textContent = `${todayKey()} / ${state.options.startTime}-${state.options.endTime} / ${done}/${target}ユニット完了`;
+      if (wheelMain) wheelMain.textContent = "固定+抽選";
+      if (wheelSub) wheelSub.textContent = `${state.options.startTime}-${state.options.endTime}`;
+    }
+
+    function renderLegend() {
+      const legend = document.getElementById("legend");
+      legend.innerHTML = tracks.filter((track) => !track.daily).map((track) => `
+        <li style="--track-color:${track.rawColor}">
+          <span class="dot"></span>
+          <span>${escapeHtml(track.name)}</span>
+        </li>
+      `).join("");
+    }
+
+    function renderStats() {
+      const stats = document.getElementById("stats");
+      const plan = ensureTodayPlan();
+      const doneToday = plan.units.filter((unit) => unit.status === "done").length;
+      const todayTarget = Math.max(2, plan.units.length || 2);
+      const totalUnits = state.history.length;
+      const completedMainPieces = tracks
+        .filter((track) => !track.bonus)
+        .reduce((sum, track) => sum + (state.progress[track.id]?.completedPieces || 0), 0);
+      const targetMainPieces = tracks
+        .filter((track) => !track.bonus)
+        .reduce((sum, track) => sum + track.targetPieces, 0);
+      const nextOpen = plan.units.filter((unit) => unit.status !== "done").length;
+      stats.innerHTML = [
+        { value: `${doneToday}/${todayTarget}`, label: "今日" },
+        { value: totalUnits, label: "完了ユニット" },
+        { value: `${completedMainPieces}/${targetMainPieces}`, label: "完了区切り" },
+        { value: nextOpen, label: "未完了" }
+      ].map((item) => `
+        <div class="stat">
+          <strong>${escapeHtml(String(item.value))}</strong>
+          <span>${escapeHtml(item.label)}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderToday() {
+      const plan = ensureTodayPlan();
+      const list = document.getElementById("todayList");
+      const status = document.getElementById("planStatus");
+      const done = plan.units.filter((unit) => unit.status === "done").length;
+      const target = Math.max(2, plan.units.length || 2);
+      status.textContent = plan.units.length
+        ? `固定1 + 抽選1 / ${done}/${target}完了`
+        : "未抽選";
+
+      if (!plan.units.length) {
+        list.innerHTML = `<div class="empty">「賛美＋ルーレットを作る」で、1本目に賛美、2本目に抽選枠が入ります。</div>`;
+        return;
+      }
+
+      const dailyUnit = plan.units.find(isDailyUnit);
+      const rouletteUnits = plan.units.filter(isRouletteUnit);
+      const dailyTrack = getTrack(DAILY_TRACK_ID);
+      const rouletteTitle = rouletteUnits.length
+        ? rouletteUnits.map((unit) => `${unit.trackName}: ${unit.title}`).join(" / ")
+        : "未抽選";
+      const overview = `
+        <div class="today-overview">
+          <div class="today-chip" style="--track-color:${dailyTrack?.rawColor || "var(--accent)"}">
+            <span>1本目 / 毎日固定</span>
+            <strong>${dailyUnit ? escapeHtml(`${dailyUnit.trackName}: ${dailyUnit.title}`) : "賛美を作る"}</strong>
+          </div>
+          <div class="today-chip" style="--track-color:${rouletteUnits[0] ? (getTrack(rouletteUnits[0].trackId)?.rawColor || "var(--accent)") : "var(--accent)"}">
+            <span>2本目 / ルーレット</span>
+            <strong>${escapeHtml(rouletteTitle)}</strong>
+          </div>
+        </div>
+      `;
+      list.innerHTML = overview + plan.units.map((unit, index) => renderUnit(unit, index)).join("");
+    }
+
+    function renderUnit(unit, index) {
+      const track = getTrack(unit.trackId);
+      const color = unit.kind === "setup" ? "var(--warn)" : (track?.rawColor || "var(--accent)");
+      const sourceLabel = isDailyUnit(unit) ? "毎日固定" : "ルーレット";
+      const slotLabel = `${sourceLabel} / ${index + 1}本目 / ${unit.minutes || state.options.minutesPerUnit}分`;
+      const statusLabel = unit.status === "done" ? "完了" : "予定";
+      const project = unit.kind === "setup"
+        ? unit.projectName
+        : `${unit.projectName || unit.trackName} / ${unit.piece}${track?.pieceLabel || "作目"}`;
+      const step = unit.kind === "setup"
+        ? "一回限り"
+        : `${unit.step}/${unit.totalSteps}`;
+
+      return `
+        <article class="unit ${unit.status === "done" ? "done" : ""}" style="--track-color:${color}">
+          <div class="unit-bar"></div>
+          <div class="unit-body">
+            <div class="unit-top">
+              <div class="unit-name">
+                <strong>${escapeHtml(unit.title)}</strong>
+                <span>${escapeHtml(unit.trackName)} / ${escapeHtml(project)}</span>
+              </div>
+              <span class="badge">${escapeHtml(slotLabel)} / ${escapeHtml(step)} / ${escapeHtml(statusLabel)}</span>
+            </div>
+            <textarea class="unit-note" data-note-for="${unit.id}" placeholder="作業メモ">${escapeHtml(unit.note || "")}</textarea>
+            <div class="timer">
+              <span>${escapeHtml(unit.minutes || state.options.minutesPerUnit)}分ユニット</span>
+              <span>${unit.completedAt ? escapeHtml(formatDateTime(unit.completedAt)) : "未完了"}</span>
+            </div>
+            <div class="unit-actions">
+              <button class="primary" type="button" data-action="complete-unit" data-id="${unit.id}" ${unit.status === "done" ? "disabled" : ""}>完了</button>
+              <button class="secondary" type="button" data-action="start-timer" data-id="${unit.id}" ${unit.status === "done" ? "disabled" : ""}>タイマー</button>
+              <button class="ghost" type="button" data-action="stop-timer">停止</button>
+              <button class="ghost" type="button" data-action="undo-unit" data-id="${unit.id}" ${unit.status !== "done" ? "disabled" : ""}>戻す</button>
+              <button class="danger" type="button" data-action="remove-unit" data-id="${unit.id}">外す</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderLanes() {
+      const grid = document.getElementById("lanesGrid");
+      grid.innerHTML = tracks.map((track) => {
+        const progress = state.progress[track.id];
+        const stepIndex = Math.max(0, Math.min(track.steps.length - 1, progress.step - 1));
+        const percent = Math.round((stepIndex / track.steps.length) * 100);
+        const targetLabel = track.targetLabel || `目標 ${track.targetPieces}区切り`;
+        const nextLabel = track.randomizeSteps
+          ? `次: 1〜${track.steps.length}からランダム抽選`
+          : `次: ${progress.step}/${track.steps.length} ${escapeHtml(track.steps[stepIndex])}`;
+        const trackControl = track.daily
+          ? `<span class="badge">毎日固定</span>`
+          : `<label class="toggle-line">
+              <input type="checkbox" data-track-enabled="${track.id}" ${progress.enabled ? "checked" : ""}>
+              抽選
+            </label>`;
+        return `
+          <article class="lane" style="--track-color:${track.rawColor}">
+            <div class="lane-head">
+              <div class="lane-title">
+                <div>
+                  <strong>${escapeHtml(track.name)}</strong>
+                  <div class="micro">${escapeHtml(track.kind)} / ${escapeHtml(targetLabel)}</div>
+                </div>
+                ${trackControl}
+              </div>
+              <div class="lane-motto">${escapeHtml(track.motto)}</div>
+            </div>
+            <div class="lane-body">
+              <label class="field">
+                今の曲名
+                <input type="text" value="${escapeAttr(progress.projectName || "")}" data-project-name="${track.id}">
+              </label>
+              <div class="progress-bar" aria-hidden="true">
+                <div class="progress-fill" style="--progress:${percent}%"></div>
+              </div>
+              <div class="lane-next">${nextLabel}</div>
+              <div class="lane-meta">
+                <div class="stat">
+                  <strong>${escapeHtml(String(progress.piece))}</strong>
+                  <span>現在の作品</span>
+                </div>
+                <div class="stat">
+                  <strong>${escapeHtml(String(progress.completedPieces))}</strong>
+                  <span>完成数</span>
+                </div>
+              </div>
+              <div class="unit-actions">
+                <button class="ghost" type="button" data-action="step-back" data-track="${track.id}">一つ戻す</button>
+                <button class="ghost" type="button" data-action="step-forward" data-track="${track.id}">一つ進める</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderHistory() {
+      const list = document.getElementById("historyList");
+      const count = document.getElementById("historyCount");
+      count.textContent = `${state.history.length}ユニット`;
+      if (!state.history.length) {
+        list.innerHTML = `<div class="empty">完了した30分ユニットがここに積み上がります。</div>`;
+        return;
+      }
+
+      list.innerHTML = state.history.slice(0, 80).map((item) => {
+        const track = getTrack(item.trackId);
+        const color = item.kind === "setup" ? "var(--warn)" : (track?.rawColor || "var(--accent)");
+        const step = item.kind === "setup" ? "セットアップ" : `${item.step}/${item.totalSteps}`;
+        return `
+          <div class="history-item" style="--track-color:${color}">
+            <div class="history-color"></div>
+            <div>
+              <strong>${escapeHtml(item.trackName)} / ${escapeHtml(item.title)}</strong>
+              <span>${escapeHtml(formatDateTime(item.completedAt || item.createdAt))} / ${escapeHtml(step)} / ${escapeHtml(item.projectName || "")}</span>
+              ${item.note ? `<span>${escapeHtml(item.note)}</span>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderSettings() {
+      document.querySelectorAll("[data-setting]").forEach((input) => {
+        const key = input.dataset.setting;
+        if (document.activeElement !== input) {
+          input.value = state.options[key];
+        }
+      });
+    }
+
+    function handleClick(event) {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+
+      if (action === "roll-today") {
+        const current = ensureTodayPlan().units;
+        const done = current.filter((unit) => unit.status === "done").length;
+        if (current.length && done < current.length) {
+          const ok = confirm("今日の未完了ユニットを置き換えますか？ 1本目は賛美、2本目はルーレットになります。");
+          if (!ok) return;
+        }
+        if (done >= 2) {
+          showToast("今日の2ユニットは完了しています。追加するなら「抽選を1つ追加」を使ってください。");
+          return;
+        }
+        rollTodayUnits({ preserveDone: true });
+      }
+
+      if (action === "reroll-open") {
+        const plan = ensureTodayPlan();
+        const openRouletteCount = Math.max(1, plan.units.filter((unit) => unit.status !== "done" && isRouletteUnit(unit)).length);
+        rollTodayUnits({ preserveDone: true, rouletteCount: openRouletteCount });
+      }
+
+      if (action === "add-unit") {
+        addRouletteUnits(1);
+      }
+
+      if (action === "complete-unit") completeUnit(id);
+      if (action === "undo-unit") undoUnit(id);
+      if (action === "remove-unit") removeUnit(id);
+      if (action === "start-timer") startTimer(id);
+      if (action === "stop-timer") stopTimer();
+
+      if (action === "step-back") {
+        adjustTrackStep(button.dataset.track, -1);
+      }
+
+      if (action === "step-forward") {
+        adjustTrackStep(button.dataset.track, 1);
+      }
+
+      if (action === "copy-md") copyMarkdown();
+      if (action === "download-md") downloadText(`音楽制作ルーレット_${todayKey()}.md`, buildMarkdown(), "text/markdown");
+      if (action === "download-json") downloadText(`音楽制作ルーレット_backup_${todayKey()}.json`, JSON.stringify(state, null, 2), "application/json");
+      if (action === "import-json") document.getElementById("importFile").click();
+
+      if (action === "clear-history") {
+        const ok = confirm("完了履歴を消しますか？ 各ラインの進捗は残ります。先にJSON保存しておくと安心です。");
+        if (!ok) return;
+        state.history = [];
+        saveState();
+        showToast("履歴を整理しました。");
+      }
+    }
+
+    function adjustTrackStep(trackId, delta) {
+      const track = getTrack(trackId);
+      const progress = state.progress[trackId];
+      if (!track || !progress) return;
+      progress.step += delta;
+      if (progress.step < 1) {
+        if (progress.piece > 1) {
+          progress.piece -= 1;
+          progress.step = track.steps.length;
+          progress.completedPieces = Math.max(0, progress.completedPieces - 1);
+        } else {
+          progress.step = 1;
+        }
+      }
+      if (progress.step > track.steps.length) {
+        progress.step = 1;
+        progress.piece += 1;
+        progress.completedPieces += 1;
+      }
+      saveState();
+    }
+
+    function handleInput(event) {
+      const noteFor = event.target.dataset.noteFor;
+      if (noteFor) saveUnitNote(noteFor, event.target.value);
+
+      const projectTrack = event.target.dataset.projectName;
+      if (projectTrack) {
+        state.progress[projectTrack].projectName = event.target.value;
+        persistOnly();
+      }
+
+      const enabledTrack = event.target.dataset.trackEnabled;
+      if (enabledTrack) {
+        state.progress[enabledTrack].enabled = event.target.checked;
+        persistOnly();
+      }
+
+      const setting = event.target.dataset.setting;
+      if (setting) {
+        const numeric = ["dailyUnits", "minutesPerUnit"].includes(setting);
+        const value = numeric ? Math.max(1, Number(event.target.value || 1)) : event.target.value;
+        state.options[setting] = value;
+        persistOnly();
+        renderHeader();
+        updateTimer();
+      }
+    }
+
+    function handleImport(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = normalizeState(JSON.parse(reader.result));
+          state = imported;
+          saveState();
+          showToast("JSONバックアップを復元しました。");
+        } catch (error) {
+          console.warn(error);
+          showToast("JSONを読み込めませんでした。");
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function buildMarkdown() {
+      const plan = ensureTodayPlan();
+      const done = plan.units.filter((unit) => unit.status === "done").length;
+      const lines = [
+        `# 音楽制作ルーレット ${todayKey()}`,
+        "",
+        `- 時間帯: ${state.options.startTime}-${state.options.endTime}`,
+        `- 今日の完了: ${done}/${Math.max(2, plan.units.length || 2)}`,
+        `- 1ユニット: ${state.options.minutesPerUnit}分`,
+        "",
+        "## 今日のユニット"
+      ];
+
+      if (!plan.units.length) {
+        lines.push("- 未抽選");
+      } else {
+        plan.units.forEach((unit, index) => {
+          const mark = unit.status === "done" ? "x" : " ";
+          const step = unit.kind === "setup" ? "セットアップ" : `${unit.step}/${unit.totalSteps}`;
+          const source = isDailyUnit(unit) ? "毎日固定" : "ルーレット";
+          lines.push(`- [${mark}] ${index + 1}. ${source}: ${unit.trackName} / ${unit.title}（${step}、${unit.minutes}分）`);
+          if (unit.projectName) lines.push(`  - 作品: ${unit.projectName}`);
+          if (unit.note) lines.push(`  - メモ: ${unit.note}`);
+        });
+      }
+
+      lines.push("", "## 進捗");
+      tracks.forEach((track) => {
+        const progress = state.progress[track.id];
+        const next = track.steps[Math.max(0, Math.min(track.steps.length - 1, progress.step - 1))];
+        lines.push(`- ${track.name}: ${progress.completedPieces}/${track.targetPieces}完了、現在 ${progress.piece}${track.pieceLabel || "作目"} ${progress.step}/${track.steps.length}「${next}」`);
+      });
+
+      lines.push("", "## 最近の完了");
+      const recent = state.history.slice(0, 12);
+      if (!recent.length) {
+        lines.push("- なし");
+      } else {
+        recent.forEach((item) => {
+          lines.push(`- ${formatDateTime(item.completedAt || item.createdAt)} ${item.trackName}: ${item.title}`);
+        });
+      }
+      return lines.join("\n");
+    }
+
+    async function copyMarkdown() {
+      const text = buildMarkdown();
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          fallbackCopy(text);
+        }
+        showToast("AI用Markdownをコピーしました。");
+      } catch (error) {
+        fallbackCopy(text);
+        showToast("AI用Markdownをコピーしました。");
+      }
+    }
+
+    function fallbackCopy(text) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    }
+
+    function downloadText(filename, text, type) {
+      const blob = new Blob([text], { type });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      showToast(`${filename} を保存しました。`);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2400);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replaceAll("\n", " ");
+    }
+
+    document.addEventListener("click", handleClick);
+    document.addEventListener("input", handleInput);
+    document.getElementById("importFile").addEventListener("change", handleImport);
+    render();
+  </script>
+</body>
+</html>

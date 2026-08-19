@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三本立て毎日TODO（6/26〜8/20）</title>
+<style>
+  :root{
+    --bg:#f5f3ee; --card:#fffdf8; --ink:#2b2b2b; --muted:#7c766c;
+    --line:#e6e1d6; --shadow:0 6px 22px rgba(60,50,30,.10);
+    --si:#3b82f6; --eb:#ef4444; --gk:#22c55e; --ot:#8b5cf6;
+    --accent:#c2410c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#1c1b18; --card:#26241f; --ink:#ece7da; --muted:#a59f92; --line:#3a372f; --shadow:0 6px 22px rgba(0,0,0,.35); --accent:#fb923c; --ot:#a78bfa;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 80px;}
+  #mainView{display:grid;grid-template-columns:minmax(0,760px) minmax(280px,360px);gap:16px;align-items:start;}
+  .todoCore{min-width:0;}
+  h1{font-size:18px;margin:0 0 2px;letter-spacing:.02em;}
+  .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px;}
+
+  /* progress header */
+  .dash{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:14px;}
+  .dashTop{display:flex;align-items:center;gap:16px;}
+  .ring{flex:none;}
+  .ringLabel{font-size:20px;font-weight:700;}
+  .ringSub{font-size:10.5px;fill:var(--muted);}
+  .bars{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0;}
+  .bar{display:flex;align-items:center;gap:8px;font-size:12.5px;}
+  .bar .nm{width:84px;flex:none;color:var(--muted);}
+  .track{flex:1;height:9px;background:var(--line);border-radius:6px;overflow:hidden;}
+  .fill{height:100%;width:0;border-radius:6px;transition:width .4s ease;}
+  .bar .pct{width:62px;flex:none;text-align:right;font-variant-numeric:tabular-nums;font-size:11.5px;color:var(--muted);}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .tab{flex:1;padding:9px;border:1px solid var(--line);background:var(--card);color:var(--muted);
+    border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;text-align:center;}
+  .tab.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  /* himekuri */
+  .himeNav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+  .navBtn{padding:8px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    border-radius:10px;font-size:13px;cursor:pointer;}
+  .navBtn:active{transform:translateY(1px);}
+  .today{font-weight:700;color:var(--accent);}
+  .page{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+    overflow:hidden;animation:flip .35s ease;}
+  @keyframes flip{from{opacity:0;transform:translateY(-8px) rotateX(8deg)}to{opacity:1;transform:none}}
+  .pgHead{padding:16px 18px 12px;border-bottom:1px dashed var(--line);position:relative;}
+  .pgHead::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    width:46px;height:5px;background:var(--line);border-radius:4px;}
+  .dnum{font-size:30px;font-weight:800;line-height:1;letter-spacing:.01em;}
+  .dnum small{font-size:15px;font-weight:600;color:var(--muted);margin-left:6px;}
+  .wgoal{font-size:12px;color:var(--muted);margin-top:6px;}
+  .wtag{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);
+    border:1px solid var(--accent);border-radius:6px;padding:0 6px;margin-right:6px;}
+  .dayCount{float:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .pgBody{padding:8px 14px 16px;}
+  .review{padding:14px 16px;color:var(--muted);font-size:13.5px;font-style:italic;}
+
+  /* task row */
+  .task{display:flex;gap:11px;padding:11px 8px;border-radius:12px;align-items:flex-start;}
+  .task + .task{border-top:1px solid var(--line);}
+  .cb{flex:none;width:24px;height:24px;border-radius:7px;border:2px solid var(--line);
+    background:transparent;cursor:pointer;margin-top:1px;display:flex;align-items:center;justify-content:center;
+    transition:all .15s;}
+  .cb svg{width:14px;height:14px;opacity:0;transform:scale(.6);transition:all .15s;}
+  .task.done .cb svg{opacity:1;transform:scale(1);}
+  .tbody{flex:1;min-width:0;}
+  .meta{display:flex;align-items:center;gap:7px;margin-bottom:1px;flex-wrap:wrap;}
+  .chip{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;color:#fff;}
+  .w-main{font-size:11px;font-weight:700;color:var(--accent);}
+  .w-light{font-size:11px;color:var(--muted);}
+  .ttext{font-size:13.5px;}
+  .task.done .ttext{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line);}
+  .taskCopy{border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:8px;padding:2px 7px;font-size:10.5px;cursor:pointer;}
+  .taskCopy.copied{border-color:var(--gk);color:var(--gk);font-weight:700;}
+  .taskEdit{color:var(--ot);}
+  .taskDelete{color:var(--eb);border-color:rgba(239,68,68,.45);}
+  .taskDefer{color:var(--accent);border-color:rgba(194,65,12,.45);font-weight:700;}
+
+  /* list view */
+  details{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow);}
+  summary{padding:12px 15px;cursor:pointer;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;list-style:none;}
+  summary::-webkit-details-marker{display:none}
+  summary .wk{flex:1;}
+  summary .wkpct{font-size:11.5px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;}
+  summary .tri{transition:transform .2s;color:var(--muted);}
+  details[open] summary .tri{transform:rotate(90deg);}
+  .day{padding:8px 14px;border-top:1px solid var(--line);}
+  .day h4{margin:4px 0 2px;font-size:13px;}
+  .day h4 .dc{float:right;font-size:11px;color:var(--muted);font-weight:500;}
+
+  .foot{margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .footActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  .reset{font-size:12px;color:var(--muted);background:none;border:1px solid var(--line);border-radius:9px;padding:7px 12px;cursor:pointer;}
+  .legend{font-size:11.5px;color:var(--muted);}
+  .hide{display:none;}
+  .done-all{text-align:center;color:var(--gk);font-weight:700;font-size:13px;padding:6px;}
+
+  .cuHd{font-size:11px;font-weight:700;color:var(--ot);margin:8px 8px 0;padding-top:8px;border-top:1px dashed var(--line);}
+  .timeTag{font-size:10.5px;font-weight:800;color:var(--accent);border:1px solid var(--accent);border-radius:7px;padding:0 6px;background:rgba(194,65,12,.08);}
+  .qaWrap{margin:12px 6px 2px;padding-top:10px;border-top:1px dashed var(--line);}
+  .qaLabel{font-size:11.5px;font-weight:800;color:var(--muted);display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;}
+  .qaLabel span{font-weight:500;}
+  .qa{display:flex;gap:6px;margin:10px 6px 2px;align-items:center;}
+  .qa select{flex:none;border:1px solid var(--line);border-radius:8px;padding:7px 4px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:12px;}
+  .qa input[type=time]{flex:none;width:88px;border:1px solid var(--line);border-radius:8px;padding:8px 5px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:12.5px;}
+  .qa input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:9px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:13.5px;}
+  .qa button{flex:none;border:none;background:var(--accent);color:#fff;border-radius:8px;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .qa button.secondary{background:var(--ot);}
+  /* add panel */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);}
+  .panel h3{margin:0 0 4px;font-size:14px;}
+  .panel .hint{font-size:11.5px;color:var(--muted);margin:0 0 10px;}
+  .panel textarea{width:100%;min-height:96px;border:1px solid var(--line);border-radius:10px;padding:10px;
+    font-family:inherit;font-size:13.5px;background:var(--bg);color:var(--ink);resize:vertical;}
+  .fld{margin-top:12px;}
+  .fld>label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;}
+  .seg{display:flex;gap:6px;flex-wrap:wrap;}
+  .seg button{padding:7px 12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;font-size:12.5px;cursor:pointer;}
+  .seg button.on{background:var(--ot);color:#fff;border-color:var(--ot);}
+  .dow7{display:flex;gap:5px;}
+  .dow7 button{flex:1;padding:8px 0;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;font-size:13px;cursor:pointer;}
+  .dow7 button.on{background:var(--ot);color:#fff;border-color:var(--ot);}
+  .addBtn{margin-top:14px;width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;}
+  .mlist{margin-top:18px;}
+  .mlist h3{font-size:13px;margin:0 0 4px;}
+  .mrow{display:flex;align-items:center;gap:10px;padding:9px 4px;border-top:1px solid var(--line);font-size:13px;}
+  .mrow .mt{flex:1;min-width:0;}
+  .mrow .mr{font-size:11px;color:var(--ot);font-weight:700;flex:none;white-space:nowrap;}
+  .mrow .edit,.mrow .del{flex:none;border:none;background:none;cursor:pointer;font-size:12px;}
+  .mrow .edit{color:var(--ot);}
+  .mrow .del{color:var(--eb);}
+  .doneTag{font-size:10px;font-weight:800;color:#fff;background:var(--gk);border-radius:20px;padding:1px 7px;white-space:nowrap;}
+  .endedTag{font-size:10px;font-weight:800;color:#fff;background:var(--muted);border-radius:20px;padding:1px 7px;white-space:nowrap;}
+  .empty{color:var(--muted);font-size:12.5px;padding:8px 0;}
+  input[type=date],input[type=time]{border:1px solid var(--line);border-radius:9px;padding:8px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:13px;}
+
+  /* missed / carry-over / skip */
+  .carryNote{font-size:11.5px;color:var(--eb);margin-top:10px;font-weight:600;}
+  .coBox{border:1px solid var(--eb);background:var(--card);border-radius:14px;margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow);}
+  .coBox summary{color:var(--eb);padding:11px 14px;cursor:pointer;font-weight:700;font-size:13px;list-style:none;}
+  .coBox summary::-webkit-details-marker{display:none}
+  .coHint{font-size:11px;color:var(--muted);margin:0 14px 6px;}
+  .coRow{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--line);font-size:12.5px;flex-wrap:wrap;}
+  .coDate{color:var(--muted);font-size:11px;flex:none;font-variant-numeric:tabular-nums;}
+  .coText{flex:1;min-width:130px;}
+  .coDo,.coSkip{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:5px 11px;font-size:11.5px;cursor:pointer;}
+  .coDo{color:var(--gk);border-color:var(--gk);} .coSkip{color:var(--muted);}
+  .coFoot{padding:11px 12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;}
+  .coRestart{width:100%;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;}
+  .coRestartSub{width:100%;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:8px;font-size:11.5px;cursor:pointer;}
+  .linkBtn{border:none;background:none;color:var(--accent);font-size:11.5px;cursor:pointer;font-weight:600;}
+  .task.skip{opacity:.5;}
+  .task.skip .ttext{text-decoration:line-through;text-decoration-color:var(--line);}
+  .skipTag{font-size:10px;font-weight:700;color:#fff;background:var(--muted);border-radius:20px;padding:1px 7px;}
+  .blkTag{font-size:10px;font-weight:700;color:#fff;background:var(--accent);border-radius:20px;padding:1px 7px;}
+  .coBlkNote{font-size:12px;color:var(--accent);font-weight:700;margin:0 14px 6px;background:rgba(194,65,12,.10);padding:7px 9px;border-radius:8px;line-height:1.5;}
+  .rebox{margin:8px 12px 4px;border:1px solid var(--accent);border-radius:11px;padding:10px 12px;}
+  .rebt{font-size:13px;font-weight:800;color:var(--accent);margin-bottom:5px;}
+  .rerow{font-size:12.5px;margin-bottom:7px;}
+  .refit{font-size:12px;line-height:1.55;border-radius:8px;padding:7px 9px;}
+  .refit.ok{background:rgba(34,197,94,.12);color:var(--gk);}
+  .refit.ng{background:rgba(239,68,68,.10);color:var(--eb);font-weight:600;}
+
+  /* 作業マップ */
+  .mapProj{margin-bottom:10px;}
+  .mapProj>summary .mpPct{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;}
+  .mapPhase{border-top:1px solid var(--line);padding:10px 14px;}
+  .mpHd{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:8px;}
+  .mpHdc{margin-left:auto;font-size:11px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;}
+  .mpMeter{height:6px;background:var(--line);border-radius:5px;overflow:hidden;margin:6px 0 2px;}
+  .mpFill{height:100%;border-radius:5px;transition:width .4s;}
+  .mapRow{display:flex;gap:6px;align-items:flex-start;}
+  .mapRow .task{flex:1;min-width:0;}
+  .mpDate{flex:none;font-size:10.5px;color:var(--muted);width:38px;padding-top:15px;text-align:right;font-variant-numeric:tabular-nums;}
+
+  /* 今日だけの窓 */
+  #todayWin{display:none;}
+  .tmode #mainView{display:none;}
+  .tmode #todayWin{display:block;}
+  #goalsWin{display:none;}
+  .gmode #mainView,.gmode #todayWin{display:none;}
+  .gmode #goalsWin{display:block;}
+  .gmode .wrap{max-width:1040px;padding:22px 18px 40px;}
+  .tmode .wrap{max-width:600px;padding:18px 18px 28px;}
+  .tBar{display:flex;align-items:center;justify-content:space-between;}
+  .tDate{font-size:40px;font-weight:800;line-height:1.05;}
+  .tDate small{font-size:18px;color:var(--muted);font-weight:600;margin-left:6px;}
+  .tFull{font-size:13px;color:var(--accent);text-decoration:none;font-weight:700;flex:none;}
+  .tNote{font-size:12px;color:var(--muted);margin-top:4px;}
+  .tGoal{font-size:13px;color:var(--muted);margin:6px 0 12px;}
+  .tCarry{font-size:13px;color:var(--eb);font-weight:700;margin-bottom:12px;}
+  .tMeter{height:13px;background:var(--line);border-radius:7px;overflow:hidden;}
+  .tFill{height:100%;background:var(--accent);border-radius:7px;transition:width .4s;}
+  .tCount{font-size:14px;font-weight:700;margin:7px 0 14px;text-align:right;font-variant-numeric:tabular-nums;}
+  .tTasks{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:6px 14px;}
+  #todayWin .task{padding:15px 6px;}
+  #todayWin .cb{width:30px;height:30px;border-radius:9px;}
+  #todayWin .cb svg{width:18px;height:18px;}
+  #todayWin .ttext{font-size:16px;line-height:1.55;}
+  #todayWin .chip{font-size:12px;padding:2px 9px;}
+  #todayWin .meta{margin-bottom:3px;}
+  #todayWin .cuHd{font-size:13px;}
+  .tReview{font-size:15px;color:var(--muted);font-style:italic;padding:10px 4px;line-height:1.75;}
+  .calBlock{margin:13px 6px 5px;border:2px solid #8b5cf6;border-radius:13px;overflow:hidden;background:#faf7ff;box-shadow:0 3px 10px rgba(124,58,237,.10);}
+  .calHd{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;font-size:13px;font-weight:950;color:#fff;padding:8px 11px;background:#7c3aed;letter-spacing:.02em;}
+  .calHd small{font-size:11px;font-weight:850;color:#ede9fe;background:rgba(255,255,255,.16);border-radius:999px;padding:2px 8px;}
+  .calNote{font-size:10.8px;color:var(--muted);padding:0 7px 5px;}
+  .calRow{display:grid;grid-template-columns:62px 22px minmax(0,1fr);gap:8px;align-items:center;padding:11px 10px;border-top:1px solid #ddd6fe;background:#fff;}
+  .calRow:first-of-type{border-top:0;}
+  .calTime{display:inline-flex;justify-content:center;font-size:11.5px;font-weight:950;color:#6d28d9;background:#ede9fe;border-radius:7px;padding:4px 5px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .calIcon{font-size:15px;line-height:1;text-align:center;}
+  .calText{font-size:15px;font-weight:800;line-height:1.45;color:#35245a;overflow-wrap:anywhere;}
+  .calSync{border:1px solid #ddd6fe;background:#faf5ff;border-radius:12px;padding:13px;margin:14px 0;}
+  .calSyncRow{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+  .calSyncRow input{flex:1;min-width:240px;}
+  .calSyncStatus{font-size:11.5px;color:#6d28d9;font-weight:800;margin:8px 0 0;}
+  .mileBox{margin:10px 8px 12px;border:2px solid #f59e0b;background:#fffbeb;border-radius:13px;padding:11px 13px;}
+  .mileTitle{font-size:12px;font-weight:900;color:#b45309;margin-bottom:7px;}
+  .mileGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+  .mileItem{background:#fff;border:1px solid #fde68a;border-radius:9px;padding:8px;font-size:12px;line-height:1.45;}
+  .mileItem b{display:block;margin-bottom:2px;}
+  @media(max-width:620px){.mileGrid{grid-template-columns:1fr;}}
+
+  /* ゴール確認の別窓 */
+  .gTop{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;}
+  .gTop h1{font-size:22px;margin:0 0 3px;}
+  .gLead{font-size:13px;color:var(--muted);margin:0;}
+  .gProjects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:18px;}
+  .gProject{background:var(--card);border:1px solid var(--line);border-top:7px solid var(--pc);border-radius:16px;padding:15px;box-shadow:var(--shadow);}
+  .gProject h2{font-size:17px;margin:0 0 8px;}
+  .gFinal{font-size:14px;font-weight:800;line-height:1.55;background:var(--bg);border-radius:10px;padding:9px 10px;margin-bottom:11px;}
+  .gProject h3{font-size:11px;color:var(--muted);margin:0 0 5px;letter-spacing:.05em;}
+  .gSteps{margin:0;padding-left:20px;font-size:13px;line-height:1.55;}
+  .gSteps li+li{margin-top:5px;}
+  .gWeeksTitle{font-size:17px;margin:4px 0 10px;}
+  .gWeeks{display:grid;gap:9px;}
+  .gWeek{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 13px;box-shadow:var(--shadow);}
+  .gWeek.now{border:2px solid var(--accent);}
+  .gWeekHead{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:7px;}
+  .gWeekHead b{font-size:14px;}
+  .gWeekHead span{font-size:12px;color:var(--muted);}
+  .gWeekGoals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+  .gWeekItem{font-size:12.5px;line-height:1.45;background:var(--bg);border-radius:9px;padding:8px 9px;border-left:5px solid var(--pc);}
+  .gWeekItem b{display:block;font-size:11px;margin-bottom:2px;}
+  @media(max-width:760px){.gProjects,.gWeekGoals{grid-template-columns:1fr;}}
+
+  /* AI paste export */
+  .exportTop{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;}
+  .exportBtns{display:flex;gap:6px;flex-wrap:wrap;}
+  .exportBtns button{padding:7px 10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;font-size:12px;cursor:pointer;}
+  .exportBtns button.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .copyBtn{border:none;background:var(--accent);color:#fff;border-radius:10px;padding:9px 13px;font-size:12.5px;font-weight:700;cursor:pointer;}
+  .copyState{font-size:11.5px;color:var(--muted);margin-left:8px;}
+  .exportText{width:100%;min-height:420px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);color:var(--ink);
+    font:12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical;white-space:pre;}
+
+  /* 右サイドドック */
+  .sideDock{position:sticky;top:14px;display:grid;gap:14px;min-width:0;}
+  .musicDock,.taskRouletteDock{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:14px;min-width:0;}
+  .musicHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px;}
+  .musicHead h2{font-size:15px;margin:0;line-height:1.25;}
+  .musicHead p{font-size:11.5px;color:var(--muted);margin:2px 0 0;}
+  .musicScore{flex:none;border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:11px;font-weight:800;color:var(--muted);background:var(--bg);}
+  .musicWheelRow{display:grid;grid-template-columns:82px minmax(0,1fr);gap:10px;align-items:center;margin:8px 0 12px;}
+  .musicWheel{width:82px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--si) 0 90deg,var(--eb) 90deg 180deg,var(--gk) 180deg 270deg,var(--accent) 270deg 360deg);border:8px solid var(--bg);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);}
+  .musicWheel span{display:grid;place-items:center;width:48px;aspect-ratio:1;border-radius:50%;background:var(--card);font-size:11px;font-weight:900;color:var(--ink);text-align:center;line-height:1.2;}
+  .musicLegend{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;font-size:10.5px;color:var(--muted);font-weight:800;}
+  .musicLegend span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .musicDot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mc);margin-right:5px;}
+  .musicActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0;}
+  .musicActions button,.musicMiniBtn{border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);padding:8px 9px;font-size:12px;font-weight:800;cursor:pointer;}
+  .musicActions .primary{grid-column:1 / -1;background:var(--accent);border-color:var(--accent);color:#fff;}
+  .musicEmpty{border:1px dashed var(--line);border-radius:12px;padding:12px;color:var(--muted);font-size:12.5px;text-align:center;background:var(--bg);}
+  .musicUnits{display:grid;gap:8px;margin-top:10px;}
+  .musicUnit{display:grid;grid-template-columns:34px minmax(0,1fr);gap:9px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);border-left:7px solid var(--mc);}
+  .musicUnit.done{opacity:.72;}
+  .musicCheck{width:30px;height:30px;border-radius:9px;border:2px solid var(--line);background:transparent;color:#fff;display:grid;place-items:center;cursor:pointer;margin-top:1px;}
+  .musicUnit.done .musicCheck{background:var(--mc);border-color:var(--mc);}
+  .musicCheck svg{width:17px;height:17px;opacity:0;transform:scale(.7);transition:all .15s;}
+  .musicUnit.done .musicCheck svg{opacity:1;transform:scale(1);}
+  .musicSlot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+  .musicSlot span{font-size:10.5px;font-weight:900;color:#fff;border-radius:999px;padding:1px 7px;background:var(--mc);}
+  .musicSlot small{font-size:10.5px;color:var(--muted);font-weight:800;}
+  .musicTitle{font-size:14px;font-weight:850;line-height:1.35;overflow-wrap:anywhere;}
+  .musicMeta{font-size:11.5px;color:var(--muted);font-weight:750;margin-top:3px;line-height:1.45;}
+  .musicDetails{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);box-shadow:none;}
+  .musicDetails summary{padding:9px 11px;font-size:12px;}
+  .musicLine{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border-top:1px solid var(--line);padding:9px 10px;font-size:12px;}
+  .musicLine strong{display:block;font-size:12.5px;line-height:1.25;}
+  .musicLine small{display:block;color:var(--muted);font-weight:700;line-height:1.35;margin-top:2px;}
+  .musicLineBtns{display:flex;gap:5px;align-items:center;}
+  .musicLineBtns button{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:7px;padding:4px 7px;font-size:11px;cursor:pointer;}
+  .musicToggle{font-size:11px;color:var(--muted);font-weight:800;display:flex;gap:4px;align-items:center;white-space:nowrap;}
+  .taskRouletteHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px;}
+  .taskRouletteHead h2{font-size:15px;margin:0;line-height:1.25;}
+  .taskRouletteHead p{font-size:11.5px;color:var(--muted);margin:2px 0 0;}
+  .taskRouletteResult{min-height:84px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(194,65,12,.10));display:grid;place-items:center;text-align:center;padding:13px;margin-bottom:10px;cursor:pointer;}
+  .taskRouletteResult strong{font-size:18px;line-height:1.35;overflow-wrap:anywhere;}
+  .taskRouletteActions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
+  .taskRouletteActions button,.taskRouletteMiniBtn{border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);padding:8px 9px;font-size:12px;font-weight:800;cursor:pointer;}
+  .taskRouletteActions .primary{grid-column:1 / -1;background:var(--accent);border-color:var(--accent);color:#fff;}
+  .taskRouletteResultBtns{display:none;grid-template-columns:1fr 1fr;gap:7px;margin:-2px 0 10px;}
+  .taskRouletteResultBtns.on{display:grid;}
+  .taskRouletteResultBtns button{border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);padding:8px 9px;font-size:12px;font-weight:800;cursor:pointer;}
+  .taskRouletteResultBtns .done{background:var(--gk);border-color:var(--gk);color:#fff;}
+  .taskRouletteInput{width:100%;min-height:76px;border:1px solid var(--line);border-radius:10px;padding:9px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:12.5px;resize:vertical;}
+  .taskRouletteInput:focus{outline:2px solid rgba(194,65,12,.18);border-color:var(--accent);}
+  .taskRouletteInputRow{display:flex;gap:7px;align-items:center;margin:7px 0 10px;}
+  .taskRouletteInputRow label{font-size:11.5px;color:var(--muted);font-weight:800;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+  .taskRouletteInputRow button{flex:1;border:1px solid var(--accent);border-radius:9px;background:var(--accent);color:#fff;padding:8px 9px;font-size:12px;font-weight:800;cursor:pointer;}
+  .taskRouletteList{display:grid;gap:6px;max-height:178px;overflow:auto;border-top:1px dashed var(--line);padding-top:10px;}
+  .taskRouletteItem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:7px 8px;font-size:12px;line-height:1.35;}
+  .taskRouletteItem.selected{border-color:var(--accent);background:rgba(194,65,12,.10);}
+  .taskRouletteItem span{overflow-wrap:anywhere;}
+  .taskRouletteItem button{border:1px solid rgba(239,68,68,.45);background:transparent;color:var(--eb);border-radius:7px;padding:4px 6px;font-size:11px;cursor:pointer;}
+  .taskRouletteMessage{min-height:17px;color:var(--muted);font-size:11.5px;line-height:1.4;margin-top:7px;}
+  .taskRouletteMessage.ok{color:var(--gk);font-weight:800;}
+  .taskRouletteMessage.ng{color:var(--eb);font-weight:800;}
+  .taskRouletteFile{display:none;}
+  @media (max-width: 1060px){
+    #mainView{display:block;}
+    .sideDock{position:static;margin-top:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="todayWin"></div>
+  <div id="goalsWin"></div>
+  <div id="mainView">
+  <div class="todoCore">
+  <h1>🗓 三本立て毎日TODO</h1>
+  <p class="sub">6/26〜8/20 ｜ 8/23の渡航前に三本とも手を離す ｜ ◎=主役 ○=軽め</p>
+
+  <div class="dash">
+    <div class="dashTop">
+      <svg class="ring" width="92" height="92" viewBox="0 0 92 92">
+        <circle cx="46" cy="46" r="38" fill="none" stroke="var(--line)" stroke-width="9"/>
+        <circle id="ringFill" cx="46" cy="46" r="38" fill="none" stroke="var(--accent)" stroke-width="9"
+          stroke-linecap="round" transform="rotate(-90 46 46)"
+          stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
+        <text id="ringPct" class="ringLabel" x="46" y="44" text-anchor="middle" fill="var(--ink)">0%</text>
+        <text id="ringNum" class="ringSub" x="46" y="60" text-anchor="middle">0/0</text>
+      </svg>
+      <div class="bars">
+        <div class="bar"><span class="nm">🟦 シランガナ</span><span class="track"><span class="fill" id="f-シ" style="background:var(--si)"></span></span><span class="pct" id="p-シ">0%</span></div>
+        <div class="bar"><span class="nm">🟩 学校事業</span><span class="track"><span class="fill" id="f-学校" style="background:var(--gk)"></span></span><span class="pct" id="p-学校">0%</span></div>
+        <div class="bar"><span class="nm">🟥 ヤフオク</span><span class="track"><span class="fill" id="f-eBay" style="background:var(--eb)"></span></span><span class="pct" id="p-eBay">0%</span></div>
+      </div>
+    </div>
+    <div id="carryNote" class="carryNote"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" id="tab-hime" onclick="setView('hime')">📖 日めくり</div>
+    <div class="tab" id="tab-list" onclick="setView('list')">📋 一覧</div>
+    <div class="tab" id="tab-map" onclick="setView('map')">🗺 マップ</div>
+    <div class="tab" id="tab-export" onclick="setView('export')">📤 AI用</div>
+    <div class="tab" id="tab-add" onclick="setView('add')">➕ 追加</div>
+  </div>
+
+  <!-- HIMEKURI -->
+  <div id="view-hime">
+    <div id="carry"></div>
+    <div class="himeNav">
+      <button class="navBtn" onclick="step(-1)">← 前の日</button>
+      <button class="navBtn today" onclick="goToday()">今日へ</button>
+      <button class="navBtn" onclick="step(1)">次の日 →</button>
+    </div>
+    <div id="himePage"></div>
+  </div>
+
+  <!-- LIST -->
+  <div id="view-list" class="hide"></div>
+
+  <!-- MAP -->
+  <div id="view-map" class="hide"></div>
+
+  <!-- EXPORT -->
+  <div id="view-export" class="hide"></div>
+
+  <!-- ADD -->
+  <div id="view-add" class="hide"></div>
+
+  <div class="foot">
+    <span class="legend" id="saveStatus">チェックは自動保存されます</span>
+    <span class="footActions">
+      <button class="reset" onclick="openTodayWin()">🪟 今日だけの窓</button>
+      <button class="reset" onclick="openGoalsWin()">🎯 ゴール確認</button>
+      <button class="reset" onclick="downloadBackup()">バックアップ保存</button>
+      <button class="reset" onclick="chooseBackupFile()">復元</button>
+      <button class="reset" onclick="resetAll()">すべてリセット</button>
+      <input id="backupFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+    </span>
+  </div>
+  </div><!-- /todoCore -->
+  <aside class="sideDock" aria-label="右側ツール">
+    <section id="musicDock" class="musicDock" aria-label="音楽制作ルーレット"></section>
+    <section id="taskRouletteDock" class="taskRouletteDock" aria-label="タスクルーレット">
+      <div class="taskRouletteHead">
+        <div>
+          <h2>タスクルーレット</h2>
+          <p>迷ったら1つ選ぶ。候補は自動保存。</p>
+        </div>
+        <span id="taskRouletteCount" class="musicScore">0</span>
+      </div>
+      <div id="taskRouletteResult" class="taskRouletteResult" role="button" tabindex="0" onclick="taskRouletteDraw()" onkeydown="taskRouletteKey(event)">
+        <strong id="taskRouletteResultText">回す</strong>
+      </div>
+      <div class="taskRouletteActions">
+        <button class="primary" type="button" onclick="taskRouletteDraw()">回す</button>
+        <button type="button" onclick="taskRouletteChooseFile()">ファイル</button>
+        <button type="button" onclick="taskRouletteClearResult()">戻す</button>
+      </div>
+      <div id="taskRouletteResultBtns" class="taskRouletteResultBtns">
+        <button class="done" type="button" onclick="taskRouletteCompleteSelected()">完了して外す</button>
+        <button type="button" onclick="taskRouletteClearResult()">候補に残す</button>
+      </div>
+      <textarea id="taskRouletteInput" class="taskRouletteInput" placeholder="1行1タスクで貼り付け"></textarea>
+      <div class="taskRouletteInputRow">
+        <label><input id="taskRouletteDedupe" type="checkbox" checked>重複除外</label>
+        <button type="button" onclick="taskRouletteAddFromInput()">追加</button>
+      </div>
+      <input id="taskRouletteFile" class="taskRouletteFile" type="file" accept=".txt,.md,.csv" onchange="taskRouletteImportFile(event)">
+      <div id="taskRouletteList" class="taskRouletteList"></div>
+      <div id="taskRouletteMessage" class="taskRouletteMessage"></div>
+    </section>
+  </aside>
+  </div><!-- /mainView -->
+</div>
+
+<script>
+// Dockランチャー経由だけを正規入口にする。
+// HTML直開きはChromeプロファイル別localStorageへ書いてしまうため、保存分岐防止のため止める。
+const OFFICIAL_DOCK_PARAM=new URLSearchParams(location.search).get("dock")==="1";
+if(location.protocol==="file:"&&!OFFICIAL_DOCK_PARAM){
+  document.body.innerHTML='<main class="wrap"><section class="panel" style="max-width:720px;margin:64px auto">'+
+    '<h1>三本立てTODOはDockから起動してください</h1>'+
+    '<p class="hint">保存先の分岐を防ぐため、HTMLファイルの直接起動は停止しました。Dockの「三本立てTODO」から開くと、固定されたChromeプロファイルの同じセーブポイントを使います。</p>'+
+    '<p class="hint">この画面ではチェックや曜日指定を保存しません。</p>'+
+    '</section></main>';
+  throw new Error("Direct file open is blocked to avoid split localStorage save points.");
+}
+const PROJ = {
+  "シ":  {name:"シランガナ", varc:"var(--si)"},
+  "eBay":{name:"ヤフオク",   varc:"var(--eb)"},
+  "学校":{name:"学校事業",    varc:"var(--gk)"}
+};
+
+// 今日の細かい作業が、次のどこへ向かうかを示す中間目標
+const MILESTONES=[
+ {deadline:"2026-08-02",label:"8/2（日）まで",items:[
+  ["学校","サイトの古い情報を直し、説明会日を決める（夏休み中は送らない）"],
+  ["ヤフオク","第2・第3セットを出品する（選別済みなので撮影から）"],
+  ["シランガナ","BUILD22を判定し、アイコン・起動画面・スクショまで進める"]
+ ]},
+ {deadline:"2026-08-09",label:"8/9（日）まで",items:[
+  ["学校","制度解説「出席認定」を公開し、たより創刊号を書き切る"],
+  ["ヤフオク","第4セットまで出品。第2セットの落札額で見込みを立て直す"],
+  ["シランガナ","提出素材一式を揃え、帰国後に出せる状態で止める（$99は渡航後）"]
+ ]},
+ {deadline:"2026-08-16",label:"8/16（日）まで",items:[
+  ["学校","チラシ文面を仕上げる。たより・チラシ・紹介1枚を封入まで進める"],
+  ["ヤフオク","8/13までに出品を終える（これ以降は渡航前に落札が終わらない）"],
+  ["シランガナ","帰国後の提出手順を残し、渡航中は触らない状態にする"]
+ ]},
+ {deadline:"2026-08-20",label:"8/20（木）まで ＝ 渡航3日前",items:[
+  ["学校","封を閉じるところまで終える。投函だけ残して渡航する（9/1前後）"],
+  ["ヤフオク","入金を確定し、カメラを買うか予算を下げるか決める（判断日8/18）"],
+  ["シランガナ","素材フォルダの場所と提出手順を記録して閉じる"]
+ ]}
+];
+const PROJECT_GOALS={
+ "学校":{
+  final:"POPへ動ける自由をつくるため。商圏は八千代台周辺で、累計約20人はすべて「南雲と話した感触」で決まっている＝商品は南雲自身。だから作るのは渡航前、出すのは帰国後（9/1前後）。9月の進路相談の山で、自分が反応を受けられる状態にする",
+  steps:["中学校10件＋高校分を発送する（7/28）","サイトとGBPの古い情報・連絡先・日程を直す（集客装置ではなく、送付が死なないための受け皿）","反応を「学校事業 問い合わせ台帳」に記録する（ゼロならゼロと書く）","制度解説「出席認定」を書いてサイトに公開する（検索資産／たよりの連載枠／チラシの芯）","たより創刊号を書き切る（南十字舎だより。①今月の様子 ②お知らせ ③代表から一言＋QR）","南十字舎チラシの文面を作る（紹介者が家庭に渡す一枚）","たより・チラシ・紹介1枚を封入まで終え、投函だけ残して渡航する（9/1前後）"]
+ },
+ "eBay":{
+  final:"8/23の渡航でPOPのVLOGを撮る資金をつくるため。撮った素材は2027年3月の日本側チーム募集に使う。目標12万円。ただし第1セットの29,780円は1件だけの実績で、他が同じに売れる保証はない。第2セットの落札額（8/5）で見込みを立て直し、届かなければカメラ予算を下げるかiPhoneで撮る。1000枚完走は帰国後へ回す",
+  steps:["100枚ずつ選別（3F=Cなど高価盤は混ぜない）","全体・目玉盤・状態を撮影","商品名・説明・1円開始・送料条件を作る","出品して管理番号と終了日を記録（最終出品は8/13）","第2セットの落札額で1セット平均を立て直す（8/6）","落札・決済・発送を渡航前に終える","入金総額を確定し、カメラを買うか予算を下げるか決める（8/18）"]
+ },
+ "シ":{
+  final:"AIとMacBookで作った自分のアプリを一本、世に出すため。MacBookへの投資を「AIで遊んだ」ではなく「商品を作って公開した」に変える。ただしApple Developer Programの$99は渡航後に払う（本人判断 7/27）。渡航前は提出ボタン以外を全部やり、帰国後に払えばその日のうちに出せる状態で止める",
+  steps:["BUILD22を実機で判定し、出すか直すかを決める","アイコン・起動画面・Aboutを娘のイラストで整える","スクリーンショットを実機で撮る","説明文・キーワード・プライバシー・サポート文面を書いて保存する","提出に必要な残り項目をチェックリスト化する","素材一式を1フォルダにまとめ、帰国後の提出手順を残す"]
+ }
+};
+function milestoneFor(iso){return MILESTONES.find(m=>m.deadline>=iso)||MILESTONES[MILESTONES.length-1];}
+function milestoneBlock(iso){const m=milestoneFor(iso);return '<div class="mileBox"><div class="mileTitle">🚩 次の節目　'+m.label+'</div><div class="mileGrid">'+m.items.map(x=>'<div class="mileItem"><b>'+x[0]+'</b>'+x[1]+'</div>').join("")+'</div></div>';}
+
+// 週 → 日 → タスク
+const PLAN = [
+ {w:"立ち上げ", range:"6/26-28", goal:"3つの入口をそろえる",
+  days:[
+   {iso:"2026-06-26", d:"6/26", dow:"金", tasks:[
+     {p:"シ",  w:"main",  t:"Xcodeでシランガナを開く→Signing Teamと接続中のiPhoneを確認→現ソースを実機ビルド。起動するか確認（起動しない原因の特定が勝ち）"},
+     {p:"eBay",w:"light", t:"eBayにログインできるか確認。本人確認・出金口座・販売制限の有無をチェック"},
+     {p:"学校",w:"light", t:"kg-yachiyo.com を開いて、今のトップ・CTA・説明会情報の状態をメモ（直す箇所の洗い出し）"}
+   ]},
+   {iso:"2026-06-27", d:"6/27", dow:"土", tasks:[
+     {p:"シ",  w:"main",  t:"起動したらBUILD11を触り誤認識サンプル3つ撮影／起動しないならクラッシュログ・最初のエラー記録。時間が残れば娘へイラストをラフ依頼"},
+     {p:"eBay",w:"light", t:"3F=C「とまどい」RBF-108 の現物状態を確認→表裏を撮影→出品下書きを作る"},
+     {p:"学校",w:"light", t:"月間問い合わせ数・在籍内訳の「数え方」を決める（どの記録からどう数えるか）"}
+   ]},
+   {iso:"2026-06-28", d:"6/28", dow:"日", review:"週レビュー：シ＝実機で起動できたか／eBay＝3F=Cの下書き／学校＝直す箇所が見えたか。来週＝シBUILD12診断・eBay100枚抜き"}
+  ]},
+
+ {w:"W1", range:"6/29-7/5", goal:"シ重（BUILD12診断）／eBay候補40枚",
+  days:[
+   {iso:"2026-06-29", d:"6/29", dow:"月", tasks:[
+     {p:"シ",  w:"main",  t:"CodexにBUILD12「OCR失敗原因の見える化」を依頼開始（枠内画像／補正後／二値化／Vision全候補／辞書照合候補を表示・保存）"},
+     {p:"eBay",w:"light", t:"$30利益候補を探す箱・棚を1か所決め、最初の100枚をそこに集める"},
+     {p:"学校",w:"light", t:"サイト トップ一撃の文面下書き「全日制が無理でも“ちゃんとした高校卒業”はあきらめなくていい」＋鹿島普通科卒／単位引き継ぎ／来なくても届く"}
+   ]},
+   {iso:"2026-06-30", d:"6/30", dow:"火", tasks:[
+     {p:"eBay",w:"main",  t:"100枚を目視で抜き、通し番号を付ける（時間があればスマホで表裏ざっくり撮影）"},
+     {p:"シ",  w:"light", t:"BUILD12の続き（Codex出力を実機に反映し、診断が表示できるか確認）"},
+     {p:"学校",w:"light", t:"「3つの不安に答える」3ブロック文面の下書き（鹿島普通科卒／単位を無駄にしない／毎日通えなくても届く）"}
+   ]},
+   {iso:"2026-07-01", d:"7/1", dow:"水", tasks:[
+     {p:"学校",w:"main",  t:"kg-yachiyo.com のCTAを「見学・個別相談」に統一する案を作る（☎080-3737-1382／メール／フォーム。050は出さない、LINEは載せない）"},
+     {p:"シ",  w:"light", t:"撮った誤認識サンプルを診断画面に通し、どこで落ちているか1〜2例分類"},
+     {p:"eBay",w:"light", t:"型番・レーベル・年が読める盤を優先してメモ（撮影の続き）"}
+   ]},
+   {iso:"2026-07-02", d:"7/2", dow:"木", tasks:[
+     {p:"シ",  w:"main",  t:"普通の濃い文字で10例テスト→失敗を「撮影／補正／Vision／辞書照合／辞書未登録」に分類"},
+     {p:"eBay",w:"light", t:"Discogsで上位の数枚を確認（Have/Want・相場）"},
+     {p:"学校",w:"light", t:"説明会日を1〜2日、転入・中3相談期に合わせて仮設定"}
+   ]},
+   {iso:"2026-07-03", d:"7/3", dow:"金", tasks:[
+     {p:"eBay",w:"main",  t:"Discogsで上位30〜40枚を確認し、$30利益候補を選び始める（7インチは$40-45+、LPは$45-55+目安）"},
+     {p:"シ",  w:"light", t:"残り10例テスト（薄い文字／縦書き／ロゴ）→20例を集計"},
+     {p:"学校",w:"light", t:"無料相談が不発だった原因の切り分け材料を集める（サイト到達数・問い合わせ経路）"}
+   ]},
+   {iso:"2026-07-04", d:"7/4", dow:"土", tasks:[
+     {p:"シ",  w:"main",  t:"20例から「一発読み取り／候補選択型」を判断。BUILD12.5で普通の文字の誤認識を減らす初回改善に着手"},
+     {p:"eBay",w:"light", t:"$30候補をリスト化（目標40枚へ。足りなければ箱を追加）"},
+     {p:"学校",w:"light", t:"サイト文面下書き（トップ一撃＋3ブロック＋CTA）を1ページにまとめる"}
+   ]},
+   {iso:"2026-07-05", d:"7/5", dow:"日", review:"週レビュー：シ＝判断は出たか／eBay＝候補40枚・1点出品／学校＝サイト文面。来週＝eBay20点出品が山"}
+  ]},
+
+ {w:"W2", range:"7/6-12", goal:"7/10までの旧計画を保存／7/11からヤフオク第2セット・シBUILD22・学校棚卸し",
+  days:[
+   {iso:"2026-07-06", d:"7/6", dow:"月", tasks:[
+     {p:"eBay",w:"main",  t:"単品候補から20点を選び、各盤を簡単にグレーディング"},
+     {p:"シ",  w:"light", t:"BUILD12.5の精度改善の続き（補正パターン／辞書照合スコア）"},
+     {p:"学校",w:"light", t:"紹介者向け1枚の下書き開始「転入・編入・中3進路で、高卒資格まで伴走するサポート校」"}
+   ]},
+   {iso:"2026-07-07", d:"7/7", dow:"火", tasks:[
+     {p:"eBay",w:"main",  t:"撮り直しが要る盤だけ丁寧に撮影＋出品タイトル作成"},
+     {p:"シ",  w:"light", t:"結果画面・失敗画面の文言を1つ整える"},
+     {p:"学校",w:"light", t:"紹介者1枚＋メール文面の下書きを進める"}
+   ]},
+   {iso:"2026-07-08", d:"7/8", dow:"水", tasks:[
+     {p:"eBay",w:"main",  t:"英語説明文テンプレを作る＋価格を「強気固定＋Best Offer」で決め、最低受け入れ価格をメモ"},
+     {p:"シ",  w:"light", t:"BUILD12.5を実機で触り、改善が効いたか確認"},
+     {p:"学校",w:"light", t:"紹介者リストの具体名を挙げ始める（中学進路指導・教育支援センター・全日制中退窓口・塾）"}
+   ]},
+   {iso:"2026-07-09", d:"7/9", dow:"木", tasks:[
+     {p:"eBay",w:"main",  t:"20点を出品する（まず10点でも可、止めない）"},
+     {p:"シ",  w:"light", t:"候補選択UIの検討（Vision候補／辞書候補を選べる導線のラフ）"},
+     {p:"学校",w:"light", t:"GBPの現状確認・整え始め「八千代台 通信制高校 転入」で出るように"}
+   ]},
+   {iso:"2026-07-10", d:"7/10", dow:"金", tasks:[
+     {p:"eBay",w:"main",  t:"残りを出品して20点を満たす＋ロット候補を1件だけ試作"},
+     {p:"シ",  w:"light", t:"カメラ許可／拒否・辞書未読込・読みなしのエラー導線を確認"},
+     {p:"学校",w:"light", t:"南十字舎チラシ（浅い一撃版）の表現を1ブロック書き直す（軸＝ここなら通える、学研は名前だけ）"}
+   ]},
+   {iso:"2026-07-11", d:"7/11", dow:"土", tasks:[
+     {p:"eBay",w:"main",  t:"第2セット用の100枚を選び始める（第1セットは出品済み）"},
+     {p:"シ",w:"light", t:"BUILD22の現在地を基準に、実機で誤表示しやすい語を10例だけ確認"},
+     {p:"学校",w:"light", t:"紹介者向け1枚・メール・GBP・サイトのうち、済んだもの／未着手を棚卸し"}
+   ]},
+   {iso:"2026-07-12", d:"7/12", dow:"日", review:"週レビュー：ヤフオク＝第1セット出品済み・第2セットの選別数／シ＝BUILD22実機結果／学校＝現在地。来週＝第2セット出品"}
+  ]},
+
+ {w:"W3", range:"7/13-19", goal:"ヤフオク重（第1・2セット＝200枚）／シ BUILD22精度判定／学校 現在地確定",
+  days:[
+   {iso:"2026-07-13", d:"7/13", dow:"月", tasks:[
+     {p:"eBay",w:"main",  t:"第2セットの100枚を確定し、ジャンル・目玉盤・状態をメモ"},
+     {p:"シ",  w:"light", t:"BUILD22を実機10例で確認し、直す誤表示を3件以内に絞る"},
+     {p:"学校",w:"light", t:"紹介者1枚・メール・サイト・GBP・Instagramの進捗を○△×で棚卸し"}
+   ]},
+   {iso:"2026-07-14", d:"7/14", dow:"火", tasks:[
+     {p:"eBay",w:"main",  t:"第2セットを並べ、全体写真・目玉盤・状態写真を撮る"},
+     {p:"シ",  w:"light", t:"実機で出た誤表示だけ修正し、回帰確認"},
+     {p:"学校",w:"light", t:"未完の最優先を紹介者向け1枚＋メールに決め、清書を進める"}
+   ]},
+   {iso:"2026-07-15", d:"7/15", dow:"水", tasks:[
+     {p:"eBay",w:"main",  t:"第2セットの商品名・説明・開始価格・送料・発送条件を作る"},
+     {p:"シ",  w:"light", t:"BUILD番号・診断表示など開発者向け表示を公開版で隠す"},
+     {p:"学校",w:"light", t:"紹介者候補をまず10件まで具体名で埋める"}
+   ]},
+   {iso:"2026-07-16", d:"7/16", dow:"木", tasks:[
+     {p:"eBay",w:"main",  t:"第2セットをプレビューまで作り、内容を最終確認"},
+     {p:"シ",  w:"light", t:"外装前のMVP判定：普通に使える／条件付き／要修正を決める"},
+     {p:"学校",w:"light", t:"サイトCTAを見学・通学体験・転入編入説明へ差し替える文面を確定"}
+   ]},
+   {iso:"2026-07-17", d:"7/17", dow:"金", tasks:[
+     {p:"eBay",w:"main",  t:"第2セットを出品し、終了日時と管理番号を記録"},
+     {p:"シ",  w:"light", t:"娘のイラスト素材の有無を確認し、外装に使う場所を決める"},
+     {p:"学校",w:"light", t:"紹介者向け1枚＋メール文面を送付できる初版にする"}
+   ]},
+   {iso:"2026-07-18", d:"7/18", dow:"土", tasks:[
+     {p:"eBay",w:"main",  t:"第1セットの入札・閲覧を確認し、第2セット出品まで含め累計200枚を確認"},
+     {p:"シ",  w:"light", t:"次週の外装作業をアイコン・起動画面・Aboutの3点に限定"},
+     {p:"学校",w:"light", t:"紹介者10件へ資料＋メールの第一便を送る。送付先と送付日を記録"}
+   ]},
+   {iso:"2026-07-19", d:"7/19", dow:"日", review:"週レビュー：ヤフオク＝2セット200枚出品／シ＝MVP判定／学校＝1枚・メール・10件。来週＝ヤフオク第3・4セット＋シ外装"}
+  ]},
+
+ {w:"W4", range:"7/20-26", goal:"シ重（外装）／ヤフオク第3・4セット＝累計400枚／学校 サイト・GBP",
+  days:[
+   {iso:"2026-07-20", d:"7/20", dow:"月", tasks:[
+     {p:"シ",  w:"main",  t:"娘のイラストを取り込み、アプリアイコンを決定（BUILD14の外装着手）"},
+     {p:"eBay",w:"light", t:"第3セット100枚を選別・確定"},
+     {p:"学校",w:"light", t:"Instagram 固定投稿①「KG八千代台とは」を書く"}
+   ]},
+   {iso:"2026-07-21", d:"7/21", dow:"火", tasks:[
+     {p:"シ",  w:"main",  t:"起動画面・About・結果画面にイラストを配置"},
+     {p:"eBay",w:"light", t:"第3セットを撮影し、説明・価格を作る"},
+     {p:"学校",w:"light", t:"Instagram 固定投稿②「南十字舎とは」を書く"}
+   ]},
+   {iso:"2026-07-22", d:"7/22", dow:"水", tasks:[
+     {p:"シ",  w:"main",  t:"App Store説明文を「実用＋世界観」で更新"},
+     {p:"eBay",w:"light", t:"第3セットを出品（累計300枚）"},
+     {p:"学校",w:"light", t:"Instagram 固定投稿③「代表について」を書く（社会福祉士・牧師＝安心材料、POPは主役にしすぎない）"}
+   ]},
+   {iso:"2026-07-23", d:"7/23", dow:"木", tasks:[
+     {p:"シ",  w:"main",  t:"App Storeスクリーンショットを実機で撮り、構成どおり並べる"},
+     {p:"eBay",w:"light", t:"第4セット100枚を選別・確定"},
+     {p:"学校",w:"light", t:"サイトのトップ一撃・3ブロック・CTAを実際に差し替える（kg-yachiyo.com）"}
+   ]},
+   {iso:"2026-07-24", d:"7/24", dow:"金", tasks:[
+     {p:"シ",  w:"main",  t:"サポートページとプライバシーポリシーの公開場所を用意＋辞書ライセンス表記を最終確認"},
+     {p:"eBay",w:"light", t:"第4セットを撮影し、説明・価格を作る"},
+     {p:"学校",w:"light", t:"サイト差し替えの続き（説明会日程・古い情報の削除）"}
+   ]},
+   {iso:"2026-07-25", d:"7/25", dow:"土", tasks:[
+     {p:"シ",  w:"main",  t:"BUILD14（見た目込みリリース候補）を通しで確認＋App Store素材一式の初版をそろえる"},
+     {p:"eBay",w:"light", t:"第4セットを出品（累計400枚）。高価盤を混ぜていないか最終確認"},
+     {p:"学校",w:"light", t:"Instagram プロフィール＋固定投稿3本を公開"}
+   ]},
+   {iso:"2026-07-26", d:"7/26", dow:"日", review:"週レビュー：シ＝外装初版／ヤフオク＝4セット400枚／学校＝サイト・GBP。来週＝シ提出準備＋第5・6セット"}
+  ]},
+
+ {w:"W5", range:"7/27-8/2", goal:"ヤフオク＝第2・3セットを出す／学校＝9月発送の材料そろえ（夏休み中は送らない）／シ＝外装とスクショ",
+  days:[
+   {iso:"2026-07-27", d:"7/27", dow:"月", tasks:[
+     {p:"学校",w:"light", t:"9月に送る一式の材料をそろえ始める。7/10調査の送付先リスト10件と、紹介者向け1枚（7/7草案）を開いて現状を確認する"},
+     {p:"シ",  w:"light", t:"BUILD22を実機で10例テスト（普通の濃さの文字）。「このまま出せる／もう一段直す」を1行で記録する"},
+     {p:"eBay",w:"main",  t:"第2セット（選別済み100枚）を撮影する。全体・目玉盤・状態の3種"}
+   ]},
+   {iso:"2026-07-28", d:"7/28", dow:"火", tasks:[
+     {p:"学校",w:"light", t:"kg-yachiyo.com の古い情報を直す。CTA・連絡先・日程の3点だけ（全面改修はしない。送った先が検索したときの受け皿）"},
+     {p:"eBay",w:"main",  t:"第2セットの商品名・説明・1円開始・送料条件を作る"},
+     {p:"シ",  w:"light", t:"アプリアイコンを決める（娘のイラスト。1024pxで書き出せる形に）"}
+   ]},
+   {iso:"2026-07-29", d:"7/29", dow:"水", tasks:[
+     {p:"eBay",w:"main",  t:"第2セットを出品する（8/5終了）。管理番号と終了日を記録"},
+     {p:"学校",w:"light", t:"minamijuji.com の古いCanva導線（無料モニター募集・2023イベント告知）を外すか差し替える"},
+     {p:"シ",  w:"light", t:"起動画面・Aboutにイラストを配置し、実機で見た目を確認する"}
+   ]},
+   {iso:"2026-07-30", d:"7/30", dow:"木", tasks:[
+     {p:"シ",  w:"main",  t:"App Storeスクリーンショットを実機で撮る。核は2枚＝「文字を撮る」「読み仮名が出る」。残りは補足"},
+     {p:"eBay",w:"light", t:"第3セット（選別済み100枚）を撮影する"},
+     {p:"学校",w:"light", t:"9月の説明会日を1〜2日決める（転入・中3進路相談の時期に合わせる）"}
+   ]},
+   {iso:"2026-07-31", d:"7/31", dow:"金", tasks:[
+     {p:"シ",  w:"main",  t:"App Store説明文・キーワード・カテゴリ・年齢区分を書いて、テキストで保存しておく（App Store Connectへの入力は帰国後）"},
+     {p:"eBay",w:"light", t:"第3セットの商品名・説明・価格・送料条件を作る"},
+     {p:"学校",w:"light", t:"制度解説「出席認定」の材料を集め始める。文科省・千葉県・鹿島学園の出典に当たる"}
+   ]},
+   {iso:"2026-08-01", d:"8/1", dow:"土", tasks:[
+     {p:"eBay",w:"main",  t:"第3セットを出品する（8/8終了）"},
+     {p:"学校",w:"light", t:"問い合わせの受け口を決める（誰が日中出るか／「どこで知りましたか」を必ず聞く）"},
+     {p:"シ",  w:"light", t:"プライバシーポリシーとサポートページの文面を作る（公開場所は帰国後でよい）"}
+   ]},
+   {iso:"2026-08-02", d:"8/2", dow:"日", review:"週レビュー：学校＝10件＋高校分を送れたか／ヤフオク＝第2・3セットを出せたか・入札は動いているか／シ＝外装とスクショまで来たか。来週＝たより1号を書き切る"}
+  ]},
+
+ {w:"W6", range:"8/3-8/9", goal:"学校＝たより1号を書き切る（1本書けば5経路へ流れる）／ヤフオク＝第2セットの落札額で見込みを立て直す／シ＝提出素材を揃えて止める",
+  days:[
+   {iso:"2026-08-03", d:"8/3", dow:"月", tasks:[
+     {p:"学校",w:"main", t:"制度解説「出席認定」の材料を集める。文科省・千葉県・鹿島学園の出典に当たる（AIは下調べまで。数字は必ず出典で確認する）"},
+     {p:"eBay",w:"light", t:"第4セット100枚を選別・確定（3F=Cなど高価盤を混ぜない）"},
+     {p:"シ",  w:"light", t:"辞書ライセンス表記を最終確認する（提出時に申告が要る）"}
+   ]},
+   {iso:"2026-08-04", d:"8/4", dow:"火", tasks:[
+     {p:"学校",w:"light", t:"送付から1週間。反応の有無を台帳に記録する（ゼロならゼロと書く。測らないと次に何を変えるか決められない）"},
+     {p:"eBay",w:"main",  t:"第4セットを撮影する"},
+     {p:"シ",  w:"light", t:"実機で最終テスト（撮影／切り抜き／縦横／ズームが破綻しない）"}
+   ]},
+   {iso:"2026-08-05", d:"8/5", dow:"水", tasks:[
+     {p:"学校",w:"main", t:"制度解説「出席認定」を書き上げ、サイトに公開する。3つに効く＝検索資産／たよりの連載枠／チラシの芯"},
+     {p:"eBay",w:"light", t:"第4セットの説明・価格を作る。第2セットが今日終了＝落札額を記録"},
+     {p:"シ",  w:"light", t:"提出に必要な残り項目をチェックリスト化する（帰国後に$99を払えば即出せる状態に）"}
+   ]},
+   {iso:"2026-08-06", d:"8/6", dow:"木", tasks:[
+     {p:"eBay",w:"main",  t:"★見込みの立て直し：第2セットの落札額を第1（29,780円）と比べ、1セット平均を出し直す。12万円に届く見込みか判定し、届かないならカメラ予算を下げるかiPhoneで撮るかを今日決める。第4セットも出品（8/13終了）"},
+     {p:"学校",w:"light", t:"たより創刊号の型を決め、①今月の様子と②お知らせを書く（題字は「南十字舎だより」。KG高等学院八千代台キャンパスも大きく併記）"},
+     {p:"シ",  w:"light", t:"提出素材一式を1フォルダにまとめる"}
+   ]},
+   {iso:"2026-08-07", d:"8/7", dow:"金", tasks:[
+     {p:"学校",w:"main", t:"たより創刊号の③「代表から一言」を書く。いま自分がやっていること。悩みも書くが、学校の足元が揺れて見えることは書かない"},
+     {p:"eBay",w:"light", t:"第2セットの落札者へ対応し、決済確認から発送まで進める"},
+     {p:"シ",  w:"light", t:"開発記録に「提出直前で保留。帰国後に$99を払って提出する」と残す"}
+   ]},
+   {iso:"2026-08-08", d:"8/8", dow:"土", tasks:[
+     {p:"eBay",w:"main",  t:"第5セット100枚を選別・撮影する。第3セットが今日終了＝落札額を記録"},
+     {p:"学校",w:"light", t:"たより創刊号を通しで読み、A4片面に収める。制度解説のQRを入れる（記事を公開してから刷る）"},
+     {p:"シ",  w:"light", t:"残タスクを1行にまとめ、シランガナから手を離す"}
+   ]},
+   {iso:"2026-08-09", d:"8/9", dow:"日", review:"週レビュー：学校＝たより1号は書けたか・送付の反応は何件か／ヤフオク＝第2・3の落札額と平均／シ＝素材は揃ったか。来週＝8/13がヤフオク最終出品ライン"}
+  ]},
+
+ {w:"W7", range:"8/10-8/16", goal:"8/13までにヤフオクを出し切る週／学校＝反応を確定して9月の初動を決める／シ＝帰国後の段取りだけ残す",
+  days:[
+   {iso:"2026-08-10", d:"8/10", dow:"月", tasks:[
+     {p:"eBay",w:"light",  t:"第5セットの説明・価格を作り、出品する（8/17終了）。第3セットの決済・発送を進める"},
+     {p:"学校",w:"main", t:"南十字舎チラシの文面を書き始める。芯は「出席認定」。6/24の浅い一撃版草案を開いて直す（ゼロから書かない）"},
+     {p:"シ",  w:"light", t:"UIで気になっている点を1つだけ直す（増やさない）"}
+   ]},
+   {iso:"2026-08-11", d:"8/11", dow:"火", tasks:[
+     {p:"学校",w:"light", t:"送付から2週間。反応件数を台帳で確定する。反応があれば返す"},
+     {p:"eBay",w:"main",  t:"第6セット100枚を選別・撮影する（12万円に届いていれば、ここで止めてもよい）"},
+     {p:"シ",  w:"light", t:"アプリ紹介ページか短いデモ動画の構成をラフにする（帰国後の公開用）"}
+   ]},
+   {iso:"2026-08-12", d:"8/12", dow:"水", tasks:[
+     {p:"eBay",w:"light",  t:"第6セットの説明・価格を作る。第3・4セットの発送を済ませる"},
+     {p:"学校",w:"main", t:"チラシ文面を仕上げる。3F→2Fの修正を忘れない（2024年に移行済み）"},
+     {p:"シ",  w:"light", t:"素材フォルダの場所を開発記録に書いておく"}
+   ]},
+   {iso:"2026-08-13", d:"8/13", dow:"木", tasks:[
+     {p:"eBay",w:"main",  t:"★最終出品ライン：第6セットを出品する（8/20終了＝渡航前に落札が終わる最後の日）。これ以降は出品しない。残った盤は帰国後へ"},
+     {p:"学校",w:"light", t:"9月のベースラインを記録（送付件数・反応件数・在籍12世帯）"},
+     {p:"シ",  w:"light", t:"帰国後の提出手順を3行で書く（$99を払う→ASC登録→素材を入れる）"}
+   ]},
+   {iso:"2026-08-14", d:"8/14", dow:"金", tasks:[
+     {p:"学校",w:"main", t:"たより＋チラシ＋紹介1枚を封筒に詰め、宛名を貼り、封を閉じる。投函だけ残す（9/1前後）"},
+     {p:"eBay",w:"light", t:"第4セットの落札・決済を確認し、発送する"},
+     {p:"シ",  w:"light", t:"渡航中は触らないと決めて閉じる"}
+   ]},
+   {iso:"2026-08-15", d:"8/15", dow:"土", tasks:[
+     {p:"eBay",w:"main",  t:"ここまでの入金済み総額を確定する（落札額−システム利用料10%−送料）。カメラ購入可能額を計算し、不足なら機種か予算を下げる案を1つ用意する"},
+     {p:"学校",w:"light", t:"封入した分の宛先と部数を控える。9/1に投函する段取りだけ決めておく"},
+     {p:"シ",  w:"light", t:"開発記録を最終更新する"}
+   ]},
+   {iso:"2026-08-16", d:"8/16", dow:"日", review:"週レビュー：ヤフオク＝8/13までに出し切ったか・入金いくらか／学校＝反応件数と9月の初動／シ＝帰国後の手順は残せたか。残り4日＝カメラ判断（8/18）・発送・渡航前の引き渡し"}
+  ]},
+
+ {w:"W8", range:"8/17-8/20", goal:"渡航前に手を離す。三本とも「自分がいなくても進む状態」にして締める",
+  days:[
+   {iso:"2026-08-17", d:"8/17", dow:"月", tasks:[
+     {p:"eBay",w:"main",  t:"第5セットが今日終了。落札額を確認し、決済・発送へ進める。未発送の分を全部書き出す（渡航中は発送できない）"},
+     {p:"学校",w:"light", t:"反応の最終確認。9月の初動（誰にいつ返すか）を確定する"},
+     {p:"シ",  w:"light", t:"帰国後の段取りを一度読み返して、抜けがないか見る"}
+   ]},
+   {iso:"2026-08-18", d:"8/18", dow:"火", tasks:[
+     {p:"eBay",w:"main",  t:"★カメラ判断日：第1〜第5の落札確定額で、買うか・予算を下げるか・iPhoneで撮るかを決める（第6セットは8/20終了で入金が間に合わないため計算に入れない）。購入は本人が実行"},
+     {p:"学校",w:"light", t:"8月分の記録を締める（送付件数・反応件数・在籍）"},
+     {p:"シ",  w:"light", t:"素材フォルダとパスワードの在り処を確認しておく"}
+   ]},
+   {iso:"2026-08-19", d:"8/19", dow:"水", tasks:[
+     {p:"eBay",w:"main",  t:"落札分の梱包・発送を進める。第6セット（8/20終了）の落札者には、発送が8/21-22になる旨を伝えられる準備をしておく"},
+     {p:"学校",w:"light", t:"渡航中の留守対応を、掲示か自動返信に入れる"},
+     {p:"シ",  w:"light", t:"提出待ちの状態であることを記録して閉じる"}
+   ]},
+   {iso:"2026-08-20", d:"8/20", dow:"木", tasks:[
+     {p:"学校",w:"main",  t:"締めレビュー：①ヤフオク＝入金総額とカメラの結果 ②シランガナ＝素材と帰国後の手順 ③学校＝送付件数・反応件数・たより1号。各3行で記録し、渡航（8/23-29）へ引き継ぐ"},
+     {p:"eBay",w:"light", t:"第6セットの落札を確認し、未発送分の発送を8/21-22で確定させる。ヤフオクはここで締め、残在庫は帰国後へ"},
+     {p:"シ",  w:"light", t:"渡航中は触らない。帰国後に$99を払って提出する、とだけ確認して終える"}
+   ]}
+  ]}
+];
+
+// ---- flat days + ids ----
+const flat=[]; // {wi,di,ref}
+PLAN.forEach((wk,wi)=>wk.days.forEach((day,di)=>flat.push({wi,di,ref:day})));
+function tid(wi,di,ti){return wi+"-"+di+"-"+ti;}
+
+const KEY="himekuri-todo-v1";
+const LASTKEY="himekuri-last-saved-v1";
+function readJson(key,fallback){
+  try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}
+  catch(e){return fallback;}
+}
+let state = readJson(KEY,{});
+function markSaved(){
+  localStorage.setItem(LASTKEY,new Date().toISOString());
+  updateSaveStatus();
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));markSaved();}
+function isDone(id){return state[id]===1;}
+function isSkip(id){return state[id]==="s";}
+function toggle(id){ if(state[id]===1) delete state[id]; else state[id]=1; save(); render(); }
+
+// ---- 自分で追加するTODO（毎日・曜日・日付） ----
+const CKEY="himekuri-custom-v1";
+let customDefs=readJson(CKEY,[]);
+function saveCustom(){localStorage.setItem(CKEY,JSON.stringify(customDefs));markSaved();}
+const DOW=["日","月","火","水","木","金","土"];
+let recType="daily", pendDays=[], recDate="", pendGenre="日常業務", pendTime="";
+const GENRES={"今日やる":"#ef4444","日常業務":"#0ea5e9","私用":"#22c55e","その他":"#8b5cf6"};
+function normalizeGenre(g){return g==="緊急"?"今日やる":g;}
+let migratedGenres=false;
+customDefs=customDefs.map(def=>{
+  if(def.g==="緊急"){migratedGenres=true;return {...def,g:"今日やる"};}
+  return def;
+});
+if(migratedGenres)saveCustom();
+function gcol(g){return GENRES[normalizeGenre(g)]||GENRES["その他"];}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function attr(s){return esc(s).replace(/"/g,"&quot;");}
+function copyBtn(text){return '<button class="taskCopy" type="button" title="このタスクをコピー" data-copy="'+attr(text)+'" onclick="copyTaskFromButton(event)">コピー</button>';}
+function editDeleteBtns(id){
+  return '<button class="taskCopy taskEdit" type="button" title="この追加TODOを修正" onclick="editDef(event,\''+id+'\')">修正</button>'+
+    '<button class="taskCopy taskDelete" type="button" title="この追加TODOを削除" onclick="deleteDef(event,\''+id+'\')">削除</button>';
+}
+function deferBtn(def){
+  if(!def||!def.rec||def.rec.type!=="once")return ""; // 単発の予定だけ先送りできる
+  return '<button class="taskCopy taskDefer" type="button" title="明日へ先送り" onclick="deferDef(event,\''+def.id+'\')">先送り</button>';
+}
+function copyText(text,done){
+  const ok=()=>{if(done)done();};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok).catch(()=>{const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();ok();});}
+  else{const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();ok();}
+}
+function copyTaskFromButton(e){
+  e.stopPropagation();
+  const b=e.currentTarget,txt=b.getAttribute("data-copy")||"";
+  copyText(txt,()=>{const old=b.textContent;b.textContent="済";b.classList.add("copied");setTimeout(()=>{b.textContent=old;b.classList.remove("copied");},1100);});
+}
+function wdOf(iso){const p=iso.split("-").map(Number);return new Date(p[0],p[1]-1,p[2]).getDay();}
+function addDaysIso(baseIso,days){const p=baseIso.split("-").map(Number);const d=new Date(p[0],p[1]-1,p[2]+days);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function tomorrowIso(){return addDaysIso(todayIso(),1);}
+function nowMinutes(){const d=new Date();return d.getHours()*60+d.getMinutes();}
+function timeMinutes(t){if(!t)return null;const m=t.match(/^(\d{2}):([0-5]\d)$/);return m?Number(m[1])*60+Number(m[2]):null;}
+function isOnceEnded(def){
+  if(!def||!def.rec||def.rec.type!=="once")return false;
+  const ti=todayIso();
+  if(def.rec.date<ti)return true;
+  if(def.rec.date>ti)return false;
+  const tm=timeMinutes(def.time||"");
+  return tm!==null&&nowMinutes()>=tm;
+}
+function customSort(a,b){
+  const at=a.time||"",bt=b.time||"";
+  if(at&&bt&&at!==bt)return at<bt?-1:1;
+  if(at&&!bt)return -1;
+  if(!at&&bt)return 1;
+  return 0; // 時刻なし同士は登録順（新しいものほど下）を保つ
+}
+function customForDay(iso){const wd=wdOf(iso);return customDefs.filter(def=>{const r=def.rec;
+  if(r.type==="daily")return true; if(r.type==="weekly")return r.days.includes(wd); return r.date===iso&&!isOnceEnded(def);}).sort(customSort);}
+function recLabel(r){if(r.type==="daily")return "毎日";
+  if(r.type==="weekly")return "毎週 "+r.days.map(d=>DOW[d]).join("・");
+  return "📌 "+r.date.slice(5).replace("-","/");}
+function timeTag(def){return def.time?'<span class="timeTag">'+esc(def.time)+'</span>':'';}
+function taskTextWithTime(def){return (def.time?def.time+" ":"")+def.text;}
+function cid(def,iso){return "c|"+def.id+"|"+iso;}
+function customCount(iso){const cs=customForDay(iso);let d=0,t=0;cs.forEach(def=>{const id=cid(def,iso);if(isSkip(id))return;t++;if(isDone(id))d++;});return [d,t];}
+function customRow(def,iso){const id=cid(def,iso),done=isDone(id),skip=isSkip(id);const g=normalizeGenre(def.g||"その他"),c=gcol(g);
+  return '<div class="task'+(done?" done":"")+(skip?" skip":"")+'" onclick="toggle(\''+id+'\')">'+
+   '<div class="cb" style="'+(done?"background:"+c+";border-color:"+c:"")+'">'+CHK+'</div>'+
+   '<div class="tbody"><div class="meta"><span class="chip" style="background:'+c+'">'+g+'</span>'+
+   timeTag(def)+'<span class="w-light">'+recLabel(def.rec)+'</span>'+(skip?' <span class="skipTag">見送り</span>':'')+
+   copyBtn('['+g+'] '+recLabel(def.rec)+' '+taskTextWithTime(def))+deferBtn(def)+editDeleteBtns(def.id)+'</div>'+
+   '<div class="ttext">'+esc(def.text)+'</div></div></div>';}
+function customBlock(iso){const cs=customForDay(iso);if(!cs.length)return "";
+  return '<div class="cuHd">＋ 追加した予定・TODO</div>'+cs.map(def=>customRow(def,iso)).join("");}
+
+// ---- Google Calendar（Notion Calendarの予定元・ローカル片方向同期） ----
+const CAL_URL_KEY="himekuri-calendar-url-v1",CAL_DATA_KEY="himekuri-calendar-data-v1";
+let calendarUrl=localStorage.getItem(CAL_URL_KEY)||"",calendarData=readJson(CAL_DATA_KEY,[]).filter(e=>e&&e.date>=todayIso()),calendarSyncing=false;
+localStorage.setItem(CAL_DATA_KEY,JSON.stringify(calendarData));
+function calendarForDay(iso){return calendarData.filter(e=>e.date===iso).sort((a,b)=>(a.time||"").localeCompare(b.time||""));}
+function calendarBlock(iso){const es=calendarForDay(iso);if(!es.length)return "";
+  return '<section class="calBlock"><div class="calHd"><span>📅 Googleカレンダー予定</span><small>'+es.length+'件</small></div>'+es.map(e=>'<div class="calRow"><span class="calTime">'+esc(e.allDay?"終日":(e.time||"時刻なし"))+'</span><span class="calIcon">'+(e.allDay?'◆':'●')+'</span><span class="calText">'+esc(e.title||"予定")+'</span></div>').join("")+'</section>';}
+function saveCalendarUrl(){const el=document.getElementById("calendarUrl");calendarUrl=(el?el.value:calendarUrl).trim();localStorage.setItem(CAL_URL_KEY,calendarUrl);renderAddPanel();}
+function clearCalendarSync(){if(!confirm("同期したカレンダー予定だけを消します。三本立てや追加TODOは消えません。"))return;calendarData=[];localStorage.removeItem(CAL_DATA_KEY);render();}
+function syncCalendar(){
+  const el=document.getElementById("calendarUrl");calendarUrl=(el?el.value:calendarUrl).trim();
+  if(!calendarUrl){alert("Googleカレンダーの「非公開iCal URL」を入力してください");return;}
+  localStorage.setItem(CAL_URL_KEY,calendarUrl);calendarSyncing=true;renderAddPanel();
+  fetch("http://127.0.0.1:8769/calendar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:calendarUrl,start:todayIso(),end:"2026-08-16"})})
+    .then(r=>r.ok?r.json():r.json().then(x=>Promise.reject(new Error(x.error||"同期エラー"))))
+    .then(data=>{calendarSyncing=false;if(!data||!Array.isArray(data.events))throw new Error("応答形式を確認できません");calendarData=data.events;localStorage.setItem(CAL_DATA_KEY,JSON.stringify(calendarData));render();})
+    .catch(err=>{calendarSyncing=false;alert("同期できませんでした。\n"+err.message+"\nDockからアプリを開き直し、非公開iCal URLを確認してください。");renderAddPanel();});
+}
+function calendarSyncPanel(){const last=calendarData.length?calendarData.length+"件を保存中":"まだ同期していません";
+  return '<div class="calSync"><h3 style="margin:0 0 7px">📅 Notion Calendar同期</h3><p class="hint">Googleカレンダーから、今日以降の予定だけをMac内へ片方向同期します。昔から続く古い繰り返し予定は取り込みません。URLはこのブラウザ内だけに保存し、三本立て・日常業務・チェック状態は変更しません。</p><div class="calSyncRow"><input id="calendarUrl" type="password" placeholder="非公開iCal URL（https://calendar.google.com/calendar/ical/...）" value="'+esc(calendarUrl)+'"><button onclick="syncCalendar()" '+(calendarSyncing?'disabled':'')+'>'+(calendarSyncing?'同期中…':'今すぐ同期')+'</button><button class="secondary" onclick="saveCalendarUrl()">URL保存</button><button class="secondary" onclick="clearCalendarSync()">同期データ消去</button></div><p class="hint">'+last+'</p></div>';}
+// その日に直接タスクを足す（当日登録）
+function effectiveTodayIso(){return flat[todayIndex()].ref.iso;}
+function quickAddBox(iso,pfx){
+  const gopts=Object.keys(GENRES).map(g=>'<option value="'+g+'"'+(g==="日常業務"?" selected":"")+'>'+g+'</option>').join("");
+  return '<div class="qaWrap"><div class="qaLabel">この日の追加 <span>単発の予定・メモ。時刻は任意。</span></div>'+
+    '<div class="qa"><select id="'+pfx+'G">'+gopts+'</select>'+
+    '<input type="time" id="'+pfx+'T" step="1800" title="時刻（任意・30分刻み）">'+
+    '<input id="'+pfx+'In" placeholder="例：14:00面談、明日電話、買い物…" onkeydown="if(event.key===\'Enter\')quickAdd(\''+iso+'\',\''+pfx+'In\',\''+pfx+'G\',\''+pfx+'T\')">'+
+    '<button onclick="quickAdd(\''+iso+'\',\''+pfx+'In\',\''+pfx+'G\',\''+pfx+'T\')">この日へ</button>'+
+    '<button class="secondary" onclick="quickAdd(tomorrowIso(),\''+pfx+'In\',\''+pfx+'G\',\''+pfx+'T\')">明日へ</button></div></div>';
+}
+function quickAdd(iso,inId,gId,timeId){
+  const el=document.getElementById(inId);if(!el)return;const t=(el.value||"").trim();if(!t)return;
+  const gs=document.getElementById(gId),ts=document.getElementById(timeId);const g=gs?gs.value:"その他";
+  customDefs.push({id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),text:t,g:g,time:ts?ts.value:"",rec:{type:"once",date:iso}});
+  saveCustom();el.value="";render();
+}
+
+// ---- できなかったタスク（繰り越し / 見送り） ----
+function todayIso(){const t=new Date();return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");}
+function carryOver(){
+  const ti=todayIso(), out=[];
+  PLAN.forEach((wk,wi)=>wk.days.forEach((day,di)=>{
+    if(!day.tasks||day.iso>=ti)return;
+    day.tasks.forEach((tk,k)=>{const id=tid(wi,di,k);if(state[id])return;
+      out.push({id,iso:day.iso,date:day.d,col:PROJ[tk.p].varc,tag:PROJ[tk.p].name,text:tk.t,blk:isBlk(tk.p,tk.w)});});
+  }));
+  return out;
+}
+function weekStartIso(){const t=new Date();const off=(t.getDay()+6)%7;const m=new Date(t.getFullYear(),t.getMonth(),t.getDate()-off);
+  return m.getFullYear()+"-"+String(m.getMonth()+1).padStart(2,"0")+"-"+String(m.getDate()).padStart(2,"0");}
+function weeklyReset(){
+  const ws=weekStartIso(),old=carryOver().filter(o=>o.iso<ws&&!o.blk);if(!old.length)return;
+  if(!confirm("先週までの飛ばせるやり残し "+old.length+"件をまとめて見送ります。\n🔒の前提タスク（◎主役の順送り作業）は残します。"))return;
+  old.forEach(o=>state[o.id]="s");save();render();
+}
+function resolveCarry(id){state[id]=1;save();render();}
+function skipCarry(id){state[id]="s";save();render();}
+function restartFresh(){
+  const co=carryOver().filter(o=>!o.blk);if(!co.length)return;
+  if(!confirm("今日より前の飛ばせるやり残し "+co.length+"件をまとめて見送ります。\n🔒の前提タスク（◎主役の順送り作業）は残します。\nあとで「見送り中」一覧から戻せます。"))return;
+  co.forEach(o=>{state[o.id]="s";});save();render();
+}
+function skippedList(){
+  const out=[];
+  PLAN.forEach((wk,wi)=>wk.days.forEach((day,di)=>{if(!day.tasks)return;
+    day.tasks.forEach((tk,k)=>{const id=tid(wi,di,k);if(isSkip(id))out.push({id,date:day.d,col:PROJ[tk.p].varc,tag:PROJ[tk.p].name,text:tk.t});});}));
+  customDefs.forEach(def=>{Object.keys(state).forEach(kk=>{
+    if(state[kk]==="s"&&kk.indexOf("c|"+def.id+"|")===0){const iso=kk.split("|")[2],g=normalizeGenre(def.g||"その他");
+      out.push({id:kk,date:iso.slice(5).replace("-","/"),col:gcol(g),tag:g,text:taskTextWithTime(def)});}});});
+  return out;
+}
+function customDefById(id){return customDefs.find(d=>d.id===id);}
+function endedCustomList(){
+  const out=[],seen=new Set();
+  Object.keys(state).forEach(k=>{
+    if(state[k]!==1||k.indexOf("c|")!==0)return;
+    const parts=k.split("|");
+    const def=customDefById(parts[1]);if(!def)return;
+    const iso=parts[2]||todayIso(),g=normalizeGenre(def.g||"その他");
+    seen.add(k);
+    out.push({id:k,defId:def.id,iso,date:iso.slice(5).replace("-","/"),col:gcol(g),tag:g,text:taskTextWithTime(def),status:"完了",done:true});
+  });
+  customDefs.forEach(def=>{
+    if(!def.rec||def.rec.type!=="once"||!isOnceEnded(def))return;
+    const id=cid(def,def.rec.date);
+    if(state[id]===1||state[id]==="s"||seen.has(id))return;
+    const g=normalizeGenre(def.g||"その他");
+    out.push({id,defId:def.id,iso:def.rec.date,date:def.rec.date.slice(5).replace("-","/"),col:gcol(g),tag:g,text:taskTextWithTime(def),status:"終了",done:false});
+  });
+  return out.sort((a,b)=>{
+    const ak=a.iso+" "+(customDefById(a.defId)?.time||"99:99");
+    const bk=b.iso+" "+(customDefById(b.defId)?.time||"99:99");
+    return ak<bk?1:(ak>bk?-1:0);
+  });
+}
+function restoreSkip(id){delete state[id];save();render();}
+function restoreAllSkips(){if(!confirm("見送り中をすべて戻します。過ぎた日のものは繰り越しに再表示されます。"))return;skippedList().forEach(o=>delete state[o.id]);save();render();}
+function daysLeft(){const a=new Date(todayIso()),b=new Date("2026-08-20");return Math.max(0,Math.round((b-a)/86400000));}
+function blockerProjection(blk){
+  const byP={};blk.forEach(o=>{byP[o.tag]=(byP[o.tag]||0)+1;});
+  const B=blk.length,M=daysLeft(),fit=B<=M;
+  let h='<div class="rebox"><div class="rebt">🔁 前提タスクの仕切り直し（見通し）</div>'+
+    '<div class="rerow">遅れている前提 <b>'+B+'件</b>（シ '+(byP["シランガナ"]||0)+' / 学校 '+(byP["学校事業"]||0)+' / ヤフオク '+(byP["eBay"]||0)+'）　｜　8/20まで <b>'+M+'日</b></div>';
+  if(fit) h+='<div class="refit ok">今日から1日1件ずつでも間に合う見通し。下の「次の1件」だけに集中。</div>';
+  else h+='<div class="refit ng">このままだと約'+(B-M)+'件あふれる。消すのではなく仕切り直しの判断を ──<br>① 締切（8/20）を延ばす　※ただし8/23渡航が壁　② 後半の段階を削って軽い完成に<br><small>削る例：シ＝提出をTestFlight公開で一区切り／ヤフオク＝12万円に届いた時点で出品を止める／学校＝第一便10件だけに絞る</small></div>';
+  return h+'</div>';
+}
+function renderCarry(){
+  const co=carryOver(),el=document.getElementById("carry");if(!el)return;
+  if(!co.length){el.innerHTML="";return;}
+  const blk=co.filter(o=>o.blk),flush=co.filter(o=>!o.blk);
+  // 前提タスクは「各列の次の1件」だけに畳む（順番なので、それ以外は今やれない）
+  const order=["シランガナ","学校事業","eBay"],byList={};
+  blk.forEach(o=>{(byList[o.tag]=byList[o.tag]||[]).push(o);});
+  let frontHtml="";
+  order.forEach(pn=>{const list=(byList[pn]||[]).sort((a,b)=>a.iso<b.iso?-1:1);if(!list.length)return;
+    const f=list[0],behind=list.length-1;
+    frontHtml+='<div class="coRow"><span class="chip" style="background:'+f.col+';flex:none">🔒 '+pn+'</span>'+
+      '<span class="coDate">'+f.date+'</span><span class="coText">'+esc(f.text)+(behind?' <small style="color:var(--muted)">（この後あと'+behind+'件）</small>':'')+'</span>'+
+      copyBtn('[繰り越し] [🔒 '+pn+'] '+f.date+' '+f.text)+
+      '<button class="coDo" onclick="resolveCarry(\''+f.id+'\')">やった</button></div>';});
+  const ws=weekStartIso(),oldN=flush.filter(o=>o.iso<ws).length;
+  const weeklyBtn=oldN?'<button class="coRestart" onclick="weeklyReset()">🔄 週の仕切り直し（先週まで '+oldN+'件をまとめて見送り）</button>':'';
+  const allBtn=flush.length?'<button class="coRestartSub" onclick="restartFresh()">今日より前の飛ばせる分を全部見送り（'+flush.length+'件）</button>':'';
+  const flushHtml=flush.length?'<p class="coHint">↓ 飛ばせるやり残し（やった／見送る）。毎日・曜日の習慣は繰り越しません。</p>'+
+    flush.map(o=>'<div class="coRow"><span class="chip" style="background:'+o.col+';flex:none">'+o.tag+'</span>'+
+      '<span class="coDate">'+o.date+'</span><span class="coText">'+esc(o.text)+'</span>'+
+      copyBtn('[繰り越し] ['+o.tag+'] '+o.date+' '+o.text)+
+      '<button class="coDo" onclick="resolveCarry(\''+o.id+'\')">やった</button>'+
+      '<button class="coSkip" onclick="skipCarry(\''+o.id+'\')">見送る</button></div>').join("")+
+    '<div class="coFoot">'+weeklyBtn+allBtn+'</div>':'';
+  el.innerHTML='<details class="coBox" open><summary>⚠ 繰り越し（未完 '+co.length+'）</summary>'+
+    (blk.length?blockerProjection(blk)+'<p class="coHint">🔒 前提タスクは見送れません。各列の「次の1件」だけ出します（やると次が出ます）。</p>'+frontHtml:'')+
+    flushHtml+
+    '</details>';
+}
+
+function setRecType(t){recType=t;renderAddPanel();}
+function toggleDay(d){const i=pendDays.indexOf(d);if(i>=0)pendDays.splice(i,1);else pendDays.push(d);renderAddPanel();}
+function addCustom(){
+  const ta=document.getElementById("cIn");
+  const lines=ta.value.split("\n").map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){alert("TODOを1行以上入力してください");return;}
+  const timeEl=document.getElementById("cTime");
+  const addTime=timeEl?timeEl.value:"";
+  let rec;
+  if(recType==="daily")rec={type:"daily"};
+  else if(recType==="today")rec={type:"once",date:effectiveTodayIso()};
+  else if(recType==="tomorrow")rec={type:"once",date:tomorrowIso()};
+  else if(recType==="weekly"){if(!pendDays.length){alert("曜日を1つ以上選んでください");return;}rec={type:"weekly",days:[...pendDays].sort((a,b)=>a-b)};}
+  else{if(!recDate){alert("日付を選んでください");return;}rec={type:"once",date:recDate};}
+  lines.forEach((t,i)=>customDefs.push({id:"c"+Date.now().toString(36)+i+Math.random().toString(36).slice(2,5),text:t,g:pendGenre,time:addTime,rec:JSON.parse(JSON.stringify(rec))}));
+  saveCustom();ta.value="";renderAddPanel();renderProgress();
+}
+function normalizeTimeInput(value){
+  const v=(value||"").trim();
+  if(!v)return "";
+  const m=v.match(/^(\d{1,2}):([0-5]\d)$/);
+  if(!m)return null;
+  const h=Number(m[1]);
+  if(h<0||h>23)return null;
+  if(Number(m[2])%30!==0)return null;
+  return String(h).padStart(2,"0")+":"+m[2];
+}
+function isIsoDate(value){
+  return /^\d{4}-\d{2}-\d{2}$/.test(value||"");
+}
+function parseGenreInput(value,current){
+  const v=normalizeGenre((value||"").trim());
+  if(!v)return current;
+  const keys=Object.keys(GENRES);
+  const n=Number(v);
+  if(Number.isInteger(n)&&n>=1&&n<=keys.length)return keys[n-1];
+  return GENRES[v]?v:null;
+}
+function recEditKind(r){
+  if(!r)return "日付指定";
+  if(r.type==="daily")return "毎日";
+  if(r.type==="weekly")return "曜日指定";
+  if(r.type==="once"){
+    if(r.date===effectiveTodayIso())return "今日だけ";
+    if(r.date===tomorrowIso())return "明日だけ";
+    return "日付指定";
+  }
+  return "日付指定";
+}
+function parseRecKind(value,current){
+  const v=(value||"").trim().toLowerCase();
+  if(!v)return current;
+  if(["1","今日","今日だけ","today"].includes(v))return "今日だけ";
+  if(["2","明日","明日だけ","tomorrow"].includes(v))return "明日だけ";
+  if(["3","日付","日付指定","date","once"].includes(v))return "日付指定";
+  if(["4","毎日","daily"].includes(v))return "毎日";
+  if(["5","曜日","曜日指定","weekly","week"].includes(v))return "曜日指定";
+  return null;
+}
+function weekdayLabel(days){
+  return (days&&days.length?days:[]).map(d=>DOW[d]).join("");
+}
+function parseWeekdays(value,currentDays){
+  const v=(value||"").trim();
+  if(!v)return currentDays&&currentDays.length?[...currentDays]:[];
+  const found=[];
+  for(const ch of v){
+    const idx=DOW.indexOf(ch);
+    if(idx>=0&&!found.includes(idx))found.push(idx);
+  }
+  if(!found.length){
+    v.split(/[,\s、，]+/).forEach(part=>{
+      if(part==="")return;
+      const n=Number(part);
+      if(Number.isInteger(n)&&n>=0&&n<=6&&!found.includes(n))found.push(n);
+    });
+  }
+  return found.sort((a,b)=>a-b);
+}
+function editDef(arg,idMaybe){
+  const id=idMaybe||arg;
+  if(arg&&arg.stopPropagation)arg.stopPropagation();
+  const def=customDefs.find(d=>d.id===id);
+  if(!def)return;
+  const text=prompt("内容を修正",def.text||"");
+  if(text===null)return;
+  const clean=text.trim();
+  if(!clean){alert("内容を空にはできません。");return;}
+  const currentGenre=normalizeGenre(def.g||"その他");
+  const genre=prompt("ジャンルを修正\n1 今日やる / 2 日常業務 / 3 私用 / 4 その他",currentGenre);
+  if(genre===null)return;
+  const cleanGenre=parseGenreInput(genre,currentGenre);
+  if(!cleanGenre){alert("ジャンルは 今日やる / 日常業務 / 私用 / その他 から選んでください。番号も使えます。");return;}
+  const time=prompt("時刻を修正（例 09:30。空欄なら時刻なし。30分刻み）",def.time||"");
+  if(time===null)return;
+  const cleanTime=normalizeTimeInput(time);
+  if(cleanTime===null){alert("時刻は 09:00 / 09:30 の形で入力してください。空欄も使えます。");return;}
+  const currentKind=recEditKind(def.rec);
+  const kindText=prompt("出し方を修正\n1 今日だけ / 2 明日だけ / 3 日付指定 / 4 毎日 / 5 曜日指定",currentKind);
+  if(kindText===null)return;
+  const nextKind=parseRecKind(kindText,currentKind);
+  if(!nextKind){alert("出し方は 今日だけ / 明日だけ / 日付指定 / 毎日 / 曜日指定 から選んでください。番号も使えます。");return;}
+  let nextRec;
+  if(nextKind==="今日だけ")nextRec={type:"once",date:effectiveTodayIso()};
+  else if(nextKind==="明日だけ")nextRec={type:"once",date:tomorrowIso()};
+  else if(nextKind==="毎日")nextRec={type:"daily"};
+  else if(nextKind==="日付指定"){
+    const defaultDate=(def.rec&&def.rec.type==="once")?def.rec.date:effectiveTodayIso();
+    const date=prompt("日付を修正（YYYY-MM-DD）",defaultDate);
+    if(date===null)return;
+    if(!isIsoDate(date)){alert("日付は 2026-06-26 の形で入力してください。");return;}
+    nextRec={type:"once",date};
+  }else{
+    const currentDays=(def.rec&&def.rec.type==="weekly")?def.rec.days:[wdOf(effectiveTodayIso())];
+    const daysText=prompt("曜日を修正（日月火水木金土の組み合わせ。例: 月水金）",weekdayLabel(currentDays));
+    if(daysText===null)return;
+    const days=parseWeekdays(daysText,currentDays);
+    if(!days.length){alert("曜日を1つ以上指定してください。例: 月水金");return;}
+    nextRec={type:"weekly",days};
+  }
+  def.text=clean;
+  def.g=cleanGenre;
+  def.time=cleanTime;
+  def.rec=nextRec;
+  saveCustom();
+  render();
+}
+function deferDef(arg,idMaybe){
+  const id=idMaybe||arg;
+  if(arg&&arg.stopPropagation)arg.stopPropagation();
+  const def=customDefs.find(d=>d.id===id);
+  if(!def||!def.rec||def.rec.type!=="once")return;
+  const oldDate=def.rec.date;
+  const base=oldDate<todayIso()?todayIso():oldDate; // 過去日のものは今日基準で明日へ
+  const next=addDaysIso(base,1);
+  delete state[cid(def,oldDate)]; // 元の日のチェック状態は持ち越さない
+  def.rec.date=next;
+  saveCustom();save();render();
+}
+function deleteDef(arg,idMaybe){
+  const id=idMaybe||arg;
+  if(arg&&arg.stopPropagation)arg.stopPropagation();
+  const def=customDefs.find(d=>d.id===id);
+  if(!def)return;
+  if(!confirm("この追加TODOを削除します。\n"+taskTextWithTime(def)))return;
+  customDefs=customDefs.filter(d=>d.id!==id);
+  Object.keys(state).forEach(k=>{if(k.indexOf("c|"+id+"|")===0)delete state[k];});
+  saveCustom();save();render();
+}
+function setGenre(g){pendGenre=g;renderAddPanel();}
+function renderAddPanel(){
+  const seg=(v,l)=>'<button class="'+(recType===v?"on":"")+'" onclick="setRecType(\''+v+'\')">'+l+'</button>';
+  const gseg=g=>'<button class="'+(pendGenre===g?"on":"")+'" style="'+(pendGenre===g?"background:"+gcol(g)+";border-color:"+gcol(g):"")+'" onclick="setGenre(\''+g+'\')">'+g+'</button>';
+  let weekRow="";
+  if(recType==="weekly"){
+    weekRow='<div class="fld"><label>曜日（複数選べます）</label><div class="dow7">'+
+      DOW.map((n,i)=>'<button class="'+(pendDays.includes(i)?"on":"")+'" onclick="toggleDay('+i+')">'+n+'</button>').join("")+'</div></div>';
+  }
+  let dateRow="";
+  if(recType==="once"){
+    dateRow='<div class="fld"><label>日付</label><input type="date" id="cDate" min="2026-06-26" max="2026-08-20" value="'+recDate+'" onchange="recDate=this.value"></div>';
+  }
+  let list;
+  if(!customDefs.length){list='<div class="empty">まだありません。上で追加すると、日めくり・全一覧の各日に差し込まれます。</div>';}
+  else{list=customDefs.map(def=>{const g=normalizeGenre(def.g||"その他");return '<div class="mrow"><span class="chip" style="background:'+gcol(g)+';flex:none">'+g+'</span><span class="mt">'+esc(def.text)+'</span><span class="mr">'+(def.time?esc(def.time)+' / ':'')+recLabel(def.rec)+'</span>'+(def.rec&&def.rec.type==="once"?'<button class="edit" style="color:var(--accent)" onclick="deferDef(event,\''+def.id+'\')">先送り</button>':'')+'<button class="edit" onclick="editDef(event,\''+def.id+'\')">修正</button><button class="del" onclick="deleteDef(event,\''+def.id+'\')">削除</button></div>';}).join("");}
+  const sk=skippedList();
+  let skBlock="";
+  if(sk.length){
+    skBlock='<div class="mlist"><h3>見送り中（'+sk.length+'）　<button class="linkBtn" onclick="restoreAllSkips()">すべて戻す</button></h3>'+
+      sk.map(o=>'<div class="mrow"><span class="chip" style="background:'+o.col+';flex:none">'+o.tag+'</span><span class="mt">'+esc(o.text)+'</span><span class="mr">'+o.date+'</span><button class="del" style="color:var(--gk)" onclick="restoreSkip(\''+o.id+'\')">戻す</button></div>').join("")+
+      '<p class="hint" style="margin-top:8px">見送りは達成度の母数から外れています。戻すと、その日が過ぎていれば「繰り越し」に再表示されます。</p></div>';
+  }
+  const ended=endedCustomList();
+  let endedBlock="";
+  if(ended.length){
+    endedBlock='<div class="mlist"><h3>終了した追加TODO（'+ended.length+'）</h3>'+
+      ended.map(o=>'<div class="mrow"><span class="'+(o.done?'doneTag':'endedTag')+'">'+o.status+'</span><span class="chip" style="background:'+o.col+';flex:none">'+o.tag+'</span><span class="mt">'+esc(o.text)+'</span><span class="mr">'+o.date+'</span></div>').join("")+
+      '<p class="hint" style="margin-top:8px">個別登録した単発予定は、指定日時を過ぎるとここに移動します。チェック済みの追加TODOもここに残ります。</p></div>';
+  }
+  document.getElementById("view-add").innerHTML=
+    '<div class="panel">'+calendarSyncPanel()+'<h3>予定・くり返しを追加</h3>'+
+    '<p class="hint">下の追加タブは、明日・日付指定・毎週・毎日の登録用です。日めくり内の「この日の追加」は、その日だけのメモ投入口です。</p>'+
+    '<textarea id="cIn" placeholder="例：&#10;ストレッチ&#10;聖書通読&#10;早天の準備"></textarea>'+
+    '<div class="fld"><label>ジャンル</label><div class="seg">'+Object.keys(GENRES).map(gseg).join("")+'</div></div>'+
+    '<div class="fld"><label>時刻（任意）</label><input type="time" id="cTime" step="1800" value="'+pendTime+'" oninput="pendTime=this.value"><p class="hint">時間の決まった予定はここに入れます。30分刻みで、アプリ内では時刻順に上へ出ます。</p></div>'+
+    '<div class="fld"><label>いつ出すか</label><div class="seg">'+seg("today","今日だけ")+seg("tomorrow","明日だけ")+seg("daily","毎日")+seg("weekly","曜日指定")+seg("once","日付指定")+'</div></div>'+
+    weekRow+dateRow+
+    '<button class="addBtn" onclick="addCustom()">この設定で登録</button>'+
+    '<div class="mlist"><h3>登録済み（'+customDefs.length+'）</h3>'+list+'</div>'+endedBlock+skBlock+'</div>';
+}
+
+// ---- backup / restore ----
+function updateSaveStatus(){
+  const el=document.getElementById("saveStatus");if(!el)return;
+  const raw=localStorage.getItem(LASTKEY);
+  if(!raw){el.textContent="チェックは自動保存されます";return;}
+  const d=new Date(raw);
+  if(isNaN(d.getTime())){el.textContent="チェックは自動保存されます";return;}
+  const label=d.toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+  el.textContent="自動保存済み: "+label+" ／ バックアップ保存も可";
+}
+function backupPayload(){
+  const currentMusic=musicLoadState();
+  const currentTaskRoulette=taskRouletteLoadState();
+  return {
+    app:"三本立て毎日TODO",
+    version:3,
+    exportedAt:new Date().toISOString(),
+    state:state,
+    customDefs:customDefs,
+    musicState:currentMusic,
+    taskRouletteState:currentTaskRoulette
+  };
+}
+function backupFilename(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,"0");
+  return "三本立てTODOバックアップ-"+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"-"+pad(d.getHours())+pad(d.getMinutes())+".json";
+}
+let _backupFileHandle=null;
+async function downloadBackup(){
+  const json=JSON.stringify(backupPayload(),null,2);
+  const st=document.getElementById("saveStatus");
+  // 同じファイルに上書き保存（ダウンロードに溜まらない）。対応ブラウザ(Chrome/Edge等)のみ。
+  if(window.showSaveFilePicker){
+    try{
+      if(!_backupFileHandle){
+        _backupFileHandle=await window.showSaveFilePicker({
+          suggestedName:"三本立てTODOバックアップ.json",
+          types:[{description:"JSON",accept:{"application/json":[".json"]}}]
+        });
+      }
+      const w=await _backupFileHandle.createWritable();
+      await w.write(json); await w.close();
+      if(st)st.textContent="バックアップを上書き保存しました";
+      return;
+    }catch(e){
+      if(e&&e.name==="AbortError")return; // ユーザーがキャンセル
+      _backupFileHandle=null; // 失敗時は下のフォールバックへ
+    }
+  }
+  // フォールバック(Safari等)：固定ファイル名で書き出し
+  const blob=new Blob([json],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="三本立てTODOバックアップ.json";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
+}
+function chooseBackupFile(){
+  const input=document.getElementById("backupFile");
+  if(input){input.value="";input.click();}
+}
+function importBackup(event){
+  const input=event.target,file=input.files&&input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(!data||typeof data!=="object"||typeof data.state!=="object"||!Array.isArray(data.customDefs)){
+        throw new Error("バックアップ形式が違います");
+      }
+      if(!confirm("このバックアップを復元します。現在のチェック状態と追加TODOは置き換わります。よろしいですか？"))return;
+      state=data.state||{};
+      customDefs=data.customDefs||[];
+      if(data.musicState||data.music){
+        musicState=musicNormalize(data.musicState||data.music);
+        musicSave(true);
+      }
+      if(data.taskRouletteState){
+        taskRouletteState=taskRouletteNormalize(data.taskRouletteState);
+        taskRouletteSave(true);
+      }
+      save();
+      saveCustom();
+      render();
+      alert("復元しました。");
+    }catch(e){
+      alert("復元できませんでした: "+e.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ---- progress ----
+function counts(){
+  let tot=0,done=0; const byP={"シ":[0,0],"eBay":[0,0],"学校":[0,0]};
+  PLAN.forEach((wk,wi)=>wk.days.forEach((day,di)=>{
+    if(!day.tasks) return;
+    day.tasks.forEach((tk,ti)=>{
+      const id=tid(wi,di,ti); if(isSkip(id)) return;
+      tot++; byP[tk.p][0]++;
+      if(isDone(id)){done++; byP[tk.p][1]++;}
+    });
+  }));
+  return {tot,done,byP};
+}
+function weekCount(wi){
+  let t=0,d=0;
+  PLAN[wi].days.forEach((day,di)=>{ if(!day.tasks)return;
+    day.tasks.forEach((tk,ti)=>{const id=tid(wi,di,ti);if(isSkip(id))return;t++; if(isDone(id))d++;});});
+  return [d,t];
+}
+function dayCount(wi,di){
+  const day=PLAN[wi].days[di]; if(!day.tasks)return[0,0];
+  let d=0,t=0; day.tasks.forEach((tk,ti)=>{const id=tid(wi,di,ti);if(isSkip(id))return;t++;if(isDone(id))d++;});
+  return [d,t];
+}
+
+// ---- views ----
+let view="hime";
+let cur=0; // index into flat
+function setView(v){view=v;
+  ["hime","list","map","export","add"].forEach(k=>{
+    document.getElementById("tab-"+k).classList.toggle("on",v===k);
+    document.getElementById("view-"+k).classList.toggle("hide",v!==k);
+  });
+  render();
+}
+function step(n){cur=Math.max(0,Math.min(flat.length-1,cur+n));render();}
+function goToday(){cur=todayIndex();render();}
+function todayIndex(){
+  const t=new Date(); const iso=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
+  let idx=flat.findIndex(f=>f.ref.iso===iso);
+  if(idx>=0)return idx;
+  idx=flat.findIndex(f=>f.ref.iso>=iso); // 次に来る日
+  return idx>=0?idx:flat.length-1;
+}
+
+const CHK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg>';
+function chip(p){return '<span class="chip" style="background:'+PROJ[p].varc+'">'+PROJ[p].name+'</span>';}
+function wlabel(w){return w==="main"?'<span class="w-main">◎ 主役</span>':'<span class="w-light">○ 軽め</span>';}
+// 飛ばせない前提タスク＝計画の◎主役（シ・学校・eBayとも順番に必要で、やらないと次へ進めない）
+function isBlk(p,w){return w==="main";}
+
+// ---- 音楽制作ルーレット（右ドック） ----
+const MUSIC_KEY="music_production_roulette_v1";
+const MUSIC_DAILY_TRACK_ID="praise";
+const MUSIC_ROULETTE_UNITS=1;
+const MUSIC_TRACKS=[
+  {id:"praise",name:"賛美",kind:"毎日固定 / 歌もの",motto:"毎日1ユニット。順番に積み上げて、完成まで運ぶ。",rawColor:"#6558a6",targetPieces:1,targetLabel:"毎日固定",pieceLabel:"曲目",daily:true,steps:[
+    "作曲、作詞","構成","キューベースで、コードを打ち込む","仮歌、仮ギター","ドラム音源調整","ドラム打ち込み","ドラム構成","キューベースのコードを移植し、ロジックで、生成","キューベースへ移行、キューベース側で生成。追加","ギター録音（コード）","ギター録音（リフ、ソロ）","ベース録音","歌入れ","コーラス","歌入れ補足","音源整理、構成、書き出し","ミックス","ミックス後のプロジェクト・ファイルの整理","ミックス再確認","動画作成","アップロード"
+  ]},
+  {id:"electro",name:"エレクトロ",kind:"新規制作",motto:"楽しんで、しかし作り上げる方向を意識する。",rawColor:"#2c67b8",targetPieces:1,targetLabel:"目標 1曲",pieceLabel:"曲目",steps:[
+    "コード作成＆3音源生成","リズム作成、音色","3音源","第一次構成","書き出し","3音源","フィル、ギミック、オートメーション","ミックス","プロジェクト整理","動画化"
+  ]},
+  {id:"wipElectro",name:"作りかけエレクトロ",kind:"仕上げ",motto:"さっさと仕上げる。それなりに気に入っているはずだろ。",rawColor:"#a84467",targetPieces:1,targetLabel:"目標 1曲",pieceLabel:"曲目",steps:[
+    "フレーズ再チェック","繰り返し、色分け","書き出し","構成","フィル、ギミック、オートメーション","ミックス","プロジェクト整理","動画化"
+  ]},
+  {id:"soundArt",name:"ガチ音響",kind:"実験",motto:"これぐらいのスパンで作れるものを作る。",rawColor:"#1f7e60",targetPieces:1,targetLabel:"目標 1作",pieceLabel:"作目",steps:[
+    "やってみる。なんか起こしてみる。実験の嵐（時間制30分）","なんか構成してみる（時間制30分）","なんか構成してみる（時間制30分）","なんかミックスしてみる"
+  ]},
+  {id:"salvage",name:"古い音源サルベージ",kind:"整理・公開",motto:"発掘して、墓場に登録して、出せるものは出す。",rawColor:"#a85f2c",targetPieces:1,targetLabel:"目標 1巡",pieceLabel:"巡目",randomizeSteps:true,steps:[
+    "ワンボックスの音源発掘整理","Windowsの中の整理","歌詞のテキスト化","墓場登録","YouTubeアップ"
+  ]}
+];
+const MUSIC_DEFAULT_PROJECTS={
+  praise:"賛美 1曲目",
+  electro:"エレクトロ 1曲目",
+  wipElectro:"作りかけ曲",
+  soundArt:"ガチ音響 1作目",
+  salvage:"サルベージ 1巡目"
+};
+
+function musicCreateDefaultState(){
+  const progress={};
+  MUSIC_TRACKS.forEach(track=>{
+    progress[track.id]={piece:1,step:1,completedPieces:0,enabled:true,projectName:MUSIC_DEFAULT_PROJECTS[track.id]||track.name};
+  });
+  return {version:3,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),options:{minutesPerUnit:30,startTime:"6:00",endTime:"10:00"},progress,todayPlan:{date:todayIso(),units:[]},setup:{},history:[]};
+}
+function musicMigrateUnit(unit){
+  if(!unit)return unit;
+  if(unit.trackId==="vocalSong")return {...unit,trackId:MUSIC_DAILY_TRACK_ID,trackName:"賛美",source:unit.source||"daily"};
+  return unit;
+}
+function musicNormalize(input){
+  const base=musicCreateDefaultState(), src=input&&typeof input==="object"?input:{};
+  const migrated={...(src.progress||{})};
+  if(migrated.vocalSong&&!migrated.praise){
+    migrated.praise=migrated.vocalSong;
+    migrated.praise.projectName=migrated.praise.projectName||MUSIC_DEFAULT_PROJECTS.praise;
+  }
+  const next={...base,...src,options:{...base.options,...(src.options||{})},setup:{...base.setup,...(src.setup||{})},progress:{...base.progress,...migrated},todayPlan:src.todayPlan||base.todayPlan,history:Array.isArray(src.history)?src.history.map(musicMigrateUnit):[]};
+  MUSIC_TRACKS.forEach(track=>{next.progress[track.id]={...base.progress[track.id],...(next.progress[track.id]||{})};});
+  if(Array.isArray(next.todayPlan?.units))next.todayPlan.units=next.todayPlan.units.map(musicMigrateUnit);
+  if(!next.todayPlan||next.todayPlan.date!==todayIso())next.todayPlan={date:todayIso(),units:[]};
+  return next;
+}
+function musicLoadState(){return musicNormalize(readJson(MUSIC_KEY,musicCreateDefaultState()));}
+let musicState=musicLoadState();
+function musicSave(skipRender){
+  musicState.updatedAt=new Date().toISOString();
+  localStorage.setItem(MUSIC_KEY,JSON.stringify(musicState));
+  if(!skipRender)render();
+}
+function musicTrack(id){return MUSIC_TRACKS.find(t=>t.id===id);}
+function musicEnsureTodayPlan(){
+  if(!musicState.todayPlan||musicState.todayPlan.date!==todayIso())musicState.todayPlan={date:todayIso(),units:[]};
+  return musicState.todayPlan;
+}
+function musicCloneProgress(){return JSON.parse(JSON.stringify(musicState.progress||{}));}
+function musicNextStepFor(track,progress){
+  const item=progress[track.id]||{piece:1,step:1,projectName:MUSIC_DEFAULT_PROJECTS[track.id]||track.name};
+  const stepIndex=track.randomizeSteps?Math.floor(Math.random()*track.steps.length):Math.max(0,Math.min(track.steps.length-1,item.step-1));
+  return {trackId:track.id,trackName:track.name,projectName:item.projectName||`${track.name} ${item.piece}${track.pieceLabel||"作目"}`,piece:item.piece,step:stepIndex+1,totalSteps:track.steps.length,title:track.steps[stepIndex],minutes:musicState.options?.minutesPerUnit||30};
+}
+function musicAdvanceProgressFor(track,progress){
+  const item=progress[track.id];if(!item)return;
+  if(track.randomizeSteps){item.step=Math.floor(Math.random()*track.steps.length)+1;return;}
+  if(item.step>=track.steps.length){
+    item.step=1;item.piece+=1;item.completedPieces+=1;
+    if(!item.projectName||item.projectName===MUSIC_DEFAULT_PROJECTS[track.id])item.projectName=`${track.name} ${item.piece}${track.pieceLabel||"作目"}`;
+  }else item.step+=1;
+}
+function musicAdvanceActualByUnit(unit){
+  const track=musicTrack(unit.trackId);if(!track)return;
+  const item=musicState.progress[track.id];if(!item)return;
+  if(unit.piece>item.piece){item.piece=unit.piece;item.step=unit.step;}
+  if(unit.piece===item.piece&&unit.step>=item.step)item.step=unit.step;
+  musicAdvanceProgressFor(track,musicState.progress);
+}
+function musicUnitId(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():"mu-"+Date.now()+"-"+Math.random().toString(36).slice(2);}
+function musicCreateUnitFromNext(next,source){
+  return {id:musicUnitId(),kind:"track",source,date:todayIso(),trackId:next.trackId,trackName:next.trackName,projectName:next.projectName,piece:next.piece,step:next.step,totalSteps:next.totalSteps,title:next.title,minutes:next.minutes,status:"planned",note:"",createdAt:new Date().toISOString(),completedAt:null};
+}
+function musicRecentTrackCounts(days){
+  const threshold=Date.now()-days*24*60*60*1000;
+  return (musicState.history||[]).reduce((counts,item)=>{const time=new Date(item.completedAt||item.createdAt).getTime();if(time>=threshold&&item.trackId)counts[item.trackId]=(counts[item.trackId]||0)+1;return counts;},{});
+}
+function musicDrawTrack(){
+  const roulette=MUSIC_TRACKS.filter(track=>!track.daily), enabled=roulette.filter(track=>musicState.progress[track.id]?.enabled), candidates=enabled.length?enabled:roulette;
+  const recent=musicRecentTrackCounts(14), weighted=candidates.map(track=>{
+    const done=recent[track.id]||0, progress=musicState.progress[track.id]||{}, penalty=progress.completedPieces>=track.targetPieces?0.45:1;
+    return {track,weight:Math.max(0.2,penalty/(1+done*0.34))};
+  });
+  const total=weighted.reduce((sum,item)=>sum+item.weight,0);let point=Math.random()*total;
+  for(const item of weighted){point-=item.weight;if(point<=0)return item.track;}
+  return weighted[weighted.length-1].track;
+}
+function musicBuildVirtualProgress(units){
+  const virtual=musicCloneProgress();
+  (units||[]).filter(unit=>unit.kind==="track"&&unit.status!=="done"&&unit.status!=="skipped").forEach(unit=>{
+    const track=musicTrack(unit.trackId);if(!track)return;
+    const item=virtual[track.id];if(!item)return;
+    if(unit.piece>item.piece||(unit.piece===item.piece&&unit.step>=item.step)){item.piece=unit.piece;item.step=unit.step;musicAdvanceProgressFor(track,virtual);}
+  });
+  return virtual;
+}
+function musicIsDailyUnit(unit){return unit.trackId===MUSIC_DAILY_TRACK_ID||unit.source==="daily";}
+function musicIsRouletteUnit(unit){return unit.kind==="track"&&!musicIsDailyUnit(unit);}
+function musicCreateNextUnit(track,virtual,source){
+  const next=musicNextStepFor(track,virtual), unit=musicCreateUnitFromNext(next,source);
+  musicAdvanceProgressFor(track,virtual);
+  return unit;
+}
+function musicSortUnits(units){
+  return (units||[]).slice().sort((a,b)=>{
+    const ao=musicIsDailyUnit(a)?0:1, bo=musicIsDailyUnit(b)?0:1;
+    if(ao!==bo)return ao-bo;
+    return new Date(a.createdAt||0).getTime()-new Date(b.createdAt||0).getTime();
+  });
+}
+function musicRollTodayUnits(rouletteCount=MUSIC_ROULETTE_UNITS){
+  const today=musicEnsureTodayPlan(), preserved=today.units.filter(unit=>unit.status==="done");
+  const virtual=musicBuildVirtualProgress(preserved), units=[...preserved];
+  if(!units.some(musicIsDailyUnit)){
+    const daily=musicTrack(MUSIC_DAILY_TRACK_ID);if(daily)units.push(musicCreateNextUnit(daily,virtual,"daily"));
+  }
+  const need=Math.max(0,rouletteCount-units.filter(musicIsRouletteUnit).length);
+  for(let i=0;i<need;i++)units.push(musicCreateNextUnit(musicDrawTrack(),virtual,"roulette"));
+  musicState.todayPlan={date:todayIso(),units:musicSortUnits(units)};
+  musicSave();
+}
+function musicRerollOpen(){
+  const plan=musicEnsureTodayPlan(), open=Math.max(1,plan.units.filter(unit=>unit.status!=="done"&&musicIsRouletteUnit(unit)).length);
+  musicRollTodayUnits(open);
+}
+function musicAddRouletteUnits(count){
+  const plan=musicEnsureTodayPlan(), virtual=musicBuildVirtualProgress(plan.units), units=plan.units.slice();
+  for(let i=0;i<count;i++)units.push(musicCreateNextUnit(musicDrawTrack(),virtual,"roulette"));
+  musicState.todayPlan={date:todayIso(),units:musicSortUnits(units)};
+  musicSave();
+}
+function musicToggleUnit(event,id){
+  if(event)event.stopPropagation();
+  const unit=musicEnsureTodayPlan().units.find(x=>x.id===id);if(!unit)return;
+  if(unit.status==="done"){
+    unit.status="planned";unit.completedAt=null;
+    musicState.history=(musicState.history||[]).filter(item=>item.id!==id);
+  }else{
+    unit.status="done";unit.completedAt=new Date().toISOString();
+    musicAdvanceActualByUnit(unit);
+    musicState.history=[{...unit},...(musicState.history||[])];
+  }
+  musicSave();
+}
+function musicToggleTrack(event,id,enabled){
+  if(event)event.stopPropagation();
+  if(musicState.progress[id])musicState.progress[id].enabled=enabled;
+  musicSave();
+}
+function musicStepTrack(event,id,delta){
+  if(event)event.stopPropagation();
+  const track=musicTrack(id), progress=musicState.progress[id];if(!track||!progress)return;
+  progress.step+=delta;
+  if(progress.step<1){if(progress.piece>1){progress.piece-=1;progress.step=track.steps.length;progress.completedPieces=Math.max(0,progress.completedPieces-1);}else progress.step=1;}
+  if(progress.step>track.steps.length){progress.step=1;progress.piece+=1;progress.completedPieces+=1;}
+  musicSave();
+}
+function musicUnitCard(unit,index){
+  const track=musicTrack(unit.trackId), color=track?.rawColor||"var(--accent)", done=unit.status==="done";
+  const source=musicIsDailyUnit(unit)?"毎日固定":"ルーレット", slot=musicIsDailyUnit(unit)?"1本目":"2本目";
+  return '<div class="musicUnit'+(done?' done':'')+'" style="--mc:'+color+'">'+
+    '<button class="musicCheck" type="button" title="完了切替" onclick="musicToggleUnit(event,\''+unit.id+'\')">'+CHK+'</button>'+
+    '<div><div class="musicSlot"><span>'+source+'</span><small>'+slot+' / '+(unit.minutes||musicState.options.minutesPerUnit||30)+'分 / '+unit.step+'/'+unit.totalSteps+'</small></div>'+
+    '<div class="musicTitle">'+esc(unit.title)+'</div>'+
+    '<div class="musicMeta">'+esc(unit.trackName)+' / '+esc(unit.projectName||"")+(done?' / 完了':' / 未完了')+'</div></div></div>';
+}
+function musicDetailRows(){
+  return MUSIC_TRACKS.map(track=>{
+    const progress=musicState.progress[track.id]||{}, stepIndex=Math.max(0,Math.min(track.steps.length-1,(progress.step||1)-1));
+    const next=track.randomizeSteps?`次: 1〜${track.steps.length}からランダム抽選`:`次: ${progress.step||1}/${track.steps.length} ${track.steps[stepIndex]}`;
+    const control=track.daily?'<span class="musicScore">固定</span>':'<label class="musicToggle"><input type="checkbox" '+(progress.enabled?'checked':'')+' onchange="musicToggleTrack(event,\''+track.id+'\',this.checked)">抽選</label>';
+    return '<div class="musicLine"><div><strong>'+esc(track.name)+'</strong><small>'+esc(track.kind)+' / '+esc(track.targetLabel||"")+'<br>'+esc(next)+'</small></div>'+
+      '<div class="musicLineBtns">'+control+'<button type="button" onclick="musicStepTrack(event,\''+track.id+'\',-1)">戻</button><button type="button" onclick="musicStepTrack(event,\''+track.id+'\',1)">進</button></div></div>';
+  }).join("");
+}
+function musicMarkdownLines(){
+  const plan=musicEnsureTodayPlan(), units=musicSortUnits(plan.units);
+  const lines=["","## 音楽制作 今日"];
+  if(!units.length){lines.push("- 未作成（賛美＋ルーレットを作る）");return lines.join("\n");}
+  units.forEach((unit,i)=>{
+    const mark=unit.status==="done"?"[x]":"[ ]", source=musicIsDailyUnit(unit)?"毎日固定":"ルーレット";
+    lines.push("- "+mark+" "+(i+1)+". "+source+": "+unit.trackName+" / "+unit.title+"（"+unit.step+"/"+unit.totalSteps+"、"+(unit.minutes||30)+"分）");
+  });
+  return lines.join("\n");
+}
+function renderMusicDock(){
+  const el=document.getElementById("musicDock");if(!el)return;
+  musicState=musicLoadState();
+  const plan=musicEnsureTodayPlan(), units=musicSortUnits(plan.units), done=units.filter(unit=>unit.status==="done").length, target=Math.max(2,units.length||2);
+  const roulette=MUSIC_TRACKS.filter(track=>!track.daily);
+  const legend=roulette.map(track=>'<span><i class="musicDot" style="--mc:'+track.rawColor+'"></i>'+esc(track.name)+'</span>').join("");
+  const body=units.length?'<div class="musicUnits">'+units.map(musicUnitCard).join("")+'</div>':'<div class="musicEmpty">今日の音楽制作は未作成。<br>ボタンで「賛美固定＋2本目抽選」を作ります。</div>';
+  el.innerHTML=
+    '<div class="musicHead"><div><h2>音楽制作 今日</h2><p>三本立ての傍で、今日やる音楽だけを見る</p></div><span class="musicScore">'+done+'/'+target+'</span></div>'+
+    '<div class="musicWheelRow"><div class="musicWheel"><span>2本目<br>抽選</span></div><div class="musicLegend">'+legend+'</div></div>'+
+    '<div class="musicActions"><button class="primary" type="button" onclick="musicRollTodayUnits()">賛美＋ルーレット</button><button type="button" onclick="musicRerollOpen()">2本目だけ振り直し</button><button type="button" onclick="musicAddRouletteUnits(1)">抽選追加</button></div>'+
+    body+
+    '<details class="musicDetails"><summary>詳しい進行を開く</summary>'+musicDetailRows()+'</details>';
+}
+
+// ---- タスクルーレット（音楽制作ドック下） ----
+const TASK_ROULETTE_KEY="task_roulette_v1";
+function taskRouletteDefaultState(){
+  return {version:1,tasks:[],history:[],selectedTaskId:null,savedAt:null};
+}
+function taskRouletteNormalize(input){
+  const base=taskRouletteDefaultState(), src=input&&typeof input==="object"?input:{};
+  const tasks=Array.isArray(src.tasks)?src.tasks.map(item=>{
+    if(typeof item==="string")return {id:taskRouletteId(),text:item,source:"legacy",createdAt:new Date().toISOString()};
+    return {id:item.id||taskRouletteId(),text:String(item.text||"").trim(),source:item.source||"unknown",createdAt:item.createdAt||new Date().toISOString()};
+  }).filter(item=>item.text):[];
+  const history=Array.isArray(src.history)?src.history.map(item=>{
+    if(typeof item==="string")return {id:taskRouletteId(),text:item,at:new Date().toISOString()};
+    return {id:item.id||taskRouletteId(),text:String(item.text||"").trim(),at:item.at||new Date().toISOString()};
+  }).filter(item=>item.text).slice(0,40):[];
+  return {...base,...src,tasks,history,selectedTaskId:src.selectedTaskId||null,savedAt:src.savedAt||null};
+}
+function taskRouletteLoadState(){return taskRouletteNormalize(readJson(TASK_ROULETTE_KEY,taskRouletteDefaultState()));}
+let taskRouletteState=taskRouletteLoadState();
+function taskRouletteId(){
+  return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():"tr-"+Date.now()+"-"+Math.random().toString(36).slice(2);
+}
+function taskRouletteSave(skipRender){
+  taskRouletteState.savedAt=new Date().toISOString();
+  localStorage.setItem(TASK_ROULETTE_KEY,JSON.stringify(taskRouletteState));
+  markSaved();
+  if(!skipRender)renderTaskRouletteDock();
+}
+function taskRouletteNormalizeLine(line){
+  return String(line||"").trim()
+    .replace(/^\[[ xX]\]\s*/,"")
+    .replace(/^[-*・]\s*/,"")
+    .replace(/^[0-9０-９]+[.)．、]\s*/,"")
+    .trim();
+}
+function taskRouletteParse(text){
+  return String(text||"").split(/\r?\n/).map(taskRouletteNormalizeLine).filter(Boolean);
+}
+function taskRouletteAddTasks(lines,source){
+  const dedupe=document.getElementById("taskRouletteDedupe")?.checked!==false;
+  const existing=new Set(taskRouletteState.tasks.map(task=>task.text));
+  let added=0,skipped=0;
+  lines.forEach(line=>{
+    const text=taskRouletteNormalizeLine(line);if(!text)return;
+    if(dedupe&&existing.has(text)){skipped++;return;}
+    taskRouletteState.tasks.push({id:taskRouletteId(),text,source:source||"manual",createdAt:new Date().toISOString()});
+    existing.add(text);added++;
+  });
+  if(added){taskRouletteSave();taskRouletteSetMessage(added+"件追加しました"+(skipped?"（重複"+skipped+"件除外）":"")+"。","ok");}
+  else taskRouletteSetMessage(skipped?"重複のため追加しませんでした。":"追加できるタスクがありません。","ng");
+}
+function taskRouletteAddFromInput(){
+  const input=document.getElementById("taskRouletteInput");if(!input)return;
+  const lines=taskRouletteParse(input.value);
+  taskRouletteAddTasks(lines,"manual");
+  if(lines.length)input.value="";
+}
+function taskRouletteChooseFile(){
+  const input=document.getElementById("taskRouletteFile");if(input){input.value="";input.click();}
+}
+function taskRouletteDecode(buffer){
+  let text=new TextDecoder("utf-8").decode(buffer);
+  if((text.match(/\uFFFD/g)||[]).length){
+    try{text=new TextDecoder("shift_jis").decode(buffer);}catch(e){}
+  }
+  return text;
+}
+function taskRouletteImportFile(event){
+  const input=event.target,file=input.files&&input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const text=taskRouletteDecode(reader.result);
+    taskRouletteAddTasks(taskRouletteParse(text),file.name);
+    input.value="";
+  };
+  reader.onerror=()=>taskRouletteSetMessage("ファイルを読み込めませんでした。","ng");
+  reader.readAsArrayBuffer(file);
+}
+function taskRouletteSelected(){
+  return taskRouletteState.tasks.find(task=>task.id===taskRouletteState.selectedTaskId)||null;
+}
+function taskRouletteDraw(){
+  taskRouletteState=taskRouletteLoadState();
+  if(!taskRouletteState.tasks.length){taskRouletteSetMessage("候補がありません。","ng");return;}
+  const task=taskRouletteState.tasks[Math.floor(Math.random()*taskRouletteState.tasks.length)];
+  taskRouletteState.selectedTaskId=task.id;
+  taskRouletteState.history=[{id:taskRouletteId(),text:task.text,at:new Date().toISOString()},...(taskRouletteState.history||[])].slice(0,40);
+  taskRouletteSave();
+  taskRouletteSetMessage("選びました。","ok");
+}
+function taskRouletteKey(event){
+  if(event.key==="Enter"||event.key===" "){event.preventDefault();taskRouletteDraw();}
+}
+function taskRouletteClearResult(){
+  taskRouletteState.selectedTaskId=null;
+  taskRouletteSave();
+  taskRouletteSetMessage("結果を戻しました。","ok");
+}
+function taskRouletteCompleteSelected(){
+  const selected=taskRouletteSelected();if(!selected)return;
+  taskRouletteState.tasks=taskRouletteState.tasks.filter(task=>task.id!==selected.id);
+  taskRouletteState.selectedTaskId=null;
+  taskRouletteSave();
+  taskRouletteSetMessage("候補から外しました。","ok");
+}
+function taskRouletteDelete(id){
+  taskRouletteState.tasks=taskRouletteState.tasks.filter(task=>task.id!==id);
+  if(taskRouletteState.selectedTaskId===id)taskRouletteState.selectedTaskId=null;
+  taskRouletteSave();
+}
+function taskRouletteSetMessage(text,type){
+  const el=document.getElementById("taskRouletteMessage");if(!el)return;
+  el.textContent=text||"";
+  el.className="taskRouletteMessage "+(type||"");
+}
+function taskRouletteMarkdownLines(){
+  const current=taskRouletteLoadState(), selected=current.tasks.find(task=>task.id===current.selectedTaskId);
+  const lines=["","## タスクルーレット"];
+  lines.push("- 候補: "+current.tasks.length+"件");
+  if(selected)lines.push("- 今の結果: "+selected.text);
+  if(current.tasks.length){
+    lines.push("- 候補一覧:");
+    current.tasks.slice(0,30).forEach(task=>lines.push("  - "+task.text));
+    if(current.tasks.length>30)lines.push("  - ...ほか "+(current.tasks.length-30)+"件");
+  }else lines.push("- 候補なし");
+  return lines.join("\n");
+}
+function renderTaskRouletteDock(){
+  const dock=document.getElementById("taskRouletteDock");if(!dock)return;
+  taskRouletteState=taskRouletteLoadState();
+  const selected=taskRouletteSelected();
+  const count=document.getElementById("taskRouletteCount");
+  const result=document.getElementById("taskRouletteResultText");
+  const btns=document.getElementById("taskRouletteResultBtns");
+  const list=document.getElementById("taskRouletteList");
+  if(count)count.textContent=taskRouletteState.tasks.length+"件";
+  if(result)result.textContent=selected?selected.text:"回す";
+  if(btns)btns.classList.toggle("on",!!selected);
+  if(!list)return;
+  list.innerHTML="";
+  if(!taskRouletteState.tasks.length){
+    list.innerHTML='<div class="empty">候補がありません</div>';
+    return;
+  }
+  taskRouletteState.tasks.forEach(task=>{
+    const row=document.createElement("div");
+    row.className="taskRouletteItem"+(task.id===taskRouletteState.selectedTaskId?" selected":"");
+    const text=document.createElement("span");
+    text.textContent=task.text;
+    const del=document.createElement("button");
+    del.type="button";del.textContent="削除";
+    del.addEventListener("click",()=>taskRouletteDelete(task.id));
+    row.append(text,del);
+    list.appendChild(row);
+  });
+}
+
+function taskRow(wi,di,ti,tk){
+  const id=tid(wi,di,ti), done=isDone(id), skip=isSkip(id), blk=isBlk(tk.p,tk.w);
+  const day=PLAN[wi].days[di], cp='['+day.d+'('+day.dow+')] ['+PROJ[tk.p].name+'] '+(tk.w==="main"?"◎ 主役":"○ 軽め")+(blk?' 🔒':'')+' '+tk.t;
+  return '<div class="task'+(done?' done':'')+(skip?' skip':'')+'" onclick="toggle(\''+id+'\')">'+
+    '<div class="cb" style="'+(done?'background:'+PROJ[tk.p].varc+';border-color:'+PROJ[tk.p].varc:'')+'">'+CHK+'</div>'+
+    '<div class="tbody"><div class="meta">'+chip(tk.p)+wlabel(tk.w)+(blk?' <span class="blkTag">🔒 飛ばせない</span>':'')+(skip?' <span class="skipTag">見送り</span>':'')+copyBtn(cp)+'</div>'+
+    '<div class="ttext">'+tk.t+'</div></div></div>';
+}
+
+function renderHime(){
+  const f=flat[cur], wk=PLAN[f.wi], day=f.ref;
+  const cu=calendarBlock(day.iso)+customBlock(day.iso);
+  const qa=quickAddBox(day.iso,'qaH');
+  let body;
+  if(day.review){
+    body=milestoneBlock(day.iso)+'<div class="review">📝 '+day.review+'</div><div class="pgBody">'+cu+qa+'</div>';
+  }else{
+    const [d,t]=dayCount(f.wi,f.di);
+    const [cd,ct]=customCount(day.iso);
+    body=milestoneBlock(day.iso)+'<div class="pgBody"><div style="padding:4px 8px 2px"><span class="dayCount">この日 '+d+'/'+t+(ct?'　＋その他 '+cd+'/'+ct:'')+' 完了</span></div>'+
+      day.tasks.map((tk,ti)=>taskRow(f.wi,f.di,ti,tk)).join('')+cu+qa+'</div>';
+  }
+  const wtag = day.review? '<span class="wtag">'+wk.w+'</span>レビュー'
+    : '<span class="wtag">'+wk.w+'</span>'+wk.goal;
+  document.getElementById("himePage").innerHTML=
+    '<div class="page"><div class="pgHead">'+
+    '<div class="dnum">'+day.d+'<small>（'+day.dow+'）</small></div>'+
+    '<div class="wgoal">'+wtag+'</div></div>'+body+'</div>';
+}
+
+function renderList(){
+  let html="";
+  PLAN.forEach((wk,wi)=>{
+    const [d,t]=weekCount(wi);
+    const open = wi===flat[cur].wi ? " open":"";
+    html+='<details'+open+'><summary><span class="tri">▶</span>'+
+      '<span class="wk">'+wk.w+'　'+wk.range+'</span>'+
+      '<span class="wkpct">'+d+'/'+t+'</span></summary>';
+    wk.days.forEach((day,di)=>{
+      const cu=calendarBlock(day.iso)+customBlock(day.iso);
+      if(day.review){
+        html+='<div class="day"><h4>'+day.d+'（'+day.dow+'）</h4><div class="review" style="padding:2px 0 6px">📝 '+day.review+'</div>'+cu+'</div>';
+      }else{
+        const [dd,tt]=dayCount(wi,di);
+        html+='<div class="day"><h4>'+day.d+'（'+day.dow+'）<span class="dc">'+dd+'/'+tt+'</span></h4>'+
+          day.tasks.map((tk,ti)=>taskRow(wi,di,ti,tk)).join('')+cu+'</div>';
+      }
+    });
+    html+='</details>';
+  });
+  document.getElementById("view-list").innerHTML=html;
+}
+
+function renderProgress(){
+  const {tot,done,byP}=counts();
+  const pct = tot? Math.round(done/tot*100):0;
+  const C=2*Math.PI*38;
+  document.getElementById("ringFill").setAttribute("stroke-dashoffset", C*(1-done/(tot||1)));
+  document.getElementById("ringPct").textContent=pct+"%";
+  document.getElementById("ringNum").textContent=done+"/"+tot;
+  ["シ","eBay","学校"].forEach(p=>{
+    const [tt,dd]=byP[p]; const pc=tt?Math.round(dd/tt*100):0;
+    document.getElementById("f-"+p).style.width=pc+"%";
+    document.getElementById("p-"+p).textContent=pc+"%（"+dd+"/"+tt+"）";
+  });
+  const coArr=carryOver(),co=coArr.length,blkN=coArr.filter(o=>o.blk).length;
+  document.getElementById("carryNote").innerHTML = co? (blkN?'🔒 詰まっている前提タスク '+blkN+'件 ── 先に片づけよう<br>':'')+'⚠ 未完の繰り越し '+co+'件 ── 日めくり上部で処理':'';
+}
+
+// ---- 今日だけの窓（デスクトップ常駐用） ----
+function renderToday(){
+  const el=document.getElementById("todayWin");if(!el)return;
+  const idx=todayIndex(),f=flat[idx],wk=PLAN[f.wi],day=f.ref;
+  const realToday=day.iso===todayIso(),coArr=carryOver(),co=coArr.length,blkN=coArr.filter(o=>o.blk).length;
+  let rows,d=0,t=0;
+  if(day.review){
+    rows='<div class="tReview">📝 '+day.review+'</div>'+calendarBlock(day.iso)+customBlock(day.iso);
+    const cc=customCount(day.iso);d=cc[0];t=cc[1];
+  }else{
+    rows=day.tasks.map((tk,ti)=>taskRow(f.wi,f.di,ti,tk)).join('')+calendarBlock(day.iso)+customBlock(day.iso);
+    const dc=dayCount(f.wi,f.di),cc=customCount(day.iso);d=dc[0]+cc[0];t=dc[1]+cc[1];
+  }
+  const pct=t?Math.round(d/t*100):0;
+  el.innerHTML=
+    '<div class="tBar"><span class="tDate">'+day.d+'<small>（'+day.dow+'）</small></span>'+
+    '<a class="tFull" href="#" onclick="goFull(event)">全体 ▸</a></div>'+
+    (realToday?'':'<div class="tNote">今日は計画期間外。直近の日を表示しています。</div>')+
+    '<div class="tGoal"><span class="wtag">'+wk.w+'</span>'+(day.review?'レビュー':wk.goal)+'</div>'+
+    milestoneBlock(day.iso)+
+    (co?'<div class="tCarry">'+(blkN?'🔒 前提タスク '+blkN+'件　':'')+'⚠ 繰り越し '+co+'件（全体画面で処理）</div>':'')+
+    '<div class="tMeter"><div class="tFill" style="width:'+pct+'%"></div></div>'+
+    '<div class="tCount">今日 '+d+'/'+t+'　'+pct+'%</div>'+
+    '<div class="tTasks">'+rows+quickAddBox(day.iso,'qaT')+'</div>';
+}
+function goFull(e){if(e)e.preventDefault();location.hash="";document.body.classList.remove("tmode","gmode");render();}
+function openTodayWin(){const base=location.href.split("#")[0];window.open(base+"#today","todaywin","width=480,height=760,menubar=no,toolbar=no,location=no");}
+
+// ---- 最終ゴールと週ゴールの確認窓 ----
+function goalColor(p){return p==="シ"?"var(--si)":p==="学校"?"var(--gk)":"var(--eb)";}
+function renderGoals(){
+  const el=document.getElementById("goalsWin");if(!el)return;
+  const names=["学校","eBay","シ"];
+  const projects=names.map(p=>{const g=PROJECT_GOALS[p];return '<section class="gProject" style="--pc:'+goalColor(p)+'"><h2>'+PROJ[p].name+'</h2><h3>何のためにやるか</h3><div class="gFinal">'+g.final+'</div><h3>そこまでに行うこと</h3><ol class="gSteps">'+g.steps.map(s=>'<li>'+s+'</li>').join("")+'</ol></section>';}).join("");
+  const ti=todayIso();
+  const weeks=PLAN.slice(3).map(wk=>{
+    const days=wk.days.filter(d=>d.tasks), first=wk.days[0].iso,last=wk.days[wk.days.length-1].iso;
+    const now=first<=ti&&ti<=last;
+    const goals=names.map(p=>{const tasks=[];days.forEach(d=>d.tasks.forEach(t=>{if(t.p===p)tasks.push(t.t);}));const lastTask=tasks[tasks.length-1]||"レビューと次週への引き継ぎ";return '<div class="gWeekItem" style="--pc:'+goalColor(p)+'"><b>'+PROJ[p].name+'</b>'+lastTask+'</div>';}).join("");
+    return '<section class="gWeek'+(now?' now':'')+'"><div class="gWeekHead"><b>'+(now?'今週　':'')+wk.w+'（'+wk.range+'）</b><span>'+wk.goal+'</span></div><div class="gWeekGoals">'+goals+'</div></section>';
+  }).join("");
+  el.innerHTML='<div class="gTop"><div><h1>🎯 三本立て ゴール確認</h1><p class="gLead">今日の作業ではなく、「何を実現するために、何を終えるのか」を確認する窓です。</p></div><a class="tFull" href="#" onclick="goFull(event)">全体 ▸</a></div><div class="gProjects">'+projects+'</div><h2 class="gWeeksTitle">週ごとのゴール</h2><div class="gWeeks">'+weeks+'</div>';
+}
+function openGoalsWin(){const base=location.href.split("#")[0];window.open(base+"#goals","goalswin","width=980,height=820,menubar=no,toolbar=no,location=no");}
+
+// ---- 作業マップ（本流→大きな仕分け→TODO） ----
+const PHASEMAP={
+ "シ":{0:"① 起動・準備",1:"② 認識精度の立て直し",2:"② 認識精度の立て直し",3:"③ MVP化・外装準備",4:"④ 外装（BUILD14）",5:"⑤ 提出",6:"⑥ 審査・公開・記録",7:"⑥ 審査・公開・記録"},
+ "eBay":{0:"① 旧eBay計画の記録",1:"② 旧eBay候補選定",2:"③ 旧計画からヤフオクへ切替",3:"④ 第2セットまで（200枚）",4:"⑤ 第3・4セット（400枚）",5:"⑥ 第5・6セット（600枚）",6:"⑦ 第7・8セット（800枚）",7:"⑧ 第9・10セット（1000枚）"},
+ "学校":{0:"① 現状把握",1:"② KGサイトの文面",2:"③ 紹介者の材料＋検索整備",3:"③ 紹介者の材料＋検索整備",4:"④ 信用棚（Instagram）・サイト差し替え",5:"⑤ 仕上げ・確定",6:"⑥ 送付・受け・記録",7:"⑥ 送付・受け・記録"}
+};
+function phaseOf(p,wi){return PHASEMAP[p][wi];}
+function renderMap(){
+  let html="";
+  ["シ","学校","eBay"].forEach(p=>{
+    const order=[],buckets={};
+    PLAN.forEach((wk,wi)=>wk.days.forEach((day,di)=>{ if(!day.tasks)return;
+      day.tasks.forEach((tk,ti)=>{ if(tk.p!==p)return; const ph=phaseOf(p,wi);
+        if(!buckets[ph]){buckets[ph]={tasks:[],done:0,tot:0};order.push(ph);}
+        const id=tid(wi,di,ti);
+        buckets[ph].tasks.push({wi,di,ti,tk,d:day.d});
+        if(!isSkip(id)){buckets[ph].tot++; if(isDone(id))buckets[ph].done++;}
+      });
+    }));
+    let pd=0,pt=0;order.forEach(ph=>{pd+=buckets[ph].done;pt+=buckets[ph].tot;});
+    const ppct=pt?Math.round(pd/pt*100):0;
+    html+='<details class="mapProj" open><summary><span class="chip" style="background:'+PROJ[p].varc+'">'+PROJ[p].name+'</span><span class="mpPct">'+pd+'/'+pt+'・'+ppct+'%</span></summary>';
+    order.forEach(ph=>{const o=buckets[ph];const pc=o.tot?Math.round(o.done/o.tot*100):0;
+      html+='<div class="mapPhase"><div class="mpHd">'+ph+'<span class="mpHdc">'+o.done+'/'+o.tot+'</span></div>'+
+        '<div class="mpMeter"><div class="mpFill" style="width:'+pc+'%;background:'+PROJ[p].varc+'"></div></div>'+
+        o.tasks.map(x=>'<div class="mapRow"><span class="mpDate">'+x.d+'</span>'+taskRow(x.wi,x.di,x.ti,x.tk)+'</div>').join("")+
+      '</div>';});
+    html+='</details>';
+  });
+  document.getElementById("view-map").innerHTML=html;
+}
+
+// ---- AIへ貼る用コピー ----
+let exportMode="carry";
+function setExportMode(m){exportMode=m;renderExportPanel();}
+function planItemsForDay(wi,di){
+  const day=PLAN[wi].days[di]; if(!day.tasks)return [];
+  return day.tasks.map((tk,ti)=>{const id=tid(wi,di,ti);
+    return {id,iso:day.iso,date:day.d,dow:day.dow,project:PROJ[tk.p].name,weight:tk.w==="main"?"◎ 主役":"○ 軽め",blk:isBlk(tk.p,tk.w),text:tk.t,done:isDone(id),skip:isSkip(id),kind:"計画"};
+  });
+}
+function customItemsForIso(iso){
+  const f=flat.find(x=>x.ref.iso===iso),date=f?f.ref.d:iso.slice(5).replace("-","/"),dow=f?f.ref.dow:"";
+  return customForDay(iso).map(def=>{const id=cid(def,iso),g=normalizeGenre(def.g||"その他");
+    return {id,iso,date,dow,project:g,weight:recLabel(def.rec),blk:false,time:def.time||"",text:def.text,done:isDone(id),skip:isSkip(id),kind:"追加"};
+  });
+}
+function taskMark(o){return o.skip?"[~]":(o.done?"[x]":"[ ]");}
+function taskLine(o,withDate){
+  const lock=o.blk?" 🔒":"";
+  const d=withDate?o.date+"("+o.dow+") ":"";
+  const tm=o.time?o.time+" ":"";
+  return "- "+taskMark(o)+" "+d+"["+o.project+"] "+o.weight+lock+" "+tm+o.text;
+}
+function todayFlatIndex(){return todayIndex();}
+function weekItems(wi){
+  let out=[];
+  PLAN[wi].days.forEach((day,di)=>{out=out.concat(planItemsForDay(wi,di),customItemsForIso(day.iso));});
+  return out;
+}
+function allPlanItems(){
+  let out=[];
+  PLAN.forEach((wk,wi)=>wk.days.forEach((day,di)=>{out=out.concat(planItemsForDay(wi,di));}));
+  return out;
+}
+function customDefsMd(){
+  if(!customDefs.length)return "";
+  return "\n## 自分の追加TODO（定義）\n"+customDefs.map(def=>"- ["+normalizeGenre(def.g||"その他")+"] "+taskTextWithTime(def)+"（"+recLabel(def.rec)+"）").join("\n");
+}
+function exportMarkdown(){
+  const idx=todayFlatIndex(),f=flat[idx],wk=PLAN[f.wi],day=f.ref;
+  const {tot,done,byP}=counts(),coArr=carryOver(),blkN=coArr.filter(o=>o.blk).length;
+  let title="",items=[],withDate=false,note="";
+  if(exportMode==="today"){
+    title="今日のタスク";
+    items=planItemsForDay(f.wi,f.di).concat(customItemsForIso(day.iso));
+  }else if(exportMode==="carry"){
+    title="繰り越し＋今日のタスク";
+    items=coArr.map(o=>({id:o.id,iso:o.iso,date:o.date,dow:"",project:o.tag,weight:o.blk?"◎ 主役":"繰り越し",blk:o.blk,text:o.text,done:false,skip:false,kind:"繰り越し"}))
+      .concat(planItemsForDay(f.wi,f.di),customItemsForIso(day.iso));
+    withDate=true;
+  }else if(exportMode==="week"){
+    title="表示中の週のタスク";
+    items=weekItems(flat[cur].wi);
+    withDate=true;
+    note="表示中の週: "+PLAN[flat[cur].wi].w+" "+PLAN[flat[cur].wi].range+" / "+PLAN[flat[cur].wi].goal;
+  }else if(exportMode==="undone"){
+    title="全未完タスク";
+    items=allPlanItems().filter(o=>!o.done&&!o.skip);
+    withDate=true;
+    note="追加TODOは下の定義欄を参照。毎日・曜日指定は全日展開せず定義だけ載せています。";
+  }else{
+    title="全計画タスク";
+    items=allPlanItems();
+    withDate=true;
+    note="追加TODOは下の定義欄を参照。";
+  }
+  const undone=items.filter(o=>!o.done&&!o.skip).length,doneN=items.filter(o=>o.done).length,skipN=items.filter(o=>o.skip).length;
+  const lines=[
+    "# 三本立て毎日TODO - "+title,
+    "",
+    "- 生成日: "+todayIso(),
+    "- 今日表示: "+day.d+"("+day.dow+") / "+wk.w+" "+wk.range,
+    "- 全体進捗: "+done+"/"+tot+"（シ "+byP["シ"][1]+"/"+byP["シ"][0]+" / 学校 "+byP["学校"][1]+"/"+byP["学校"][0]+" / ヤフオク "+byP["eBay"][1]+"/"+byP["eBay"][0]+"）",
+    "- 繰り越し: "+coArr.length+"件（🔒前提 "+blkN+"件）",
+    "- この出力内: 未完 "+undone+" / 完了 "+doneN+" / 見送り "+skipN,
+    "",
+    "## 使い方メモ",
+    "- [ ] 未完 / [x] 完了 / [~] 見送り",
+    "- 🔒 は飛ばせない前提タスク",
+    note?("- "+note):"",
+    "",
+    "## タスク",
+    items.length?items.map(o=>taskLine(o,withDate)).join("\n"):"- （対象タスクなし）"
+  ].filter(x=>x!==null&&x!==undefined&&x!=="");
+  lines.push(musicMarkdownLines());
+  lines.push(taskRouletteMarkdownLines());
+  if(exportMode==="undone"||exportMode==="plan")lines.push(customDefsMd());
+  return lines.join("\n");
+}
+function renderExportPanel(){
+  const btn=(m,l)=>'<button class="'+(exportMode===m?'on':'')+'" onclick="setExportMode(\''+m+'\')">'+l+'</button>';
+  document.getElementById("view-export").innerHTML=
+    '<div class="panel"><h3>AIに貼る用</h3>'+
+    '<p class="hint">下のMarkdownをコピーして、そのままAIに貼れます。チェック状況・繰り越し・🔒前提タスクも含めます。</p>'+
+    '<div class="exportTop"><div class="exportBtns">'+
+      btn("today","今日")+btn("carry","繰り越し＋今日")+btn("week","表示中の週")+btn("undone","全未完")+btn("plan","全計画")+
+    '</div><div><button class="copyBtn" onclick="copyExport()">コピー</button><span id="copyState" class="copyState"></span></div></div>'+
+    '<textarea id="exportText" class="exportText" readonly>'+esc(exportMarkdown())+'</textarea></div>';
+}
+function copyExport(){
+  const ta=document.getElementById("exportText"),st=document.getElementById("copyState");if(!ta)return;
+  const ok=()=>{if(st)st.textContent="コピーしました";setTimeout(()=>{if(st)st.textContent="";},1800);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(ok).catch(()=>{ta.select();document.execCommand("copy");ok();});}
+  else{ta.select();document.execCommand("copy");ok();}
+}
+
+function render(){
+  updateSaveStatus();
+  renderProgress();
+  if(document.body.classList.contains("tmode")){ renderToday(); return; }
+  if(document.body.classList.contains("gmode")){ renderGoals(); return; }
+  renderMusicDock();
+  renderTaskRouletteDock();
+  if(view==="hime"){ renderHime(); renderCarry(); }
+  else if(view==="list") renderList();
+  else if(view==="map") renderMap();
+  else if(view==="export") renderExportPanel();
+  else renderAddPanel();
+}
+
+function resetAll(){
+  if(confirm("すべてのチェックを消します。よろしいですか？")){ state={}; save(); render(); }
+}
+
+window.addEventListener("storage",e=>{ if(e.key===KEY||e.key===CKEY||e.key===MUSIC_KEY||e.key===TASK_ROULETTE_KEY){
+  state=JSON.parse(localStorage.getItem(KEY)||"{}");
+  customDefs=JSON.parse(localStorage.getItem(CKEY)||"[]");
+  musicState=musicLoadState();
+  taskRouletteState=taskRouletteLoadState();
+  render(); }});
+window.addEventListener("hashchange",()=>{ document.body.classList.toggle("tmode",location.hash==="#today");document.body.classList.toggle("gmode",location.hash==="#goals");render(); });
+cur=todayIndex();
+if(location.hash==="#today")document.body.classList.add("tmode");
+if(location.hash==="#goals")document.body.classList.add("gmode");
+render();
+// 保存済みURLがあれば、起動時に一度だけ自動同期する。
+// 手動の「今すぐ同期」は、予定をすぐ再取得したい場合だけ使う。
+if(calendarUrl)setTimeout(()=>syncCalendar(),300);
+</script>
+</body>
+</html>
