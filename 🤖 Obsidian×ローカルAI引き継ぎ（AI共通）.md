@@ -241,10 +241,11 @@ LM Studioアプリのチャット欄で設定したSystem Promptが、Copilotか
 - **履歴を2026-08-19にリセット**: 旧履歴（2026-06-20〜06-27、`.git`1.5GB）は`_to_delete/git_old_backup_20260819/`へ退避（実質破棄・実害があれば復元可）。単一コミットから再スタートし、`.git`は246MBまで縮小。
 - **`.gitignore`に`.obsidian/copilot-index*.json`を追加**。Copilotのローカル埋め込み索引（本ノート1章の本線の一部）は100MB超でGitHubの1ファイル100MB上限に抵触するため除外。各機で自動再生成される想定で実害なし。
 - **15インチ側**: 新規SSH鍵（ed25519）を作成し、GitHubの`ynp97`アカウントに「15インチAir」として登録。`git push -f origin master`成功を確認済み（2026-08-19）。
-- **未実施＝M5側**（次にこのテーマへ入ったAIはここから）:
-  1. M5で新規SSH鍵を作成し、GitHubの`ynp97`アカウントへ登録（15インチと同じ手順）。
-  2. `git clone git@github.com:ynp97/ynp97git.git`で新規にVaultを取得する。**既存の`Obsidian Vault 控え`（8/15凍結バックアップ、git管理外）とは別物。混同しない。**
-  3. 両機に「Obsidian Git」コミュニティプラグインを導入し、起動時pull・自動commit＆push・終了時pushを設定（未導入・未検証）。
+- **M5側は完了（2026-08-19）**: 既存のSSH鍵（6/20作成、GitHub上は「Mac Obsidian Vault」として登録済み）で認証確認済み。旧`~/Documents/Obsidian Vault`（8/15移行時のまま8/15 22:14で更新停止＝未使用の凍結コピーと確認済み）は`~/Documents/Obsidian Vault_M5旧コピー退避_20260819`へ改名して保全し、同じ場所へ`git clone`で新規取得した。
+- **わかったこと＝Obsidian Gitはインストール済み**。`.obsidian/plugins/obsidian-git/`と`community-plugins.json`の有効化設定は両機とも既にリポジトリに入っている（旧M5コピーの時点で導入済みだったものが引き継がれた）。ただし**per機の設定ファイル`data.json`は`.gitignore`対象で両機とも未作成＝実際にはまだ一度も動かしていない**。
+- **残作業＝両機でObsidianアプリを開いて設定するだけ**（次にこのテーマへ入ったAIはここから）:
+  1. **M5**: Obsidianの「Open folder as vault」で新しい`~/Documents/Obsidian Vault`を開く（`_M5旧コピー退避`ではない方）。コミュニティプラグインの信頼確認が出たら許可。
+  2. **両機共通**: 設定 → コミュニティプラグイン → Git を開き、起動時pull・自動commit＆pushの間隔を設定（両機で同じ間隔にそろえる）。GUI操作のため本人が行う。
 - **今回わかった制約**: Coworkの端末ブリッジ（マウント経由アクセス）は`rm`/`unlink`ができず、gitの内部ロックファイル（`index.lock`等）が残って操作が止まることがある。`mv`での退避か、ref/HEADファイルを直接上書きする方法で回避した。**Obsidian本体やターミナルから直接触る普段の運用には影響しない**（実ファイルシステムを直接見るため）。
 
 ## 11. 関連する正本・設定
