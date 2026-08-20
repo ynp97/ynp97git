@@ -1,0 +1,6 @@
+interface:
+  display_name: "POP97"
+  short_description: "POP・シキホール・カフェ構想と制作物を扱う専用モード"
+  default_prompt: "Use $pop97 to continue the POP project from its latest recorded state."
+policy:
+  allow_implicit_invocation: true
