@@ -75,6 +75,7 @@
 - [[🎹 Cubase 15・nanoKEY Studio Bluetooth MIDI Remote設定]]
 - [[会話ログ/Cubase 15 tempo display]]
 - [[会話ログ/Cubase BPM speed issue]]
+- **公式マニュアル・ヘルプの場所**（2026-08-21調べ）: アプリ内は「ヘルプ → Cubase ヘルプ」（10.5時点の案内。15での実機表示は未確認）。ブラウザは [steinberg.help（Cubase 15・日本語で絞り込み済み）](https://www.steinberg.help/search/documents?value-filters=product_names_smtg~%2522Cubase%257CCubase+Pro%2522*version_numbers_smtg~%252215.0%2522&virtual-field=title_only&content-lang=ja-JP)。PDFも同サイトから辿る（バージョン別の個別配布ではなく一元管理）。
 
 ### Logic
 
