@@ -19,8 +19,9 @@ struct MatchRecord: Identifiable, Hashable {
     var playedAt: Date
     var myDeck: String
     var opponentDeck: String
-    var turn: String
+    var rating: String
     var result: String
+    var turn: String
     var opening: String
     var eventName: String
     var memo: String
@@ -345,13 +346,15 @@ final class AppStore: ObservableObject {
             playedAt TEXT NOT NULL,
             myDeck TEXT NOT NULL,
             opponentDeck TEXT NOT NULL,
-            turn TEXT NOT NULL,
+            rating TEXT NOT NULL DEFAULT '',
             result TEXT NOT NULL,
+            turn TEXT NOT NULL,
             opening TEXT NOT NULL,
             eventName TEXT NOT NULL,
             memo TEXT NOT NULL
         );
         """)
+        try addRatingColumnIfNeeded()
         try exec("CREATE INDEX IF NOT EXISTS idx_records_playedAt ON records(playedAt);")
         try exec("CREATE INDEX IF NOT EXISTS idx_records_myDeck ON records(myDeck);")
         try exec("CREATE INDEX IF NOT EXISTS idx_records_opponentDeck ON records(opponentDeck);")
@@ -398,6 +401,23 @@ final class AppStore: ObservableObject {
         try exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_decks_name_kind ON decks(name, kind);")
     }
 
+    private func addRatingColumnIfNeeded() throws {
+        var hasRating = false
+        var stmt: OpaquePointer?
+        if sqlite3_prepare_v2(db, "PRAGMA table_info(records);", -1, &stmt, nil) == SQLITE_OK {
+            while sqlite3_step(stmt) == SQLITE_ROW {
+                if let column = colText(stmt, 1), column == "rating" {
+                    hasRating = true
+                    break
+                }
+            }
+        }
+        sqlite3_finalize(stmt)
+        if !hasRating {
+            try exec("ALTER TABLE records ADD COLUMN rating TEXT NOT NULL DEFAULT '';")
+        }
+    }
+
     private func exec(_ sql: String) throws {
         var err: UnsafeMutablePointer<Int8>?
         if sqlite3_exec(db, sql, nil, nil, &err) != SQLITE_OK {
@@ -433,7 +453,7 @@ final class AppStore: ObservableObject {
 
     private func fetchRecords() throws -> [MatchRecord] {
         var stmt: OpaquePointer?
-        let sql = "SELECT id, playedAt, myDeck, opponentDeck, turn, result, opening, eventName, memo FROM records ORDER BY playedAt DESC, id DESC;"
+        let sql = "SELECT id, playedAt, myDeck, opponentDeck, rating, result, turn, opening, eventName, memo FROM records ORDER BY playedAt DESC, id DESC;"
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { throw StoreError.sqlite(sqliteLastError()) }
         defer { sqlite3_finalize(stmt) }
         var out: [MatchRecord] = []
@@ -444,11 +464,12 @@ final class AppStore: ObservableObject {
                 playedAt: dateFormatter.date(from: iso) ?? Date(),
                 myDeck: colText(stmt, 2) ?? "",
                 opponentDeck: colText(stmt, 3) ?? "",
-                turn: colText(stmt, 4) ?? "",
+                rating: colText(stmt, 4) ?? "",
                 result: colText(stmt, 5) ?? "",
-                opening: colText(stmt, 6) ?? "",
-                eventName: colText(stmt, 7) ?? "",
-                memo: colText(stmt, 8) ?? ""
+                turn: colText(stmt, 6) ?? "",
+                opening: colText(stmt, 7) ?? "",
+                eventName: colText(stmt, 8) ?? "",
+                memo: colText(stmt, 9) ?? ""
             ))
         }
         return out
@@ -463,32 +484,34 @@ final class AppStore: ObservableObject {
     }
 
     private func insertRecord(_ r: MatchRecord) throws {
-        let sql = "INSERT INTO records (playedAt,myDeck,opponentDeck,turn,result,opening,eventName,memo) VALUES (?,?,?,?,?,?,?,?);"
+        let sql = "INSERT INTO records (playedAt,myDeck,opponentDeck,rating,result,turn,opening,eventName,memo) VALUES (?,?,?,?,?,?,?,?,?);"
         try withStatement(sql) { stmt in
             bindText(stmt, 1, dateFormatter.string(from: r.playedAt))
             bindText(stmt, 2, r.myDeck)
             bindText(stmt, 3, r.opponentDeck)
-            bindText(stmt, 4, r.turn)
+            bindText(stmt, 4, r.rating)
             bindText(stmt, 5, r.result)
-            bindText(stmt, 6, r.opening)
-            bindText(stmt, 7, r.eventName)
-            bindText(stmt, 8, r.memo)
+            bindText(stmt, 6, r.turn)
+            bindText(stmt, 7, r.opening)
+            bindText(stmt, 8, r.eventName)
+            bindText(stmt, 9, r.memo)
             guard sqlite3_step(stmt) == SQLITE_DONE else { throw StoreError.sqlite(sqliteLastError()) }
         }
     }
 
     private func updateRecord(_ r: MatchRecord) throws {
-        let sql = "UPDATE records SET playedAt=?,myDeck=?,opponentDeck=?,turn=?,result=?,opening=?,eventName=?,memo=? WHERE id=?;"
+        let sql = "UPDATE records SET playedAt=?,myDeck=?,opponentDeck=?,rating=?,result=?,turn=?,opening=?,eventName=?,memo=? WHERE id=?;"
         try withStatement(sql) { stmt in
             bindText(stmt, 1, dateFormatter.string(from: r.playedAt))
             bindText(stmt, 2, r.myDeck)
             bindText(stmt, 3, r.opponentDeck)
-            bindText(stmt, 4, r.turn)
+            bindText(stmt, 4, r.rating)
             bindText(stmt, 5, r.result)
-            bindText(stmt, 6, r.opening)
-            bindText(stmt, 7, r.eventName)
-            bindText(stmt, 8, r.memo)
-            sqlite3_bind_int64(stmt, 9, r.id)
+            bindText(stmt, 6, r.turn)
+            bindText(stmt, 7, r.opening)
+            bindText(stmt, 8, r.eventName)
+            bindText(stmt, 9, r.memo)
+            sqlite3_bind_int64(stmt, 10, r.id)
             guard sqlite3_step(stmt) == SQLITE_DONE else { throw StoreError.sqlite(sqliteLastError()) }
         }
     }
@@ -525,7 +548,7 @@ final class AppStore: ObservableObject {
     }
 
     func beginDuplicatingRecord(_ record: MatchRecord) {
-        editingRecord = MatchRecord(id: 0, playedAt: Date(), myDeck: record.myDeck, opponentDeck: record.opponentDeck, turn: record.turn, result: record.result, opening: record.opening, eventName: record.eventName, memo: record.memo)
+        editingRecord = MatchRecord(id: 0, playedAt: Date(), myDeck: record.myDeck, opponentDeck: record.opponentDeck, rating: record.rating, result: record.result, turn: record.turn, opening: record.opening, eventName: record.eventName, memo: record.memo)
         selectedTab = .entry
     }
 
@@ -747,8 +770,9 @@ final class AppStore: ObservableObject {
                     playedAt: r.playedAt,
                     myDeck: r.myDeck,
                     opponentDeck: r.opponentDeck,
-                    turn: r.turn,
+                    rating: r.rating,
                     result: r.result,
+                    turn: r.turn,
                     opening: r.opening,
                     eventName: r.eventName,
                     memo: r.memo
@@ -767,11 +791,11 @@ final class AppStore: ObservableObject {
     }
 
     func exportCSV(to url: URL) throws {
-        var lines = ["日付,時刻,自分のデッキ,相手のデッキ,先後,勝敗,初手,大会,メモ"]
+        var lines = ["日付,時刻,自分のデッキ,相手のデッキ,レート,勝敗,先後,初手,大会,メモ"]
         let df = DateFormatter(); df.calendar = Calendar(identifier: .gregorian); df.locale = Locale(identifier: "ja_JP_POSIX"); df.dateFormat = "yyyy-MM-dd"
         let tf = DateFormatter(); tf.calendar = Calendar(identifier: .gregorian); tf.locale = Locale(identifier: "ja_JP_POSIX"); tf.dateFormat = "HH:mm:ss"
         for r in records {
-            lines.append([df.string(from: r.playedAt), tf.string(from: r.playedAt), r.myDeck, r.opponentDeck, r.turn, r.result, r.opening, r.eventName, r.memo].map(csvEscape).joined(separator: ","))
+            lines.append([df.string(from: r.playedAt), tf.string(from: r.playedAt), r.myDeck, r.opponentDeck, r.rating, r.result, r.turn, r.opening, r.eventName, r.memo].map(csvEscape).joined(separator: ","))
         }
         try lines.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
     }
@@ -840,7 +864,39 @@ extension Deck: Codable {
         try c.encodeIfPresent(officialURL, forKey: .officialURL)
     }
 }
-extension MatchRecord: Codable {}
+extension MatchRecord: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id, playedAt, myDeck, opponentDeck, rating, result, turn, opening, eventName, memo
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(Int64.self, forKey: .id) ?? 0
+        playedAt = try c.decode(Date.self, forKey: .playedAt)
+        myDeck = try c.decode(String.self, forKey: .myDeck)
+        opponentDeck = try c.decode(String.self, forKey: .opponentDeck)
+        rating = try c.decodeIfPresent(String.self, forKey: .rating) ?? ""
+        result = try c.decode(String.self, forKey: .result)
+        turn = try c.decode(String.self, forKey: .turn)
+        opening = try c.decode(String.self, forKey: .opening)
+        eventName = try c.decode(String.self, forKey: .eventName)
+        memo = try c.decode(String.self, forKey: .memo)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(playedAt, forKey: .playedAt)
+        try c.encode(myDeck, forKey: .myDeck)
+        try c.encode(opponentDeck, forKey: .opponentDeck)
+        try c.encode(rating, forKey: .rating)
+        try c.encode(result, forKey: .result)
+        try c.encode(turn, forKey: .turn)
+        try c.encode(opening, forKey: .opening)
+        try c.encode(eventName, forKey: .eventName)
+        try c.encode(memo, forKey: .memo)
+    }
+}
 
 extension JSONEncoder {
     static var withDates: JSONEncoder {
@@ -931,8 +987,9 @@ struct EntryView: View {
     @State private var playedAt = Date()
     @State private var myDeck = ""
     @State private var opponentDeck = ""
-    @State private var turn = "先攻"
+    @State private var rating = ""
     @State private var result = "勝ち"
+    @State private var turn = "先攻"
     @State private var opening = "B"
     @State private var eventName = ""
     @State private var memo = ""
@@ -967,8 +1024,9 @@ struct EntryView: View {
                     GridRow { Text("日時"); DatePicker("", selection: $playedAt).labelsHidden().environment(\.locale, Locale(identifier: "ja_JP@calendar=gregorian")) }
                     GridRow { Text("自分のデッキ"); deckField($myDeck, names: store.myDeckNames(), kind: "my", priority: $myDeckPriority, priorityKey: "priority_myDecks") }
                     GridRow { Text("相手のデッキ"); deckField($opponentDeck, names: store.opponentDeckNames(), kind: "opponent", priority: $opponentDeckPriority, priorityKey: "priority_opponentDecks") }
-                    GridRow { Text("先/後"); segmented($turn, ["先攻", "後攻"]) }
+                    GridRow { Text("レート"); TextField("例：500", text: $rating).textFieldStyle(.roundedBorder).frame(width: 180) }
                     GridRow { Text("勝敗"); HStack { segmented($result, ["勝ち", "負け"]); ResultBadge(result: result) } }
+                    GridRow { Text("先/後"); segmented($turn, ["先攻", "後攻"]) }
                     GridRow { Text("初手"); segmented($opening, ["A", "B", "C", "D"]) }
                     GridRow { Text("大会"); eventField($eventName, names: store.eventNames(), priority: $eventPriority, priorityKey: "priority_events") }
                     GridRow { Text("メモ"); TextEditor(text: $memo).frame(minHeight: 100).overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary)) }
@@ -1004,8 +1062,9 @@ struct EntryView: View {
         playedAt = r.playedAt
         myDeck = r.myDeck
         opponentDeck = r.opponentDeck
-        turn = r.turn
+        rating = r.rating
         result = r.result
+        turn = r.turn
         opening = r.opening
         eventName = r.eventName
         memo = r.memo
@@ -1165,7 +1224,7 @@ struct EntryView: View {
     private func appendMemo(_ word: String) { memo += memo.isEmpty ? word : "、\(word)" }
     private func duplicateLatest() {
         guard let r = store.records.first else { return }
-        myDeck = r.myDeck; opponentDeck = r.opponentDeck; turn = r.turn; result = r.result; opening = r.opening; eventName = r.eventName; memo = r.memo; playedAt = Date()
+        myDeck = r.myDeck; opponentDeck = r.opponentDeck; rating = r.rating; result = r.result; turn = r.turn; opening = r.opening; eventName = r.eventName; memo = r.memo; playedAt = Date()
     }
     private func save() {
         let trimmedMyDeck = myDeck.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1177,7 +1236,7 @@ struct EntryView: View {
         let id = store.editingRecord?.id ?? 0
         do {
             let wasEditing = store.editingRecord != nil
-            try store.saveRecord(MatchRecord(id: id, playedAt: playedAt, myDeck: trimmedMyDeck, opponentDeck: trimmedOpponentDeck, turn: turn, result: result, opening: opening, eventName: eventName.trimmingCharacters(in: .whitespacesAndNewlines), memo: memo))
+            try store.saveRecord(MatchRecord(id: id, playedAt: playedAt, myDeck: trimmedMyDeck, opponentDeck: trimmedOpponentDeck, rating: rating.trimmingCharacters(in: .whitespacesAndNewlines), result: result, turn: turn, opening: opening, eventName: eventName.trimmingCharacters(in: .whitespacesAndNewlines), memo: memo))
             showSaveFeedback(wasEditing ? "更新しました！" : "保存しました！")
             clear(editing: true, keepFeedback: true)
         } catch { store.report(error) }
@@ -1192,7 +1251,7 @@ struct EntryView: View {
     }
 
     private func clear(editing: Bool, keepFeedback: Bool = false) {
-        playedAt = Date(); myDeck = ""; opponentDeck = ""; turn = "先攻"; result = "勝ち"; opening = "B"; eventName = ""; memo = ""
+        playedAt = Date(); myDeck = ""; opponentDeck = ""; rating = ""; result = "勝ち"; turn = "先攻"; opening = "B"; eventName = ""; memo = ""
         if !keepFeedback { saveFeedback = nil }
         if editing { store.editingRecord = nil }
     }
@@ -1204,12 +1263,52 @@ struct RecordsView: View {
     @State private var selectedRecordId: MatchRecord.ID? = nil
     @State private var pendingDeleteRecordId: Int64? = nil
     var filtered: [MatchRecord] {
-        query.isEmpty ? store.records : store.records.filter { [$0.myDeck,$0.opponentDeck,$0.eventName,$0.memo].joined(separator: " ").localizedCaseInsensitiveContains(query) }
+        query.isEmpty ? store.records : store.records.filter { [$0.myDeck,$0.opponentDeck,$0.rating,$0.eventName,$0.memo].joined(separator: " ").localizedCaseInsensitiveContains(query) }
     }
     var selectedRecord: MatchRecord? {
         guard let selectedRecordId else { return nil }
         return store.records.first(where: { $0.id == selectedRecordId })
     }
+
+    @TableColumnBuilder<MatchRecord, Never>
+    private var matchColumns: some TableColumnContent<MatchRecord, Never> {
+        TableColumn("日付") { (record: MatchRecord) in Text(date(record.playedAt)) }.width(90)
+        TableColumn("時刻") { (record: MatchRecord) in Text(time(record.playedAt)) }.width(70)
+        TableColumn("自分のデッキ") { (record: MatchRecord) in DeckNameView(name: record.myDeck) }.width(min: 150, ideal: 190)
+        TableColumn("相手のデッキ") { (record: MatchRecord) in DeckNameView(name: record.opponentDeck) }.width(min: 150, ideal: 190)
+        TableColumn("レート") { (record: MatchRecord) in Text(record.rating.isEmpty ? "—" : record.rating).monospacedDigit() }.width(74)
+        TableColumn("勝敗") { (record: MatchRecord) in ResultBadge(result: record.result) }.width(74)
+        TableColumn("先/後") { (record: MatchRecord) in TurnBadge(turn: record.turn) }.width(64)
+        TableColumn("初手") { (record: MatchRecord) in OpeningBadge(opening: record.opening) }.width(54)
+        TableColumn("大会") { (record: MatchRecord) in Text(record.eventName) }.width(min: 110, ideal: 150)
+        TableColumn("メモ") { (record: MatchRecord) in Text(record.memo).lineLimit(1) }.width(min: 180, ideal: 260)
+    }
+
+    private var operationColumn: some TableColumnContent<MatchRecord, Never> {
+        TableColumn("操作") { (record: MatchRecord) in
+            HStack(spacing: 6) {
+                Button("編集") {
+                    selectedRecordId = record.id
+                    pendingDeleteRecordId = nil
+                    store.beginEditingRecord(record)
+                }
+                .buttonStyle(.borderless)
+                Button("複製") {
+                    selectedRecordId = record.id
+                    pendingDeleteRecordId = nil
+                    store.beginDuplicatingRecord(record)
+                }
+                .buttonStyle(.borderless)
+                Button(pendingDeleteRecordId == record.id ? "確認中" : "削除") {
+                    selectedRecordId = record.id
+                    pendingDeleteRecordId = record.id
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.red)
+            }
+        }.width(190)
+    }
+
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
@@ -1251,37 +1350,8 @@ struct RecordsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             }
             Table(filtered, selection: $selectedRecordId) {
-                TableColumn("日付") { Text(date($0.playedAt)) }.width(90)
-                TableColumn("時刻") { Text(time($0.playedAt)) }.width(70)
-                TableColumn("自分のデッキ") { DeckNameView(name: $0.myDeck) }.width(min: 150, ideal: 190)
-                TableColumn("相手のデッキ") { DeckNameView(name: $0.opponentDeck) }.width(min: 150, ideal: 190)
-                TableColumn("先/後") { TurnBadge(turn: $0.turn) }.width(64)
-                TableColumn("勝敗") { ResultBadge(result: $0.result) }.width(74)
-                TableColumn("初手") { OpeningBadge(opening: $0.opening) }.width(54)
-                TableColumn("大会") { Text($0.eventName) }.width(min: 110, ideal: 150)
-                TableColumn("メモ") { Text($0.memo).lineLimit(1) }.width(min: 180, ideal: 260)
-                TableColumn("操作") { r in
-                    HStack(spacing: 6) {
-                        Button("編集") {
-                            selectedRecordId = r.id
-                            pendingDeleteRecordId = nil
-                            store.beginEditingRecord(r)
-                        }
-                        .buttonStyle(.borderless)
-                        Button("複製") {
-                            selectedRecordId = r.id
-                            pendingDeleteRecordId = nil
-                            store.beginDuplicatingRecord(r)
-                        }
-                        .buttonStyle(.borderless)
-                        Button(pendingDeleteRecordId == r.id ? "確認中" : "削除") {
-                            selectedRecordId = r.id
-                            pendingDeleteRecordId = r.id
-                        }
-                        .buttonStyle(.borderless)
-                        .foregroundStyle(.red)
-                    }
-                }.width(190)
+                matchColumns
+                operationColumn
             }
         }.padding(20)
         .onChange(of: filtered.map(\.id)) { ids in
@@ -1721,6 +1791,11 @@ struct DayRecordMiniRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text(record.opponentDeck).font(.callout).lineLimit(1)
+                if !record.rating.isEmpty {
+                    Text("レート \(record.rating)")
+                        .font(.caption.weight(.semibold).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
             if !record.eventName.isEmpty || !record.memo.isEmpty {
                 Text([record.eventName, record.memo].filter { !$0.isEmpty }.joined(separator: " / "))
