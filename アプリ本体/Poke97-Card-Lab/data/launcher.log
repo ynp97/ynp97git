@@ -30,3 +30,8 @@
   warnings.warn(
 2026-08-13 23:39:14 起動しました。画面を開きます → http://127.0.0.1:8797/
 2026-08-13 23:39:14 終了するときは、この窓で control+C を押すか、窓を閉じてください。
+2026-08-31 23:22:07 --- 起動要求 ---
+/Users/yoshiakinagumo/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+2026-08-31 23:22:08 起動しました。画面を開きます → http://127.0.0.1:8797/
+2026-08-31 23:22:08 終了するときは、この窓で control+C を押すか、窓を閉じてください。
