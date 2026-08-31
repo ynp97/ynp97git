@@ -16,4 +16,13 @@
 - 関連構想: [[ポケカ]]（時間投下と生産性のバランス問題、「いい方向にアジャスト」方針）。
 - 次に見ること: 物販（eBay・ポケカ転売）と戦績の役割整理。Vault外の元実体(Codex)と`アプリ本体/`の一本化。
 
+#### 2026-08-31 このPCへ復元
+
+- BENJAMINの`_移行データ/∕Users∕yoshiakinagumo∕Desktop/AI関係/v1_17_swiftui_cli_build_pokeca_records`に、v1.17の完成`.app`・`Package.swift`・`Sources/PokecaRecords/main.swift`・アイコン・ビルド手順が揃った実体を発見。
+- 正本をVault内の`アプリ本体/pokeca-records/`へ回収した（`.build`は除外）。
+- 完成版を`/Applications/PokecaRecords_v1.17.app`へインストールし、起動後に`~/Library/Application Support/PokecaRecordsSwiftUI/records.sqlite3`が生成されることを確認。現在の戦績件数は0件。
+- BENJAMIN内に過去の`records.sqlite3`は見つからなかった。アプリ本体とソースは復元済みだが、過去戦績は未復元。
+- 原因確定: 2026-08-15の`scripts/migrate_app_data.sh`はApplication Supportをアプリごとに個別指定しており、`PokecaRecordsSwiftUI`が対象から漏れていた。BENJAMINのゴミ箱、JSON/CSV書き出し、ポケカ関連名、v1.17固有のJSONキーでも再検索したが、過去戦績はなかった。復元元は旧M5の`~/Library/Application Support/PokecaRecordsSwiftUI/records.sqlite3`か、M5を含むTime Machineに限られる。
+- このPCで`swift build -c release`を試したが、Command Line ToolsのSwift 6.3.3とSDKのSwift 6.3.2の不一致で失敗。完成済みarm64バイナリは起動できるため、現時点の利用に支障はない。再ビルド時はCommand Line Toolsの版を揃える。
+
 ---
