@@ -34,5 +34,6 @@
 - v1.17のJSON復元で、ID付きデッキが新規挿入されず、画像・代表カード情報が落ちる可能性があった不具合も修正。
 - 検証: `swiftc -frontend -parse`・型検査・releaseビルド成功、アプリ署名検証、実起動を確認。一時戦績1件を入れ、Mac内とiCloudのJSONがともに1件・SHA-256一致となることを確認。検査後は元の0件へ戻し、SQLite=`integrity_check: ok`、両JSON=0件・SHA-256一致を再確認した。
 - M5でv1.18を起動すると、旧M5に残る戦績がそのMac専用フォルダへ即時バックアップされる。その後、15インチAirのv1.18からM5側のJSONを選べば復元できる。
+- **実機復元完了（2026-09-01）**: M5でv1.18を起動し、画面に`iCloud Drive＋Mac内・197件（起動時保護）`を確認。iCloud Driveの`ポケカ戦績バックアップ/MacBook Pro/`に`pokeca_records_latest.json`と`pokeca_records_2026-09-01.json`が生成された。15インチAir側の「自動バックアップから復元」で`MacBook Pro/pokeca_records_latest.json`を選び、**197件の復元を画面で確認した。**
 
 ---
