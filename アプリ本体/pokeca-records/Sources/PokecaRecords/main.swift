@@ -82,8 +82,11 @@ final class AppStore: ObservableObject {
     @Published var editingRecord: MatchRecord?
     @Published var startupError: String?
     @Published var lastErrorMessage: String?
+    @Published var automaticBackupStatus: String = "未バックアップ"
 
     private var db: OpaquePointer?
+    private var isImportingBackup = false
+    private let automaticBackupPrefix = "pokeca_records"
     private let dateFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -167,6 +170,7 @@ final class AppStore: ObservableObject {
             try openDatabase()
             try migrate()
             try loadAll()
+            automaticBackupNow(reason: records.isEmpty ? "起動時確認" : "起動時保護")
         } catch {
             let message = "起動時エラー: \(error.localizedDescription)"
             startupError = message
@@ -208,6 +212,111 @@ final class AppStore: ObservableObject {
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: dir.appendingPathComponent("Images", isDirectory: true), withIntermediateDirectories: true)
         return dir
+    }
+
+    private func localBackupDirectory() throws -> URL {
+        let dir = try appSupportDirectory()
+            .appendingPathComponent("Backups", isDirectory: true)
+            .appendingPathComponent(deviceFolderName(), isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    private func cloudBackupRootDirectory() -> URL? {
+        let root = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs", isDirectory: true)
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
+            return nil
+        }
+        return root.appendingPathComponent("ポケカ戦績バックアップ", isDirectory: true)
+    }
+
+    private func cloudBackupDirectory() throws -> URL? {
+        guard let root = cloudBackupRootDirectory() else { return nil }
+        let dir = root.appendingPathComponent(deviceFolderName(), isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    func preferredBackupDirectoryURL() -> URL? {
+        if let cloud = try? cloudBackupDirectory() { return cloud }
+        return try? localBackupDirectory()
+    }
+
+    func openAutomaticBackupFolder() {
+        guard let url = preferredBackupDirectoryURL() else {
+            automaticBackupStatus = "バックアップフォルダを開けません"
+            return
+        }
+        NSWorkspace.shared.open(url)
+    }
+
+    private func deviceFolderName() -> String {
+        let raw = Host.current().localizedName ?? ProcessInfo.processInfo.hostName
+        let invalid = CharacterSet(charactersIn: "/:")
+        let cleaned = raw.components(separatedBy: invalid).joined(separator: "_")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleaned.isEmpty ? "Mac" : cleaned
+    }
+
+    private func backupPayloadData() throws -> Data {
+        try JSONEncoder.withDates.encode(BackupPayload(records: records, decks: decks))
+    }
+
+    func automaticBackupNow(reason: String = "手動") {
+        guard !isImportingBackup else { return }
+        do {
+            let data = try backupPayloadData()
+            let local = try localBackupDirectory()
+            try writeAutomaticBackup(data, to: local)
+
+            var destination = "Mac内"
+            if let cloud = try cloudBackupDirectory() {
+                do {
+                    try writeAutomaticBackup(data, to: cloud)
+                    destination = "iCloud Drive＋Mac内"
+                } catch {
+                    writeLog("iCloudバックアップ失敗: \(error.localizedDescription)")
+                    destination = "Mac内（iCloudへの保存は失敗）"
+                }
+            }
+
+            let stamp = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .short)
+            automaticBackupStatus = "\(stamp) ・ \(destination) ・ \(records.count)件（\(reason)）"
+        } catch {
+            automaticBackupStatus = "自動バックアップ失敗: \(error.localizedDescription)"
+            writeLog(automaticBackupStatus)
+        }
+    }
+
+    private func writeAutomaticBackup(_ data: Data, to directory: URL) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let latest = directory.appendingPathComponent("\(automaticBackupPrefix)_latest.json")
+        let daily = directory.appendingPathComponent("\(automaticBackupPrefix)_\(dayKey(for: Date())).json")
+        try data.write(to: latest, options: .atomic)
+        try data.write(to: daily, options: .atomic)
+        try trimDailyBackups(in: directory, keeping: 30)
+    }
+
+    private func trimDailyBackups(in directory: URL, keeping limit: Int) throws {
+        let keys: Set<URLResourceKey> = [.contentModificationDateKey, .isRegularFileKey]
+        let files = try FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: Array(keys),
+            options: [.skipsHiddenFiles]
+        ).filter {
+            $0.pathExtension.lowercased() == "json" &&
+            $0.lastPathComponent.hasPrefix("\(automaticBackupPrefix)_") &&
+            $0.lastPathComponent != "\(automaticBackupPrefix)_latest.json"
+        }.sorted {
+            let left = (try? $0.resourceValues(forKeys: keys).contentModificationDate) ?? .distantPast
+            let right = (try? $1.resourceValues(forKeys: keys).contentModificationDate) ?? .distantPast
+            return left > right
+        }
+        for old in files.dropFirst(limit) {
+            try FileManager.default.removeItem(at: old)
+        }
     }
 
     private func openDatabase() throws {
@@ -350,6 +459,7 @@ final class AppStore: ObservableObject {
         try ensureDeck(record.myDeck, kind: "my")
         try ensureDeck(record.opponentDeck, kind: "opponent")
         try loadAll()
+        automaticBackupNow(reason: record.id == 0 ? "戦績保存" : "戦績更新")
     }
 
     private func insertRecord(_ r: MatchRecord) throws {
@@ -389,6 +499,7 @@ final class AppStore: ObservableObject {
             guard sqlite3_step(stmt) == SQLITE_DONE else { throw StoreError.sqlite(sqliteLastError()) }
         }
         try loadAll()
+        automaticBackupNow(reason: "戦績削除")
     }
 
     func ensureDeck(_ name: String, kind: String) throws {
@@ -405,6 +516,7 @@ final class AppStore: ObservableObject {
     func registerDeckName(_ name: String, kind: String) throws {
         try ensureDeck(name, kind: kind)
         try loadAll()
+        automaticBackupNow(reason: "デッキ登録")
     }
 
     func beginEditingRecord(_ record: MatchRecord) {
@@ -447,6 +559,7 @@ final class AppStore: ObservableObject {
             }
         }
         try loadAll()
+        automaticBackupNow(reason: deck.id == 0 ? "デッキ保存" : "デッキ更新")
     }
 
     func deleteDeck(_ id: Int64) throws {
@@ -455,6 +568,7 @@ final class AppStore: ObservableObject {
             guard sqlite3_step(stmt) == SQLITE_DONE else { throw StoreError.sqlite(sqliteLastError()) }
         }
         try loadAll()
+        automaticBackupNow(reason: "デッキ削除")
     }
 
     func copyImageForDeck(source: URL) throws -> String {
@@ -606,18 +720,50 @@ final class AppStore: ObservableObject {
     }
 
     func exportJSON(to url: URL) throws {
-        let payload = BackupPayload(records: records, decks: decks)
-        let data = try JSONEncoder.withDates.encode(payload)
-        try data.write(to: url)
+        try backupPayloadData().write(to: url, options: .atomic)
     }
 
     func importJSON(from url: URL) throws {
         let data = try Data(contentsOf: url)
         let payload = try JSONDecoder.withDates.decode(BackupPayload.self, from: data)
-        try exec("DELETE FROM records; DELETE FROM decks;")
-        for d in payload.decks { try saveDeck(d) }
-        for r in payload.records { try saveRecord(MatchRecord(id: 0, playedAt: r.playedAt, myDeck: r.myDeck, opponentDeck: r.opponentDeck, turn: r.turn, result: r.result, opening: r.opening, eventName: r.eventName, memo: r.memo)) }
-        try loadAll()
+        automaticBackupNow(reason: "復元前保護")
+        isImportingBackup = true
+        do {
+            try exec("BEGIN IMMEDIATE TRANSACTION;")
+            try exec("DELETE FROM records; DELETE FROM decks;")
+            for d in payload.decks {
+                try saveDeck(Deck(
+                    id: 0,
+                    name: d.name,
+                    kind: d.kind,
+                    imagePath: d.imagePath,
+                    representativeCard: d.representativeCard,
+                    officialURL: d.officialURL
+                ))
+            }
+            for r in payload.records {
+                try saveRecord(MatchRecord(
+                    id: 0,
+                    playedAt: r.playedAt,
+                    myDeck: r.myDeck,
+                    opponentDeck: r.opponentDeck,
+                    turn: r.turn,
+                    result: r.result,
+                    opening: r.opening,
+                    eventName: r.eventName,
+                    memo: r.memo
+                ))
+            }
+            try exec("COMMIT;")
+            isImportingBackup = false
+            try loadAll()
+            automaticBackupNow(reason: "復元完了")
+        } catch {
+            try? exec("ROLLBACK;")
+            isImportingBackup = false
+            try? loadAll()
+            throw error
+        }
     }
 
     func exportCSV(to url: URL) throws {
@@ -1933,6 +2079,24 @@ struct BackupView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("バックアップ").font(.largeTitle.bold())
+            GroupBox("自動バックアップ") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("戦績・デッキの保存、編集、削除のたびにJSONを作ります。iCloud Driveが使えるときは、Mac内とiCloudの両方に保存します。")
+                        .foregroundStyle(.secondary)
+                    Text(store.automaticBackupStatus)
+                        .font(.callout.weight(.semibold))
+                    HStack {
+                        Button("今すぐバックアップ") { store.automaticBackupNow(reason: "手動") }
+                        Button("バックアップフォルダを開く") { store.openAutomaticBackupFolder() }
+                        Button("自動バックアップから復元") { openAutomaticBackupPanel() }
+                    }
+                    Text("各Macは別フォルダへ保存します。復元するときは、使いたいMacの latest.json または日付付きJSONを選びます。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 6)
+            }
+            Divider()
             Button("JSONを書き出す") { savePanel(ext: "json") { try store.exportJSON(to: $0) } }
             Button("JSONを読み込む") { openPanel(types: [.json]) { try store.importJSON(from: $0) } }
             Divider()
@@ -1943,6 +2107,17 @@ struct BackupView: View {
     }
     private func savePanel(ext: String, action: (URL) throws -> Void) { let p = NSSavePanel(); p.nameFieldStringValue = "pokeca_records.\(ext)"; if p.runModal() == .OK, let url = p.url { do { try action(url) } catch { store.report(error) } } }
     private func openPanel(types: [UTType], action: (URL) throws -> Void) { let p = NSOpenPanel(); p.allowedContentTypes = types; if p.runModal() == .OK, let url = p.url { do { try action(url) } catch { store.report(error) } } }
+    private func openAutomaticBackupPanel() {
+        let p = NSOpenPanel()
+        p.allowedContentTypes = [.json]
+        p.allowsMultipleSelection = false
+        p.canChooseDirectories = false
+        p.directoryURL = store.preferredBackupDirectoryURL()
+        p.message = "復元するMacの pokeca_records_latest.json または日付付きJSONを選んでください。"
+        if p.runModal() == .OK, let url = p.url {
+            do { try store.importJSON(from: url) } catch { store.report(error) }
+        }
+    }
 }
 
 

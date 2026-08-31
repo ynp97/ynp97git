@@ -23,6 +23,16 @@
 - 完成版を`/Applications/PokecaRecords_v1.17.app`へインストールし、起動後に`~/Library/Application Support/PokecaRecordsSwiftUI/records.sqlite3`が生成されることを確認。現在の戦績件数は0件。
 - BENJAMIN内に過去の`records.sqlite3`は見つからなかった。アプリ本体とソースは復元済みだが、過去戦績は未復元。
 - 原因確定: 2026-08-15の`scripts/migrate_app_data.sh`はApplication Supportをアプリごとに個別指定しており、`PokecaRecordsSwiftUI`が対象から漏れていた。BENJAMINのゴミ箱、JSON/CSV書き出し、ポケカ関連名、v1.17固有のJSONキーでも再検索したが、過去戦績はなかった。復元元は旧M5の`~/Library/Application Support/PokecaRecordsSwiftUI/records.sqlite3`か、M5を含むTime Machineに限られる。
-- このPCで`swift build -c release`を試したが、Command Line ToolsのSwift 6.3.3とSDKのSwift 6.3.2の不一致で失敗。完成済みarm64バイナリは起動できるため、現時点の利用に支障はない。再ビルド時はCommand Line Toolsの版を揃える。
+- 初回の`swift build -c release`はユーザーキャッシュの権限とSwiftPM内部sandboxで失敗し、途中でSwift/SDK不一致エラーも出た。2026-09-01、モジュールキャッシュとscratch pathを`/private/tmp`へ逃がし、SwiftPMを制限外で実行するとreleaseビルドが成功。現在はこのPCで再ビルド可能と確認済み。
+
+#### 2026-09-01 v1.18（複数Mac用自動バックアップ）
+
+- BENJAMINから回収したv1.17を土台に、`アプリ本体/pokeca-records/`をv1.18へ更新。`/Applications/PokecaRecords_v1.18.app`へ導入済み。v1.17は残した。
+- 戦績・デッキの保存、編集、削除、アプリ起動時にJSONを自動生成。Mac内の`~/Library/Application Support/PokecaRecordsSwiftUI/Backups/<Mac名>/`と、iCloud Driveが有効なら`iCloud Drive/ポケカ戦績バックアップ/<Mac名>/`の両方へ保存。
+- Macごとにフォルダを分け、`pokeca_records_latest.json`と日付付きJSON（30件保持）を作る。SQLite本体をiCloudへ置かず、同時編集による破損を避けた。
+- バックアップ画面に「今すぐバックアップ」「フォルダを開く」「自動バックアップから復元」を追加。復元前の自動保護、JSONの先行検証、SQLiteトランザクション／失敗時ロールバックも実装。
+- v1.17のJSON復元で、ID付きデッキが新規挿入されず、画像・代表カード情報が落ちる可能性があった不具合も修正。
+- 検証: `swiftc -frontend -parse`・型検査・releaseビルド成功、アプリ署名検証、実起動を確認。一時戦績1件を入れ、Mac内とiCloudのJSONがともに1件・SHA-256一致となることを確認。検査後は元の0件へ戻し、SQLite=`integrity_check: ok`、両JSON=0件・SHA-256一致を再確認した。
+- M5でv1.18を起動すると、旧M5に残る戦績がそのMac専用フォルダへ即時バックアップされる。その後、15インチAirのv1.18からM5側のJSONを選べば復元できる。
 
 ---
