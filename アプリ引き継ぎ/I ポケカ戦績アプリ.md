@@ -42,6 +42,6 @@
 - レートは編集・複製・日別表示・検索・JSONバックアップ・CSV書き出しへ反映。SQLiteは起動時に`rating`列を自動追加し、旧197件は空欄のまま保持する。v1.18以前のJSONは`rating`がなくても空欄として復元できる。
 - `アプリ本体/pokeca-records/PokecaRecords_v1.19.app`を作成し、`/Applications/PokecaRecords_v1.19.app`へ導入。v1.18はロールバック用に残した。
 - 検証: 型検査・releaseビルド・署名検証に成功。実データを退避後、旧DBをv1.19で自動移行し、SQLite=`integrity_check: ok`・197件・`rating`列1本を確認。一時テスト戦績へレート`1234`を入れ、SQLiteとMac内JSONで保存を確認した。その後、退避DBへ戻して再起動し、SQLite=197件・テスト戦績0件・Mac内JSON=197件（全件に`rating`キー）を再確認した。
-- このAirではv1.19の初回起動時にmacOSのiCloud Driveアクセス許可が未回答のため、Mac内バックアップまでは確認済み。許可後にバックアップ画面の「今すぐバックアップ」を押し、表示が`iCloud Drive＋Mac内・197件`になることと、iCloud側JSONが197件・全件`rating`キー付きになることを最終確認する。
+- **iCloud最終確認完了**: このAirでv1.19のiCloud Driveアクセスを許可して再起動。Mac内・iCloudの`pokeca_records_latest.json`はいずれも197件、全197件に`rating`キーあり、一時テスト戦績0件、SHA-256も一致した。SQLiteも`integrity_check: ok`・197件を再確認済み。
 
 ---
