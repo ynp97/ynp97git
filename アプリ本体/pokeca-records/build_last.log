@@ -1,0 +1,37 @@
+ポケカ戦績 SwiftUI版 v1.20 をビルドします...
+場所: /Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/pokeca-records
+ビルドログ: /Users/yoshiakinagumo/Library/Application Support/PokecaRecordsSwiftUI/build.log
+
+swift-driver version: 1.148.6 Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)
+Target: arm64-apple-macosx26.0
+
+ビルド中...
+Building for production...
+[0/4] Write sources
+[1/4] Write swift-version--1AB21518FC5DEDBE.txt
+[3/5] Compiling PokecaRecords main.swift
+/Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/pokeca-records/Sources/PokecaRecords/main.swift:209:17: warning: result of 'try?' is unused [#no-usage]
+ 207 |         if let data = line.data(using: .utf8) {
+ 208 |             if FileManager.default.fileExists(atPath: url.path), let handle = try? FileHandle(forWritingTo: url) {
+ 209 |                 try? handle.seekToEnd()
+     |                 `- warning: result of 'try?' is unused [#no-usage]
+ 210 |                 try? handle.write(contentsOf: data)
+ 211 |                 try? handle.close()
+[3/5] Write Objects.LinkFileList
+[4/5] Linking PokecaRecords
+Build complete! (47.36s)
+署名中...
+PokecaRecords_v1.20.app: replacing existing signature
+
+完了しました。
+生成されたアプリ: /Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/pokeca-records/PokecaRecords_v1.20.app
+
+/Applications へインストールします...
+インストール完了: /Applications/PokecaRecords_v1.20.app
+
+初回は /Applications の PokecaRecords_v1.20.app を右クリック → 開く で起動してください。
+起動が遅くなるランチャー方式はやめて、アプリ本体を直接起動する形式に変更しました。
+
+ログ:
+/Users/yoshiakinagumo/Library/Application Support/PokecaRecordsSwiftUI/build.log
+
