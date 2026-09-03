@@ -93,6 +93,16 @@ final class AppStore: ObservableObject {
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
+    // v1.20: 小数秒なしのISO文字列（JSONEncoder .iso8601 が出す形式や外部データ）も読めるようにする。
+    private let dateFormatterNoFraction: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f
+    }()
+    private func parseStoredDate(_ text: String) -> Date? {
+        if let d = dateFormatter.date(from: text) { return d }
+        return dateFormatterNoFraction.date(from: text)
+    }
 
     enum Tab: String, CaseIterable, Identifiable {
         case entry = "入力"
@@ -457,11 +467,14 @@ final class AppStore: ObservableObject {
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { throw StoreError.sqlite(sqliteLastError()) }
         defer { sqlite3_finalize(stmt) }
         var out: [MatchRecord] = []
+        var unreadableDates = 0
         while sqlite3_step(stmt) == SQLITE_ROW {
             let iso = colText(stmt, 1) ?? ""
+            let parsed = parseStoredDate(iso)
+            if parsed == nil { unreadableDates += 1 }
             out.append(MatchRecord(
                 id: sqlite3_column_int64(stmt, 0),
-                playedAt: dateFormatter.date(from: iso) ?? Date(),
+                playedAt: parsed ?? .distantPast,
                 myDeck: colText(stmt, 2) ?? "",
                 opponentDeck: colText(stmt, 3) ?? "",
                 rating: colText(stmt, 4) ?? "",
@@ -471,6 +484,9 @@ final class AppStore: ObservableObject {
                 eventName: colText(stmt, 8) ?? "",
                 memo: colText(stmt, 9) ?? ""
             ))
+        }
+        if unreadableDates > 0 {
+            lastErrorMessage = "日時を読み取れない戦績が\(unreadableDates)件あります。一覧のいちばん古い側に出ます。"
         }
         return out
     }
@@ -984,7 +1000,9 @@ struct ErrorBanner: View {
 
 struct EntryView: View {
     @EnvironmentObject var store: AppStore
+    // v1.20: 日時は「保存を押した瞬間」を記録する。手で動かしたときだけその値を使う。
     @State private var playedAt = Date()
+    @State private var dateIsManual = false
     @State private var myDeck = ""
     @State private var opponentDeck = ""
     @State private var rating = ""
@@ -1012,7 +1030,6 @@ struct EntryView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Button("今日・現在時刻") { playedAt = Date() }
                     Button("直近を複製") { duplicateLatest() }.disabled(store.records.isEmpty)
                 }
                 if let saveFeedback {
@@ -1021,7 +1038,30 @@ struct EntryView: View {
                 }
                 VStack(alignment: .leading, spacing: 14) {
                 Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 12) {
-                    GridRow { Text("日時"); DatePicker("", selection: $playedAt).labelsHidden().environment(\.locale, Locale(identifier: "ja_JP@calendar=gregorian")) }
+                    GridRow {
+                        Text("日時")
+                        VStack(alignment: .leading, spacing: 4) {
+                            if dateIsManual {
+                                HStack(spacing: 10) {
+                                    DatePicker("", selection: $playedAt).labelsHidden().environment(\.locale, Locale(identifier: "ja_JP@calendar=gregorian"))
+                                    Button("今にする") { resetDateToNow() }
+                                }
+                                Text("手で指定した日時で記録します")
+                                    .font(.caption).foregroundStyle(Color.orange)
+                            } else {
+                                HStack(spacing: 10) {
+                                    // 現在時刻を出し続ける。ここだけが再描画されるので入力欄の邪魔をしない。
+                                    TimelineView(.periodic(from: Date(), by: 1)) { context in
+                                        Text(gregorianDateTimeString(context.date))
+                                            .font(.body.monospacedDigit())
+                                    }
+                                    Button("日時を指定する") { playedAt = Date(); dateIsManual = true }
+                                }
+                                Text("保存を押した時刻で記録します")
+                                    .font(.caption).foregroundStyle(Color.secondary)
+                            }
+                        }
+                    }
                     GridRow { Text("自分のデッキ"); deckField($myDeck, names: store.myDeckNames(), kind: "my", priority: $myDeckPriority, priorityKey: "priority_myDecks") }
                     GridRow { Text("相手のデッキ"); deckField($opponentDeck, names: store.opponentDeckNames(), kind: "opponent", priority: $opponentDeckPriority, priorityKey: "priority_opponentDecks") }
                     GridRow { Text("レート"); TextField("例：500", text: $rating).textFieldStyle(.roundedBorder).frame(width: 180) }
@@ -1057,9 +1097,15 @@ struct EntryView: View {
         }
     }
 
+    private func resetDateToNow() {
+        playedAt = Date()
+        dateIsManual = false
+    }
+
     private func loadEditingRecord(_ record: MatchRecord?) {
         guard let r = record else { return }
         playedAt = r.playedAt
+        dateIsManual = true
         myDeck = r.myDeck
         opponentDeck = r.opponentDeck
         rating = r.rating
@@ -1224,7 +1270,7 @@ struct EntryView: View {
     private func appendMemo(_ word: String) { memo += memo.isEmpty ? word : "、\(word)" }
     private func duplicateLatest() {
         guard let r = store.records.first else { return }
-        myDeck = r.myDeck; opponentDeck = r.opponentDeck; rating = r.rating; result = r.result; turn = r.turn; opening = r.opening; eventName = r.eventName; memo = r.memo; playedAt = Date()
+        myDeck = r.myDeck; opponentDeck = r.opponentDeck; rating = r.rating; result = r.result; turn = r.turn; opening = r.opening; eventName = r.eventName; memo = r.memo; resetDateToNow()
     }
     private func save() {
         let trimmedMyDeck = myDeck.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1233,10 +1279,16 @@ struct EntryView: View {
             showSaveFeedback("自分のデッキと相手デッキを入力してください")
             return
         }
+        // v1.20: 手で日時を動かしていないときは、保存を押したこの瞬間を記録する。
+        let stamp: Date = (store.editingRecord == nil && !dateIsManual) ? Date() : playedAt
+        if stamp > Date().addingTimeInterval(120) {
+            showSaveFeedback("日時が未来（\(gregorianDateString(stamp)) \(gregorianTimeString(stamp))）になっています。日時を確かめてください")
+            return
+        }
         let id = store.editingRecord?.id ?? 0
         do {
             let wasEditing = store.editingRecord != nil
-            try store.saveRecord(MatchRecord(id: id, playedAt: playedAt, myDeck: trimmedMyDeck, opponentDeck: trimmedOpponentDeck, rating: rating.trimmingCharacters(in: .whitespacesAndNewlines), result: result, turn: turn, opening: opening, eventName: eventName.trimmingCharacters(in: .whitespacesAndNewlines), memo: memo))
+            try store.saveRecord(MatchRecord(id: id, playedAt: stamp, myDeck: trimmedMyDeck, opponentDeck: trimmedOpponentDeck, rating: rating.trimmingCharacters(in: .whitespacesAndNewlines), result: result, turn: turn, opening: opening, eventName: eventName.trimmingCharacters(in: .whitespacesAndNewlines), memo: memo))
             showSaveFeedback(wasEditing ? "更新しました！" : "保存しました！")
             clear(editing: true, keepFeedback: true)
         } catch { store.report(error) }
@@ -1251,7 +1303,7 @@ struct EntryView: View {
     }
 
     private func clear(editing: Bool, keepFeedback: Bool = false) {
-        playedAt = Date(); myDeck = ""; opponentDeck = ""; rating = ""; result = "勝ち"; turn = "先攻"; opening = "B"; eventName = ""; memo = ""
+        resetDateToNow(); myDeck = ""; opponentDeck = ""; rating = ""; result = "勝ち"; turn = "先攻"; opening = "B"; eventName = ""; memo = ""
         if !keepFeedback { saveFeedback = nil }
         if editing { store.editingRecord = nil }
     }
@@ -2266,6 +2318,14 @@ private func gregorianDateString(_ d: Date) -> String {
     f.calendar = Calendar(identifier: .gregorian)
     f.locale = Locale(identifier: "ja_JP_POSIX")
     f.dateFormat = "yyyy-MM-dd"
+    return f.string(from: d)
+}
+
+private func gregorianDateTimeString(_ d: Date) -> String {
+    let f = DateFormatter()
+    f.calendar = Calendar(identifier: .gregorian)
+    f.locale = Locale(identifier: "ja_JP_POSIX")
+    f.dateFormat = "yyyy-MM-dd  HH:mm:ss"
     return f.string(from: d)
 }
 

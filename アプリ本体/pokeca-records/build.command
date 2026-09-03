@@ -5,12 +5,14 @@ cd "$(dirname "$0")"
 LOG_DIR="$HOME/Library/Application Support/PokecaRecordsSwiftUI"
 mkdir -p "$LOG_DIR"
 BUILD_LOG="$LOG_DIR/build.log"
+# v1.20: Vault側にもログを残す（Claude/Codexがそのまま読めるようにするため）
+VAULT_LOG="$(pwd)/build_last.log"
 APP_LOG="$LOG_DIR/app.log"
 ERR_LOG="$LOG_DIR/app_error.log"
 
-exec > >(tee "$BUILD_LOG") 2>&1
+exec > >(tee "$BUILD_LOG" "$VAULT_LOG") 2>&1
 
-echo "ポケカ戦績 SwiftUI版 v1.19 をビルドします..."
+echo "ポケカ戦績 SwiftUI版 v1.20 をビルドします..."
 echo "場所: $(pwd)"
 echo "ビルドログ: $BUILD_LOG"
 echo ""
@@ -34,11 +36,11 @@ if ! swift build -c release; then
 fi
 
 BIN=".build/release/PokecaRecords"
-APP="PokecaRecords_v1.19.app"
+APP="PokecaRecords_v1.20.app"
 CONTENTS="$APP/Contents"
 MACOS="$CONTENTS/MacOS"
 RES="$CONTENTS/Resources"
-EXEC_NAME="PokecaRecords_v1.19"
+EXEC_NAME="PokecaRecords_v1.20"
 
 if [ ! -f "$BIN" ]; then
   echo "ERROR: ビルド後の実行ファイルが見つかりません: $BIN"
@@ -60,13 +62,13 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>CFBundleDevelopmentRegion</key>
     <string>ja</string>
     <key>CFBundleExecutable</key>
-    <string>PokecaRecords_v1.19</string>
+    <string>PokecaRecords_v1.20</string>
     <key>CFBundleIdentifier</key>
-    <string>com.local.pokecarecords.v119</string>
+    <string>com.local.pokecarecords.v120</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>PokecaRecords_v1.19</string>
+    <string>PokecaRecords_v1.20</string>
     <key>CFBundleDisplayName</key>
     <string>ポケカ戦績</string>
     <key>CFBundleIconFile</key>
@@ -74,9 +76,9 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.19</string>
+    <string>1.20</string>
     <key>CFBundleVersion</key>
-    <string>119</string>
+    <string>120</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>LSApplicationCategoryType</key>
@@ -102,7 +104,14 @@ echo ""
 echo "完了しました。"
 echo "生成されたアプリ: $(pwd)/$APP"
 echo ""
-echo "Finderで PokecaRecords_v1.19.app を右クリック → 開く で起動してください。"
+echo "/Applications へインストールします..."
+if rm -rf "/Applications/$APP" 2>/dev/null && cp -R "$APP" "/Applications/$APP" 2>/dev/null; then
+  echo "インストール完了: /Applications/$APP"
+else
+  echo "自動インストールできませんでした。Finderで $APP を /Applications へドラッグしてください。"
+fi
+echo ""
+echo "初回は /Applications の PokecaRecords_v1.20.app を右クリック → 開く で起動してください。"
 echo "起動が遅くなるランチャー方式はやめて、アプリ本体を直接起動する形式に変更しました。"
 echo ""
 echo "ログ:"
