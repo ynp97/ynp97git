@@ -44,14 +44,15 @@ cat > "$APP/Contents/MacOS/run" <<'RUN'
 #!/bin/zsh
 # 保存分岐防止: Chromeプロファイルを Default に固定し、?app=1 を付けて開く。
 # （プロファイルが変わるとlocalStorageの保存場所が分かれ、データが別々になるため）
-zmodload zsh/datetime 2>/dev/null
-T=${EPOCHREALTIME:-0}
 HTML="$HOME/Documents/Obsidian Vault/アプリ本体/ラベル管理/資料請求ラベル管理.html"
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-# 起動を速くするため python3 は呼ばない。file URL に必要なのは空白の %20 だけ（日本語はChromeがそのまま扱える）。
-URL="file://${HTML// /%20}"
+if command -v python3 >/dev/null 2>&1; then
+  URL="file://$(python3 -c 'import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))' "$HTML")"
+else
+  URL="file://$HTML"
+fi
 if [ -x "$CHROME" ]; then
-  "$CHROME" --profile-directory=Default --app="${URL}?app=1&t=${T}" --window-size=1200,840 >/dev/null 2>&1 &
+  "$CHROME" --profile-directory=Default --app="${URL}?app=1" --window-size=1200,840 >/dev/null 2>&1 &
 else
   open "$HTML"
 fi

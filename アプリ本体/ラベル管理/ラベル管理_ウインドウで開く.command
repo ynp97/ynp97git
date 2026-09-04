@@ -9,16 +9,14 @@ if [ ! -f "$HTML" ]; then
   exit 1
 fi
 
-# 空白・日本語を含むパスを安全にfile URL化（python3が無ければ生パス）
-if command -v python3 >/dev/null 2>&1; then
-  URL="file://$(python3 -c 'import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))' "$HTML")"
-else
-  URL="file://$HTML"
-fi
+# 起動を速くするため python3 は呼ばない。file URL に必要なのは空白の %20 だけ。
+zmodload zsh/datetime 2>/dev/null
+T=${EPOCHREALTIME:-0}
+URL="file://${HTML// /%20}"
 
 if [ -x "$CHROME" ]; then
   # 保存分岐防止: プロファイルをDefaultに固定し、?app=1 を付ける
-  "$CHROME" --profile-directory=Default --app="${URL}?app=1" --window-size=1200,840 >/dev/null 2>&1 &
+  "$CHROME" --profile-directory=Default --app="${URL}?app=1&t=${T}" --window-size=1200,840 >/dev/null 2>&1 &
 else
   # Chromeが無ければ通常ブラウザで開く（独自ウインドウにはならない）
   open "$HTML"

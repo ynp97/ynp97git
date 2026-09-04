@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>資料請求ラベル管理</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23F57C00'/%3E%3Ctext x='50' y='55' font-size='66' font-weight='bold' text-anchor='middle' dominant-baseline='central' fill='white' font-family='Hiragino Sans,sans-serif'%3E%E3%83%A9%3C/text%3E%3C/svg%3E">
-<!-- Excel読み込み(SheetJS)は起動時に読まない。①でExcelを選んだ時だけ読む。
-     読む順: 同フォルダの xlsx.full.min.js -> 無ければCDN。起動を止めず、オフラインでも動く。 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{--bg:#f6f7f9;--panel:#fff;--line:#e3e6ea;--ink:#1f2430;--sub:#6b7280;--accent:#2563eb;--accent2:#eff4ff;--ok:#15803d;--warn:#b45309}
   *{box-sizing:border-box}
@@ -67,7 +66,6 @@
 <header>
   <h1>資料請求ラベル管理</h1>
   <span class="muted small">単体HTML / このMac内で完結 / サーバー不要</span>
-  <span id="bootMs" class="muted small"></span>
   <button id="quickRefresh" title="履歴・辞書・印刷待ちは残して、取り込み中の名簿と判定だけ消します">取り込みリストを空にする</button>
   <div class="tabs right">
     <div class="tab active" data-v="in">① 取り込み</div>
@@ -496,29 +494,14 @@ function renderRaw(){
 }
 document.getElementById("addRow").onclick=()=>{state.recipients.push({name:"",kana:"",postal:"",address:"",date:""});renderRaw();invalidateJudgement("行を追加しました。");};
 document.getElementById("goJudge").onclick=()=>judgeAndShow("判定しました");
-// Excelライブラリ(SheetJS)は、Excelを選んだ時に初めて読む。
-// 起動時に読むと、ネットが遅い日は読み終わるまで画面が真っ白のまま止まるため。
-let _xlsxP=null;
-function ensureXLSX(){
-  if(window.XLSX)return Promise.resolve(window.XLSX);
-  if(_xlsxP)return _xlsxP;
-  _xlsxP=new Promise((res,rej)=>{
-    const add=(src,onFail)=>{const s=document.createElement("script");s.src=src;s.onload=()=>res(window.XLSX);s.onerror=onFail;document.head.appendChild(s);};
-    add("xlsx.full.min.js",()=>add("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",()=>rej(new Error("読み込めません"))));
-  });
-  return _xlsxP;
-}
 document.getElementById("xlsxFile").onchange=e=>{
   const f=e.target.files[0];if(!f)return;const st=document.getElementById("xlsxState");
-  st.textContent="Excelライブラリを読み込み中…";
-  ensureXLSX().then(()=>{
-    st.textContent="読み込み中…";
-    const rd=new FileReader();rd.onload=ev=>{try{
-      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
-      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
-      const list=rowsToRecipients(rows);st.textContent=`「${f.name}」から ${list.length} 件。`;finishImport(list,`Excel「${f.name}」`);
-    }catch(err){st.textContent="読み込みエラー: "+err.message;}};rd.readAsArrayBuffer(f);
-  }).catch(()=>{st.textContent="Excelライブラリを読み込めません（同じフォルダに xlsx.full.min.js が無く、ネットにも出られない状態）。テキスト貼り付けをお使いください。";});
+  if(typeof XLSX==="undefined"){st.textContent="Excelライブラリを取得できません（オフラインの可能性）。テキスト貼り付けをお使いください。";return;}
+  const rd=new FileReader();rd.onload=ev=>{try{
+    const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
+    const list=rowsToRecipients(rows);st.textContent=`「${f.name}」から ${list.length} 件。`;finishImport(list,`Excel「${f.name}」`);
+  }catch(err){st.textContent="読み込みエラー: "+err.message;}};rd.readAsArrayBuffer(f);
 };
 document.getElementById("pasteBtn").onclick=()=>{
   const t=document.getElementById("pasteArea").value;if(!t.trim()){alert("テキストが空です。");return;}
@@ -691,37 +674,12 @@ function renderPreview(){
 }
 ["pStart","pFont","pHon","pOffX","pOffY"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
   const s=state.settings;s.pStart=+val("pStart");s.pFont=+val("pFont");s.pHon=val("pHon");s.pOffX=+val("pOffX");s.pOffY=+val("pOffY");save();renderPreview();}));
-// 印刷ボタン。
-// ここで alert / confirm を使わないのは、Chromeがダイアログを黙って握りつぶすことがあり、
-// そうなると「押しても何も起きない」ように見えてしまうため。画面内のバナーなら必ず出る。
 document.getElementById("doPrint").onclick=()=>{
-  if(!state.queue.length){
-    showFlow("warn","印刷待ちが空です","②で送付対象をチェックして「印刷待ちへ →」を押すと、ここに並びます。",
-      [{label:"②へ戻る",primary:true,run:()=>gotoTab("sel")}]);
-    return;
-  }
+  if(!state.queue.length){alert("印刷待ちが空です。");return;}
   // 最終安全弁: 印刷直前にも送付済みチェック（前回印刷後に「送付済み」を押し忘れて再印刷、等を捕まえる）
   const dup=state.queue.filter(p=>findSent(p));
-  if(dup.length){
-    showFlow("warn",`⚠ 送付済みの人が ${dup.length}人 混ざっています`,
-      `${dup.slice(0,5).map(p=>p.name).join("、")}${dup.length>5?" ほか":""}。このまま印刷すると二重発送になります。`,
-      [{label:"やめる",run:hideFlow},{label:"それでも印刷する",primary:true,run:()=>{hideFlow();runPrint();}}]);
-    return;
-  }
-  runPrint();
-};
-function runPrint(){
-  const t=new Date().toLocaleTimeString("ja-JP");
-  try{
-    buildLabels(document.getElementById("sheet"));
-    const n=document.querySelectorAll("#sheet .lbl").length;
-    showFlow("success","印刷ダイアログを開きます",
-      `${t}／宛名 ${n}件を組みました。プレビューが出ないときは、この画面で ⌘P を押しても同じものが印刷できます。`);
-    window.print();
-  }catch(err){
-    showFlow("warn","印刷の準備でエラーが出ました",t+"／"+(err&&err.message?err.message:String(err))+" ── この文言をそのまま伝えてください。");
-  }
-}
+  if(dup.length&&!confirm(`⚠ 印刷待ちの中に送付済みの人が ${dup.length}人います:\n${dup.slice(0,5).map(p=>p.name).join("、")}${dup.length>5?" ほか":""}\n\nこのまま印刷すると二重発送になります。印刷しますか？`))return;
+  buildLabels(document.getElementById("sheet"));window.print();};
 document.getElementById("clearQueue").onclick=()=>{if(confirm("印刷待ちを空にしますか？")){state.queue=[];save();renderPreview();}};
 document.getElementById("markSent").onclick=()=>{if(!state.queue.length){alert("キューが空です。");return;}
   const at=new Date().toLocaleString("ja-JP");let n=0;
@@ -918,12 +876,6 @@ function adoptNewer(){try{
 }catch(e){}}
 window.addEventListener("focus",adoptNewer);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)adoptNewer();});
-// 起動にかかった時間を出す（ランチャーが ?t=<開始epoch秒> を付けて開く）
-try{
-  const m=/[?&]t=([0-9.]+)/.exec(location.search);
-  if(m){const sec=Date.now()/1000-parseFloat(m[1]);
-    if(sec>0&&sec<600)document.getElementById("bootMs").textContent="／起動 "+sec.toFixed(1)+"秒";}
-}catch(e){}
 // Dockランチャー以外からの直開き注意（保存場所の分岐防止）
 try{if(location.protocol==="file:"&&!/[?&]app=1/.test(location.search))document.getElementById("openWarn").style.display="block";}catch(e){}
 </script>
