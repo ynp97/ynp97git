@@ -11,7 +11,7 @@ import re
 
 
 CSS = r"""
-:root{--blue:#006699;--ink:#000;--muted:#59636b;--gold:#fff6dd;--verse-bg:#eef7fb}
+:root{--blue:#006699;--ink:#000;--muted:#59636b;--gold:#fff6dd;--verse-bg:#dceaf5}
 @page{size:A4 portrait;margin:35mm 30mm 30mm}
 *{box-sizing:border-box}
 html{background:#e8ebed}
@@ -28,7 +28,7 @@ rt{color:#4e6570;font-size:.5em;font-weight:500;letter-spacing:0}
 .conclusion{font-weight:700}
 .overview{color:var(--muted)}
 .verse-unit{break-inside:auto}
-.verse{margin:6mm 0 5mm 6.35mm;padding:3.2mm 3.4mm 3.4mm;border-top:.35mm solid #c8dce6;border-bottom:.35mm solid #c8dce6;background:var(--verse-bg);font-size:13.5pt;font-weight:700;line-height:1.72;break-inside:avoid-page}
+.verse{margin:6mm 0 5mm 6.35mm;padding:3.2mm 3.4mm 3.4mm;border-top:.35mm solid #a8c9dc;border-bottom:.35mm solid #a8c9dc;background:var(--verse-bg);font-size:15pt;font-weight:700;line-height:1.72;break-inside:avoid-page}
 .verse-label{display:block;margin:0 0 1.8mm;color:var(--blue);font-size:11.5pt;line-height:1.4}
 .verse-text{color:#000}
 .notes,.points{margin-bottom:3mm}
