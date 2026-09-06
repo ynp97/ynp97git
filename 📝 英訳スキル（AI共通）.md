@@ -35,6 +35,12 @@
 - **福音派の用語法に従う。** salvation / grace / repentance / born again / the Word / the Lord / justification / sanctification / fellowship / testimony / devotion など、福音派の英語圏で通用する語を選ぶ。学術神学の術語や、リベラル寄りの言い換えに寄せない。
 - **「イエス様」は英語では敬称を重ねない。** 英語の慣用に従い `Jesus` とする（`Mr. Jesus` 等にしない）。文脈により `the Lord Jesus` は可。
 - **最終出力はワード用に整形する**（2026-08-02 本人指定）。段落・改行・見出しがWordに貼ってそのまま通る形にする。物理書式（用紙・フォント・級数）が要る場合は [[📄 Word出力仕様（AI共通）]] に従う。
+- **PDF化まで自動でやる**（2026-09-06 本人指定）。英訳本文を返したら、確認を挟まずそのまま印刷用PDFを作り、`~/Desktop` に保存し、チャットにも渡す。「PDFにしますか」と聞き返さない。
+  - 生成は `scripts/tr97_pdf_build.py`（固定の道具）。英訳本文を1行目=タイトル・空行区切りのテキストにして `python3 tr97_pdf_build.py 入力.txt 出力.pdf`。
+  - **実行はクラウド側コンテナ**。Playwright を使うため macOS の device_bash では動かない（[[reference_st97_pdf_pipeline]] と同じ制約）。保存は SendUserFile → device_commit_files で `~/Desktop` に置く。
+  - ファイル名は箇所ベースの半角（例: `Mark3_20-35_Beelzebul_EN.pdf`）。
+  - 書式: A4 / Times New Roman 11.5pt / 行送り1.62 / 余白 上22mm 他20mm / ページ番号は下中央。聖句引用は斜体+インデント、本文の節番号段落は太字+インデント。`＠＠` は区切り線。
+  - チャットに出す英訳本文は従来どおり本文のみ。PDFを渡す一言だけは添えてよい。
 
 ---
 
