@@ -8,12 +8,26 @@ import CoreGraphics
 
 @main
 struct App: SwiftUI.App {
+    @NSApplicationDelegateAdaptor(RecordingAppDelegate.self) var delegate
     var body: some Scene {
-        WindowGroup {
+        Window("スクトレル", id: "main") {
             ContentView().frame(width: 320, height: 280).fixedSize()
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
+    }
+}
+
+@MainActor enum RecordingLifecycle { static var active = false }
+@MainActor final class RecordingAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard RecordingLifecycle.active else { return .terminateNow }
+        let alert = NSAlert()
+        alert.messageText = "録画の保存が終わってから終了してください"
+        alert.informativeText = "録画中なら「録画を停止」を押してください。"
+        alert.addButton(withTitle: "戻る")
+        alert.runModal()
+        return .terminateCancel
     }
 }
 
@@ -140,6 +154,7 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
     // Run on the sample queue after capture has stopped. ScreenCaptureKit sends no
     // complete frames for a static slide; extend its final image to the audio end.
     func finishInputs() {
+        guard writer.status == .writing else { return }
         if writer.status == .writing, let frame = lastFrame,
            lastMediaTime > CMSampleBufferGetPresentationTimeStamp(frame), videoIn.isReadyForMoreMediaData {
             var timing = CMSampleTimingInfo(duration: CMTime(value: 1, timescale: 30),
@@ -220,6 +235,32 @@ struct ContentView: View {
             Spacer()
         }
         .padding()
+        .onChange(of: busy) { _, _ in RecordingLifecycle.active = busy || isRecording }
+        .onChange(of: isRecording) { _, _ in RecordingLifecycle.active = busy || isRecording }
+        .task {
+            // Opt-in local integration check. Normal launches never auto-record.
+            let args = ProcessInfo.processInfo.arguments
+            if let index = args.firstIndex(of: "--recording-check"), args.count > index + 1 {
+                let report = URL(fileURLWithPath: args[index + 1])
+                start()
+                while busy { try? await Task.sleep(for: .milliseconds(100)) }
+                writeCheckReport(to: report)
+                if isRecording {
+                    try? await Task.sleep(for: .seconds(10))
+                    stop()
+                    while busy { try? await Task.sleep(for: .milliseconds(100)) }
+                    writeCheckReport(to: report)
+                }
+            }
+        }
+    }
+
+    private func writeCheckReport(to url: URL) {
+        let report: [String: Any] = ["recording": isRecording, "needsPermission": needsPermission,
+                                    "message": message, "file": lastFile?.path ?? ""]
+        if let data = try? JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]) {
+            try? data.write(to: url, options: .atomic)
+        }
     }
 
     func tap() {
@@ -397,7 +438,7 @@ struct ContentView: View {
                 }
             }
 
-            await eng.writer.finishWriting()
+            if eng.writer.status == .writing { await eng.writer.finishWriting() }
 
             // Read stats after finishing so failures raised during the flush are included.
             let stats = eng.stats

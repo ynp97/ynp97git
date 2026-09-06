@@ -16,6 +16,8 @@ import CoreVideo
         }
         guard writer.startWriting() else { throw writer.error! }
         writer.startSession(atSourceTime: .zero)
+        try await withThrowingTaskGroup(of: Void.self) { group in
+        group.addTask {
         for frame in 0..<120 {
             while !video.isReadyForMoreMediaData { try await Task.sleep(for: .milliseconds(1)) }
             var buffer: CVPixelBuffer?
@@ -26,7 +28,9 @@ import CoreVideo
             guard adaptor.append(buffer!, withPresentationTime: CMTime(value: Int64(frame), timescale: 30)) else { throw writer.error! }
         }
         video.markAsFinished()
+        }
         for i in 0..<2 {
+          group.addTask {
             let asset = AVURLAsset(url: dir.appendingPathComponent("tone\(i).wav"))
             let track = try await asset.loadTracks(withMediaType: .audio).first!
             let reader = try AVAssetReader(asset: asset)
@@ -34,13 +38,18 @@ import CoreVideo
             reader.add(output); reader.startReading()
             while let sample = output.copyNextSampleBuffer() {
                 while !inputs[i].isReadyForMoreMediaData { try await Task.sleep(for: .milliseconds(1)) }
-                var timing = CMSampleTimingInfo(duration: CMSampleBufferGetDuration(sample), presentationTimeStamp: CMSampleBufferGetPresentationTimeStamp(sample) + CMTime(seconds: i == 0 ? 0 : 0.5, preferredTimescale: 48000), decodeTimeStamp: .invalid)
+                var timing = CMSampleTimingInfo()
+                CMSampleBufferGetSampleTimingInfo(sample, at: 0, timingInfoOut: &timing)
+                timing.presentationTimeStamp = timing.presentationTimeStamp + CMTime(seconds: i == 0 ? 0 : 0.5, preferredTimescale: 48000)
                 var shifted: CMSampleBuffer?
                 CMSampleBufferCreateCopyWithNewTiming(allocator: nil, sampleBuffer: sample, sampleTimingEntryCount: 1, sampleTimingArray: &timing, sampleBufferOut: &shifted)
                 guard inputs[i].append(shifted!) else { throw writer.error! }
             }
             guard reader.status == .completed else { throw reader.error! }
             inputs[i].markAsFinished()
+          }
+        }
+        try await group.waitForAll()
         }
         await writer.finishWriting()
         guard writer.status == .completed else { throw writer.error! }
