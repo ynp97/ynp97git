@@ -83,6 +83,13 @@ import CoreVideo
         guard early440 > 0.1, early880 < 0.01, late440 > 0.1, late880 > 0.1 else {
             fatalError("Mix/offset failed: \(early440), \(early880), \(late440), \(late880)")
         }
+        do {
+            _ = try await RecordingFinalizer.finalize(result)
+            fatalError("Expected rejection for one audio track")
+        } catch {
+            guard FileManager.default.fileExists(atPath: result.path) else { fatalError("Failure deleted source") }
+        }
+        print("PASS: incomplete audio rejected and original file retained.")
         print("PASS: one video + one audio track; both tones preserved; microphone's 0.5s offset preserved.")
         print("Amplitudes early440=\(early440), early880=\(early880), late440=\(late440), late880=\(late880)")
         print(result.path)

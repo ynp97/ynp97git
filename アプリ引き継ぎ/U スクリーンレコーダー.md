@@ -6,6 +6,8 @@
 
 # U. スクリーンレコーダー
 
+> **現在地は末尾の「2026-09-06 — スクトレル1.3実装」を優先。** マイク未実装という7月の記載は旧状態。
+
 ### U. スクリーンレコーダー（Swift + ScreenCaptureKit / macOSネイティブ）
 
 - 実体: `アプリ本体/screen-recorder/Sources/ScreenRecorder/main.swift`、`Package.swift`（macOS 14+、SwiftUI）。
@@ -260,3 +262,20 @@ macOSは画面収録の許可を**アプリの身分証（bundle identifier）�
 - CleanShot Xもマイクとシステム音声の同時録音に対応。有料候補。公式掲載はBasic 35 USD買い切り・更新1年、更新継続は任意で19 USD/年（税別の可能性）。クラウド利用は必須でない。https://cleanshot.com/screen-recording ／ https://cleanshot.com/pricing
 - OBSは既に導入済みで画面と音声を組み合わせられるが、本人が以前「煩雑」とした経緯を維持。https://obsproject.com/kb/macos-desktop-audio-capture-guide
 - Codexの提案：無料ならQuickRecorder、有料ならCleanShot Xを比較候補とする。スクトレルのマイク追加を当然の前提にはしない。採用・導入・改修の決定はまだない。既製アプリの実機録画品質は今回検証していない。
+
+
+## 2026-09-06 — スクトレル1.3実装（Codex・実機許可待ち）
+
+- 本人が「大丈夫そうであれば自前で作りたい。やってみて」と実装を依頼。既製品の導入ではなくスクトレルを完成させる方針。
+- `Sources/ScreenRecorder/main.swift` を `App.swift` に改名。マイク権限要求・`captureMicrophone`・専用AAC入力を追加。画面のidle/blank除外・偶数解像度・最初の映像フレームで開始する処理・過去の注意コメントは保持。
+- `RecordingFinalizer.swift` 新設。収録時は2音声トラックで残し、停止後に音声だけ合成→映像パススルーでMOV化。マイクの時間位置を維持。最終ファイルの映像/音声各1トラック・長さ・サイズを確認してから元ファイルを削除。失敗時は元録画を残す。
+- UIは「録画を開始／録画を停止」、経過時間、保存後のFinder表示。カメラ追加なし。メインディスプレイ全体＋システム音声＋既定マイク。停止時のサンプルキュー排出・静止画面の最終フレーム延長・録画/保存中の通常終了防止を追加。
+- このMacはmacOS 26.6.2。利用条件はmacOS 15以降へ更新。
+- **署名**：キーチェーンの有効な証明書が0件だった（サンドボックス外でも確認）。`ScreenRec Local Development` を生成・ログインキーチェーンに登録し、ユーザーのcodeSign用途に限定して信頼登録。秘密鍵はキーチェーンのみ（生成時の一時ファイルは削除）。Appleの配布証明書ではない。バンドルID `com.screenrecorder.app` は維持。
+- `build.sh` はこの証明書を優先し、無ければApple Developmentを使う。署名・検証済みのステージング版を作ってから置換。起動中は置換しない。既存版は日時付きバックアップへ退避。ad-hocへのフォールバックなし。
+- **確認済み**：Swift実コンパイル、バンドル署名のstrict検証、Info.plist検査、`/Applications/ScreenRec.app` の起動と「録画を開始」表示。440Hz＋880Hzの実ファイル合成で、単一音声トラックに両周波数が残り、マイク側0.5秒遅延が保たれることをデコード解析で確認。
+- **実機録画は未完了**：`--recording-check` で起動したが画面収録権限で停止。`/private/tmp/screenrec-live-check.json` は `needsPermission: true` / `recording: false`。本人へ画面収録のオンを依頼済み。許可後にアプリを再起動し、マイク許可も求められる。
+- **次回の完了確認**：実画面＋システム音声＋マイクの録画→停止→再生で両方の声を確認。その後長時間会議と再ビルド後の権限保持を検証。ビルド成功だけで完成とは呼ばない。
+- 実行手順と回帰検査は `アプリ本体/screen-recorder/README.md` / `Tests/run-audio-check.sh`。GitHubへのpushは今回行っていない。
+- ★複数Swiftファイルで `@main` を使う際、ファイル名 `main.swift` のままだとトップレベル入口と衝突した。ビルド中のソース書換えも避ける。
+- ★CUAでのアプリ起動・状態取得は応答が非常に遅かった。アプリ自身の任意10秒検査 `--recording-check <JSONパス>` を追加し、OS権限がない場合もJSONで確認できるようにした。権限の自動付与はしない。
