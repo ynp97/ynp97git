@@ -461,7 +461,7 @@ struct ContentView: View {
                         throw RecordingError.message("一方の音声が取得できませんでした。元の録画を残しました")
                     }
                     message = "両方の音声をまとめています…"
-                    let finalURL = try await RecordingFinalizer.finalize(url)
+                    let finalURL = try await RecordingFinalizer.finalize(url, keepSource: ProcessInfo.processInfo.arguments.contains("--recording-check"))
                     lastFile = finalURL
                     if let reason = stopError ?? stats.error {
                         message = "途中で録画が中断しました: \(reason)。保存できた部分を残しました"

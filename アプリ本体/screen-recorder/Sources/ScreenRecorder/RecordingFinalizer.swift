@@ -8,7 +8,7 @@ enum RecordingError: LocalizedError {
 }
 
 enum RecordingFinalizer {
-    static func finalize(_ source: URL) async throws -> URL {
+    static func finalize(_ source: URL, keepSource: Bool = false) async throws -> URL {
         let asset = AVURLAsset(url: source)
         let tracks = try await asset.loadTracks(withMediaType: .audio)
         guard tracks.count == 2 else { throw RecordingError.message("音声が2系統そろっていません。元の録画を残しました") }
@@ -74,7 +74,7 @@ enum RecordingFinalizer {
         }
         try FileManager.default.moveItem(at: staging, to: final)
         // Only remove the original after both exports and the final movie checks succeed.
-        try? FileManager.default.removeItem(at: source)
+        if !keepSource { try? FileManager.default.removeItem(at: source) }
         return final
     }
 }
