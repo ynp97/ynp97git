@@ -53,7 +53,9 @@ import CoreVideo
         }
         await writer.finishWriting()
         guard writer.status == .completed else { throw writer.error! }
-        let result = try await RecordingFinalizer.finalize(source)
+        let systemGain = CommandLine.arguments.count > 2 ? Float(CommandLine.arguments[2])! : 0.5
+        let micGain = CommandLine.arguments.count > 3 ? Float(CommandLine.arguments[3])! : 0.5
+        let result = try await RecordingFinalizer.finalize(source, systemGain: systemGain, microphoneGain: micGain)
         let asset = AVURLAsset(url: result)
         let tracks = try await asset.loadTracks(withMediaType: .audio)
         guard tracks.count == 1 else { fatalError("Expected one audio track") }
@@ -80,7 +82,10 @@ import CoreVideo
         }
         let early440 = amplitude(440, 0.1), early880 = amplitude(880, 0.1)
         let late440 = amplitude(440, 1), late880 = amplitude(880, 1)
-        guard early440 > 0.1, early880 < 0.01, late440 > 0.1, late880 > 0.1 else {
+        let expectedSystem = Double(systemGain) * 16000 / 32768
+        let expectedMic = Double(micGain) * 16000 / 32768
+        guard abs(early440 - expectedSystem) < 0.02, early880 < 0.01,
+              abs(late440 - expectedSystem) < 0.02, abs(late880 - expectedMic) < 0.02 else {
             fatalError("Mix/offset failed: \(early440), \(early880), \(late440), \(late880)")
         }
         do {
@@ -90,7 +95,7 @@ import CoreVideo
             guard FileManager.default.fileExists(atPath: result.path) else { fatalError("Failure deleted source") }
         }
         print("PASS: incomplete audio rejected and original file retained.")
-        print("PASS: one video + one audio track; both tones preserved; microphone's 0.5s offset preserved.")
+        print("PASS: one audio track; gains system=\(systemGain) mic=\(micGain); microphone offset preserved.")
         print("Amplitudes early440=\(early440), early880=\(early880), late440=\(late440), late880=\(late880)")
         print(result.path)
     }

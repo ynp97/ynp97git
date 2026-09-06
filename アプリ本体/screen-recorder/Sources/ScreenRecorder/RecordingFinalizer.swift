@@ -8,7 +8,7 @@ enum RecordingError: LocalizedError {
 }
 
 enum RecordingFinalizer {
-    static func finalize(_ source: URL, keepSource: Bool = false) async throws -> URL {
+    static func finalize(_ source: URL, systemGain: Float = 0.5, microphoneGain: Float = 0.5, keepSource: Bool = false) async throws -> URL {
         let asset = AVURLAsset(url: source)
         let tracks = try await asset.loadTracks(withMediaType: .audio)
         guard tracks.count == 2 else { throw RecordingError.message("音声が2系統そろっていません。元の録画を残しました") }
@@ -23,15 +23,16 @@ enum RecordingFinalizer {
 
         let audioComposition = AVMutableComposition()
         var parameters: [AVMutableAudioMixInputParameters] = []
-        for track in tracks {
+        for (index, track) in tracks.enumerated() {
             guard let dest = audioComposition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else {
                 throw RecordingError.message("音声をまとめる準備に失敗しました")
             }
             let range = try await track.load(.timeRange)
             try dest.insertTimeRange(range, of: track, at: range.start)
             let parameter = AVMutableAudioMixInputParameters(track: dest)
-            // Headroom for simultaneous speech; preserve relative input levels.
-            parameter.setVolume(0.5, at: .zero)
+            // 100% in the UI retains the original 0.5 headroom; 0% mutes.
+            let requestedGain = index == 0 ? systemGain : microphoneGain
+            parameter.setVolume(requestedGain.isFinite ? min(1, max(0, requestedGain)) : 0.5, at: .zero)
             parameters.append(parameter)
         }
         let mix = AVMutableAudioMix()

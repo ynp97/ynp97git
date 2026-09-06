@@ -11,7 +11,7 @@ struct App: SwiftUI.App {
     @NSApplicationDelegateAdaptor(RecordingAppDelegate.self) var delegate
     var body: some Scene {
         Window("スクトレル", id: "main") {
-            ContentView().frame(width: 320, height: 280).fixedSize()
+            ContentView().frame(width: 340, height: 410).fixedSize()
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
@@ -181,6 +181,10 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
 // MARK: - View
 
 struct ContentView: View {
+    @AppStorage("systemVolumePercent") private var systemVolume = 100.0
+    @AppStorage("microphoneVolumePercent") private var microphoneVolume = 100.0
+    @State private var recordingSystemGain: Float = 0.5
+    @State private var recordingMicrophoneGain: Float = 0.5
     @State private var isRecording = false
     @State private var busy = false
     @State private var needsPermission = false
@@ -216,7 +220,14 @@ struct ContentView: View {
             if let startedAt, isRecording {
                 Text(startedAt, style: .timer).monospacedDigit()
             }
-            Text("スクトレル 1.3").font(.headline)
+            Text("スクトレル 1.4").font(.headline)
+            VStack(spacing: 12) {
+                volumeControl("パソコンの音", value: $systemVolume)
+                volumeControl("マイク（自分の声）", value: $microphoneVolume)
+                Text("100%が標準。録画前に調整してください。")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+            .disabled(busy || isRecording)
             Text(message)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -255,6 +266,18 @@ struct ContentView: View {
         }
     }
 
+    private func volumeControl(_ title: String, value: Binding<Double>) -> some View {
+        VStack(spacing: 4) {
+            HStack {
+                Text(title)
+                Spacer()
+                Text("\(Int(value.wrappedValue))%").monospacedDigit()
+            }.font(.caption)
+            Slider(value: value, in: 0...200, step: 5)
+                .accessibilityLabel(title)
+        }
+    }
+
     private func writeCheckReport(to url: URL) {
         let report: [String: Any] = ["recording": isRecording, "needsPermission": needsPermission,
                                     "message": message, "file": lastFile?.path ?? ""]
@@ -287,6 +310,8 @@ struct ContentView: View {
             }
         }
 
+        recordingSystemGain = Float(systemVolume / 200)
+        recordingMicrophoneGain = Float(microphoneVolume / 200)
         busy = true
         lastFile = nil
         message = "Starting…"
@@ -461,7 +486,7 @@ struct ContentView: View {
                         throw RecordingError.message("一方の音声が取得できませんでした。元の録画を残しました")
                     }
                     message = "両方の音声をまとめています…"
-                    let finalURL = try await RecordingFinalizer.finalize(url, keepSource: ProcessInfo.processInfo.arguments.contains("--recording-check"))
+                    let finalURL = try await RecordingFinalizer.finalize(url, systemGain: recordingSystemGain, microphoneGain: recordingMicrophoneGain, keepSource: ProcessInfo.processInfo.arguments.contains("--recording-check"))
                     lastFile = finalURL
                     if let reason = stopError ?? stats.error {
                         message = "途中で録画が中断しました: \(reason)。保存できた部分を残しました"
