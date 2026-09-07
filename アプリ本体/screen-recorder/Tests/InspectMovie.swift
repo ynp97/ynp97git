@@ -14,16 +14,24 @@ import CoreImage
             let output = AVAssetReaderTrackOutput(track: track, outputSettings: [AVFormatIDKey: kAudioFormatLinearPCM, AVSampleRateKey: 48000, AVNumberOfChannelsKey: 1, AVLinearPCMBitDepthKey: 32, AVLinearPCMIsFloatKey: true, AVLinearPCMIsNonInterleaved: false])
             reader.add(output)
             guard reader.startReading() else { throw reader.error! }
+            var windows: [Int: (Double, Int)] = [:]
             var count = 0, energy = 0.0, peak = 0.0
             while let sample = output.copyNextSampleBuffer(), let block = CMSampleBufferGetDataBuffer(sample) {
                 let size = CMBlockBufferGetDataLength(block)
                 var data = [Float](repeating: 0, count: size/4)
                 data.withUnsafeMutableBytes { raw in _ = CMBlockBufferCopyDataBytes(block, atOffset: 0, dataLength: size, destination: raw.baseAddress!) }
-                for value in data { let x = Double(value); energy += x*x; peak = max(peak, abs(x)) }
+                let second = Int(CMSampleBufferGetPresentationTimeStamp(sample).seconds) / 5 * 5
+                var window = windows[second] ?? (0, 0)
+                for value in data { let x = Double(value); energy += x*x; peak = max(peak, abs(x)); window.0 += x*x; window.1 += 1 }
+                windows[second] = window
                 count += data.count
             }
             guard reader.status == .completed else { throw reader.error! }
             print("audio[\(index)] samples=\(count) rms=\(sqrt(energy/Double(max(1,count)))) peak=\(peak)")
+            for second in windows.keys.sorted() {
+                let value = windows[second]!
+                print("audio window \(second)s RMS=\(sqrt(value.0/Double(max(1,value.1))))")
+            }
         }
         if let track = videos.first {
             let reader = try AVAssetReader(asset: asset)
