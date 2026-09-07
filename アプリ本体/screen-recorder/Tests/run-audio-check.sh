@@ -19,3 +19,6 @@ for GAINS in "0.5 0.5" "0.2 0.8" "0 1" "1 0"; do
   read -r SYSTEM_GAIN MIC_GAIN <<< "$GAINS"
   "$CHECK_DIR/check" "$CASE_DIR" "$SYSTEM_GAIN" "$MIC_GAIN"
 done
+
+swiftc -parse-as-library -O -o "$CHECK_DIR/live-check" Tests/LiveMixerCheck.swift Sources/ScreenRecorder/LiveAudioMixer.swift Sources/ScreenRecorder/RecordingFinalizer.swift
+"$CHECK_DIR/live-check"

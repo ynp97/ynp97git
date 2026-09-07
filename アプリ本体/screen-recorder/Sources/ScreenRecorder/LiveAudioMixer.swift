@@ -11,6 +11,7 @@ struct MixerReading: Sendable {
 final class LiveAudioMixer: @unchecked Sendable {
     private let lock = NSLock()
     private var requested: [Float] = [0.5, 0.5]
+    private var initialized = [false, false]
     private var smoothed: [Float] = [0.5, 0.5]
     private var peaks: [Float] = [0, 0]
     private var peakTimes: [Double] = [0, 0]
@@ -25,7 +26,7 @@ final class LiveAudioMixer: @unchecked Sendable {
         let now = ProcessInfo.processInfo.systemUptime
         return lock.withLock {
             let values = zip(peaks, peakTimes).map { peak, time in peak * Float(exp(-max(0, now-time-0.12)*7)) }
-            return MixerReading(system: values[0], microphone: values[1], clipped: now-clipTime < 1)
+            return MixerReading(system: values[0], microphone: values[1], clipped: now-clipTime < 1 || values.reduce(0, +) >= 0.98)
         }
     }
     func process(_ sample: CMSampleBuffer, microphone: Bool) throws -> (CMSampleBuffer, AVAudioPCMBuffer) {
@@ -50,6 +51,7 @@ final class LiveAudioMixer: @unchecked Sendable {
             pcm = output
         }
         let gain = lock.withLock { requested[index] }
+        if !initialized[index] { smoothed[index] = gain; initialized[index] = true }
         var peak: Float = 0
         let channels = pcm.floatChannelData!
         for frame in 0..<Int(pcm.frameLength) {
@@ -96,14 +98,21 @@ enum AudioSamples {
             throw RecordingError.message("対応しない音声形式です")
         }
         pcm.frameLength = pcm.frameCapacity
-        let list = AudioBufferList.allocate(maximumBuffers: max(2, Int(format.channelCount)))
-        defer { list.unsafeMutablePointer.deallocate() }
+        var needed = 0
         var retained: CMBlockBuffer?
+        let query = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sample, bufferListSizeNeededOut: &needed,
+            bufferListOut: nil, bufferListSize: 0, blockBufferAllocator: kCFAllocatorDefault,
+            blockBufferMemoryAllocator: kCFAllocatorDefault, flags: 0, blockBufferOut: &retained)
+        guard query == noErr, needed > 0 else { throw RecordingError.message("音声サイズを取得できません: \(query)") }
+        let storage = UnsafeMutableRawPointer.allocate(byteCount: needed, alignment: 16)
+        defer { storage.deallocate() }
+        let pointer = storage.bindMemory(to: AudioBufferList.self, capacity: 1)
         let status = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sample, bufferListSizeNeededOut: nil,
-            bufferListOut: list.unsafeMutablePointer, bufferListSize: AudioBufferList.sizeInBytes(maximumBuffers: max(2, Int(format.channelCount))),
+            bufferListOut: pointer, bufferListSize: needed,
             blockBufferAllocator: kCFAllocatorDefault, blockBufferMemoryAllocator: kCFAllocatorDefault,
             flags: kCMSampleBufferFlag_AudioBufferList_Assure16ByteAlignment, blockBufferOut: &retained)
         guard status == noErr else { throw RecordingError.message("音声を読み取れません: \(status)") }
+        let list = UnsafeMutableAudioBufferListPointer(pointer)
         let destination = UnsafeMutableAudioBufferListPointer(pcm.mutableAudioBufferList)
         guard list.count == destination.count else { throw RecordingError.message("音声チャンネル数が一致しません") }
         for i in 0..<list.count {

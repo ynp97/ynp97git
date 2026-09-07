@@ -11,7 +11,7 @@ struct App: SwiftUI.App {
     @NSApplicationDelegateAdaptor(RecordingAppDelegate.self) var delegate
     var body: some Scene {
         Window("スクトレル", id: "main") {
-            ContentView().frame(width: 340, height: 530).fixedSize()
+            ContentView().frame(width: 340, height: 590).fixedSize()
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
@@ -199,6 +199,8 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
 struct ContentView: View {
     @AppStorage("systemVolumePercent") private var systemVolume = 100.0
     @AppStorage("microphoneVolumePercent") private var microphoneVolume = 100.0
+    @AppStorage("outputFolderBookmark") private var outputBookmark = Data()
+    @State private var scopedFolder: URL?
     @State private var monitorEnabled = false
     @State private var systemTap: SystemAudioTap?
     @State private var meterReading = MixerReading()
@@ -250,7 +252,7 @@ struct ContentView: View {
                 .font(.caption).disabled(busy || isRecording)
             Text(monitorEnabled ? "ヘッドフォンを装着してください。自分の声は少し遅れて聞こえます。" : "モニターOFF：メーターで録音音量を確認")
                 .font(.caption2).foregroundStyle(.secondary)
-            if meterReading.clipped { Text("音量が大きすぎます").font(.caption).foregroundStyle(.red) }
+            if meterReading.clipped { Text("音割れ注意：音量を下げてください").font(.caption).foregroundStyle(.red) }
             Text(message)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -258,6 +260,8 @@ struct ContentView: View {
                 .lineLimit(3)
                 .frame(maxWidth: 280)
 
+            Button("保存先を選ぶ…") { chooseOutputFolder() }
+                .font(.caption).disabled(busy || isRecording)
             if let file = lastFile {
                 Button("保存した動画を表示") {
                     NSWorkspace.shared.activateFileViewerSelecting([file])
@@ -405,9 +409,7 @@ struct ContentView: View {
                 let videoIn = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
                 videoIn.expectsMediaDataInRealTime = true
                 guard writer.canAdd(videoIn) else {
-                    message = "Video input rejected"
-                    busy = false
-                    return
+                    throw RecordingError.message("映像を保存できません")
                 }
                 writer.add(videoIn)
 
@@ -420,9 +422,7 @@ struct ContentView: View {
                 let audioIn = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
                 audioIn.expectsMediaDataInRealTime = true
                 guard writer.canAdd(audioIn) else {
-                    message = "Audio input rejected"
-                    busy = false
-                    return
+                    throw RecordingError.message("パソコン音を保存できません")
                 }
                 writer.add(audioIn)
 
@@ -432,9 +432,7 @@ struct ContentView: View {
                 writer.add(micIn)
 
                 guard writer.startWriting() else {
-                    message = "Writer failed: \(writer.error?.localizedDescription ?? "unknown")"
-                    busy = false
-                    return
+                    throw writer.error ?? RecordingError.message("録画ファイルを作成できません")
                 }
 
                 let eng = Engine(writer: writer, vi: videoIn, ai: audioIn, mi: micIn)
@@ -481,6 +479,7 @@ struct ContentView: View {
                 meterTask?.cancel(); meterTask = nil
                 if let stream { try? await stream.stopCapture() }
                 engine?.writer.cancelWriting()
+                releaseOutputFolder()
                 engine = nil
                 stream = nil
                 captureQueue = nil
@@ -505,6 +504,7 @@ struct ContentView: View {
         message = "録画を保存しています…"
 
         Task {
+            eng.monitor?.stop()
             systemTap?.stop(); systemTap = nil
             var stopError: String?
             do { try await scStream.stopCapture() }
@@ -561,16 +561,45 @@ struct ContentView: View {
                 lastFile = size > 0 ? url : nil
                 message = "保存失敗: \(reason)"
             }
+            releaseOutputFolder()
             busy = false
         }
     }
 
     // MARK: Helpers
 
+    private func chooseOutputFolder() {
+        let panel = NSOpenPanel()
+        panel.title = "録画の保存先"
+        panel.prompt = "ここに保存"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let folder = panel.url {
+            do {
+                outputBookmark = try folder.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+                message = "保存先：\(folder.lastPathComponent)"
+            } catch { message = "保存先を記憶できません：\(error.localizedDescription)" }
+        }
+    }
+    private func releaseOutputFolder() { scopedFolder?.stopAccessingSecurityScopedResource(); scopedFolder = nil }
+
     private func makeOutputURL() throws -> URL {
-        let dir = FileManager.default
-            .urls(for: .desktopDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("ScreenRecordings", isDirectory: true)
+        let dir: URL
+        if !outputBookmark.isEmpty {
+            var stale = false
+            dir = try URL(resolvingBookmarkData: outputBookmark, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &stale)
+            guard dir.startAccessingSecurityScopedResource() else { throw RecordingError.message("保存先を選び直してください") }
+            scopedFolder = dir
+            if stale { outputBookmark = try dir.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil) }
+        } else {
+            // Personal build keeps its established folder. Store builds require a user-selected location.
+            if Bundle.main.object(forInfoDictionaryKey: "ScreenRecStoreBuild") as? Bool == true {
+                throw RecordingError.message("「保存先を選ぶ」でフォルダを指定してください")
+            }
+            dir = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask)[0].appendingPathComponent("ScreenRecordings", isDirectory: true)
+        }
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
         let df = DateFormatter()

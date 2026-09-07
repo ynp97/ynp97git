@@ -39,6 +39,10 @@ import AVFoundation
         for j in 0..<480 { mono.floatChannelData![0][j] = 0.1 }
         let (_, converted) = try mixer.process(AudioSamples.sample(mono, time: CMTime(seconds: 1, preferredTimescale: 48000)), microphone: true)
         guard converted.format.channelCount == 2, converted.frameLength > 0 else { fatalError("Mono conversion failed") }
+        let muted = LiveAudioMixer()
+        muted.setGains(system: 0, microphone: 0)
+        let (_, silent) = try muted.process(AudioSamples.sample(mono, time: .zero), microphone: true)
+        guard (0..<Int(silent.frameLength)).allSatisfy({ silent.floatChannelData![0][$0] == 0 }) else { fatalError("Initial mute leaks audio") }
         print("PASS: live faders, mute, timestamp, meter, mono conversion; recording PCM equals monitor PCM sample-for-sample.")
         print("System \(systemEarly) -> \(systemLate); microphone \(micEarly) -> \(micLate)")
     }

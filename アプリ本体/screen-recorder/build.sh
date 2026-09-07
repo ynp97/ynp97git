@@ -56,7 +56,12 @@ if [ -z "$SIGN_ID" ]; then
 fi
 echo "署名に使う証明書: $SIGN_ID"
 
-codesign --force --sign "$SIGN_ID" --identifier com.screenrecorder.app "$STAGE"
+if [ "${SCREENREC_SANDBOX:-0}" = 1 ]; then
+  /usr/libexec/PlistBuddy -c 'Add :ScreenRecStoreBuild bool true' "$STAGE/Contents/Info.plist"
+  codesign --force --sign "$SIGN_ID" --identifier com.screenrecorder.app --entitlements AppStore.entitlements "$STAGE"
+else
+  codesign --force --sign "$SIGN_ID" --identifier com.screenrecorder.app "$STAGE"
+fi
 
 # 署名が本当に有効かをここで確かめる。通らなければビルドを失敗させる。
 codesign --verify --strict --verbose=2 "$STAGE"
