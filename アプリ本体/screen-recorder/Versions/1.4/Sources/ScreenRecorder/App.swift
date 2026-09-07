@@ -11,7 +11,7 @@ struct App: SwiftUI.App {
     @NSApplicationDelegateAdaptor(RecordingAppDelegate.self) var delegate
     var body: some Scene {
         Window("スクトレル", id: "main") {
-            ContentView().frame(width: 340, height: 530).fixedSize()
+            ContentView().frame(width: 340, height: 410).fixedSize()
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
@@ -38,8 +38,6 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
     let videoIn: AVAssetWriterInput
     let audioIn: AVAssetWriterInput
     let micIn: AVAssetWriterInput
-    let mixer = LiveAudioMixer()
-    var monitor: HeadphoneMonitor?
 
     private let lock = NSLock()
     private var sessionStarted = false
@@ -52,7 +50,7 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
     private var firstError: String?
 
     /// Called from the capture queue when the writer or the stream dies mid-recording.
-    var onFailure: (@Sendable (String) -> Void)?
+    var onFailure: ((String) -> Void)?
 
     init(writer: AVAssetWriter, vi: AVAssetWriterInput, ai: AVAssetWriterInput, mi: AVAssetWriterInput) {
         self.writer = writer
@@ -92,10 +90,6 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
     // MARK: SCStreamOutput
 
     func stream(_: SCStream, didOutputSampleBuffer sb: CMSampleBuffer, of type: SCStreamOutputType) {
-        consume(sb, type: type)
-    }
-
-    func consume(_ sb: CMSampleBuffer, type: SCStreamOutputType) {
         guard CMSampleBufferDataIsReady(sb) else { return }
 
         guard writer.status == .writing else {
@@ -136,8 +130,7 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
             let ready = lock.withLock { sessionStarted }
             guard ready, CMSampleBufferGetPresentationTimeStamp(sb) >= sessionTime, audioIn.isReadyForMoreMediaData else { return }
             lastMediaTime = CMTimeMaximum(lastMediaTime, CMSampleBufferGetPresentationTimeStamp(sb))
-            guard let processed = processAudio(sb, microphone: false) else { return }
-            if audioIn.append(processed) {
+            if audioIn.append(sb) {
                 lock.withLock { audioCount += 1 }
             } else {
                 fail(writer.error?.localizedDescription ?? "Audio append failed")
@@ -147,8 +140,7 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
             let ready = lock.withLock { sessionStarted }
             guard ready, CMSampleBufferGetPresentationTimeStamp(sb) >= sessionTime, micIn.isReadyForMoreMediaData else { return }
             lastMediaTime = CMTimeMaximum(lastMediaTime, CMSampleBufferGetPresentationTimeStamp(sb))
-            guard let processed = processAudio(sb, microphone: true) else { return }
-            if micIn.append(processed) {
+            if micIn.append(sb) {
                 lock.withLock { micCount += 1 }
             } else {
                 fail(writer.error?.localizedDescription ?? "Microphone append failed")
@@ -157,14 +149,6 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
         default:
             break
         }
-    }
-
-    private func processAudio(_ sample: CMSampleBuffer, microphone: Bool) -> CMSampleBuffer? {
-        do {
-            let (processed, pcm) = try mixer.process(sample, microphone: microphone)
-            monitor?.play(pcm, at: CMSampleBufferGetPresentationTimeStamp(sample), microphone: microphone)
-            return processed
-        } catch { fail(error.localizedDescription); return nil }
     }
 
     // Run on the sample queue after capture has stopped. ScreenCaptureKit sends no
@@ -199,10 +183,8 @@ final class Engine: NSObject, SCStreamOutput, SCStreamDelegate, @unchecked Senda
 struct ContentView: View {
     @AppStorage("systemVolumePercent") private var systemVolume = 100.0
     @AppStorage("microphoneVolumePercent") private var microphoneVolume = 100.0
-    @State private var monitorEnabled = false
-    @State private var systemTap: SystemAudioTap?
-    @State private var meterReading = MixerReading()
-    @State private var meterTask: Task<Void, Never>?
+    @State private var recordingSystemGain: Float = 0.5
+    @State private var recordingMicrophoneGain: Float = 0.5
     @State private var isRecording = false
     @State private var busy = false
     @State private var needsPermission = false
@@ -238,19 +220,14 @@ struct ContentView: View {
             if let startedAt, isRecording {
                 Text(startedAt, style: .timer).monospacedDigit()
             }
-            Text("スクトレル 1.5 — ミキサー").font(.headline)
+            Text("スクトレル 1.4").font(.headline)
             VStack(spacing: 12) {
-                volumeControl("パソコンの音", value: $systemVolume, peak: meterReading.system)
-                volumeControl("マイク（自分の声）", value: $microphoneVolume, peak: meterReading.microphone)
-                Text(isRecording ? "フェーダーの変更は、今の録音に反映されます" : "100%が標準。録画中も調整できます")
+                volumeControl("パソコンの音", value: $systemVolume)
+                volumeControl("マイク（自分の声）", value: $microphoneVolume)
+                Text("100%が標準。録画前に調整してください。")
                     .font(.caption2).foregroundStyle(.secondary)
             }
-            .disabled(busy)
-            Toggle("ヘッドフォンでモニター", isOn: $monitorEnabled)
-                .font(.caption).disabled(busy || isRecording)
-            Text(monitorEnabled ? "ヘッドフォンを装着してください。自分の声は少し遅れて聞こえます。" : "モニターOFF：メーターで録音音量を確認")
-                .font(.caption2).foregroundStyle(.secondary)
-            if meterReading.clipped { Text("音量が大きすぎます").font(.caption).foregroundStyle(.red) }
+            .disabled(busy || isRecording)
             Text(message)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -269,8 +246,6 @@ struct ContentView: View {
             Spacer()
         }
         .padding()
-        .onChange(of: systemVolume) { _, _ in updateGains() }
-        .onChange(of: microphoneVolume) { _, _ in updateGains() }
         .onChange(of: busy) { _, _ in RecordingLifecycle.active = busy || isRecording }
         .onChange(of: isRecording) { _, _ in RecordingLifecycle.active = busy || isRecording }
         .task {
@@ -291,29 +266,15 @@ struct ContentView: View {
         }
     }
 
-    private func volumeControl(_ title: String, value: Binding<Double>, peak: Float) -> some View {
+    private func volumeControl(_ title: String, value: Binding<Double>) -> some View {
         VStack(spacing: 4) {
             HStack {
                 Text(title)
                 Spacer()
                 Text("\(Int(value.wrappedValue))%").monospacedDigit()
             }.font(.caption)
-            LevelMeter(peak: peak).frame(height: 8)
             Slider(value: value, in: 0...200, step: 5)
                 .accessibilityLabel(title)
-        }
-    }
-
-    private func updateGains() {
-        engine?.mixer.setGains(system: Float(systemVolume / 200), microphone: Float(microphoneVolume / 200))
-    }
-    private func beginMeterUpdates() {
-        meterTask?.cancel()
-        meterTask = Task { @MainActor in
-            while !Task.isCancelled {
-                if let engine { meterReading = engine.mixer.reading }
-                try? await Task.sleep(for: .milliseconds(50))
-            }
         }
     }
 
@@ -349,6 +310,8 @@ struct ContentView: View {
             }
         }
 
+        recordingSystemGain = Float(systemVolume / 200)
+        recordingMicrophoneGain = Float(microphoneVolume / 200)
         busy = true
         lastFile = nil
         message = "Starting…"
@@ -380,8 +343,7 @@ struct ContentView: View {
                 let cfg = SCStreamConfiguration()
                 cfg.width = width
                 cfg.height = height
-                cfg.capturesAudio = !monitorEnabled
-                cfg.excludesCurrentProcessAudio = true
+                cfg.capturesAudio = true
                 cfg.captureMicrophone = true
                 // Match the system mixer. Asking for 44100 here while CoreAudio delivers
                 // 48000 forces a resample the writer does not need to do.
@@ -438,12 +400,9 @@ struct ContentView: View {
                 }
 
                 let eng = Engine(writer: writer, vi: videoIn, ai: audioIn, mi: micIn)
-                eng.mixer.setGains(system: Float(systemVolume / 200), microphone: Float(microphoneVolume / 200))
-                if monitorEnabled { eng.monitor = try HeadphoneMonitor() }
                 eng.onFailure = { reason in
                     Task { @MainActor in
                         self.message = "Error: \(reason)"
-                        if self.isRecording && !self.busy { self.stop() }
                     }
                 }
 
@@ -459,14 +418,6 @@ struct ContentView: View {
                 stream = scStream
                 captureQueue = queue
                 try await scStream.startCapture()
-                if monitorEnabled {
-                    let tap = SystemAudioTap()
-                    systemTap = tap
-                    eng.monitor?.failure = eng.onFailure
-                    try tap.start(queue: queue, onSample: { [weak eng] sample in eng?.consume(sample, type: .audio) },
-                                  onFailure: { [weak eng] message in eng?.onFailure?(message) })
-                }
-                beginMeterUpdates()
 
                 engine = eng
                 stream = scStream
@@ -476,9 +427,6 @@ struct ContentView: View {
                 message = "録画中 — 画面・相手の音・自分の声"
 
             } catch {
-                systemTap?.stop(); systemTap = nil
-                engine?.monitor?.stop()
-                meterTask?.cancel(); meterTask = nil
                 if let stream { try? await stream.stopCapture() }
                 engine?.writer.cancelWriting()
                 engine = nil
@@ -505,7 +453,6 @@ struct ContentView: View {
         message = "録画を保存しています…"
 
         Task {
-            systemTap?.stop(); systemTap = nil
             var stopError: String?
             do { try await scStream.stopCapture() }
             catch { stopError = error.localizedDescription }
@@ -516,9 +463,6 @@ struct ContentView: View {
                 }
             }
 
-            eng.monitor?.stop()
-            meterTask?.cancel(); meterTask = nil
-            meterReading = MixerReading()
             if eng.writer.status == .writing { await eng.writer.finishWriting() }
 
             // Read stats after finishing so failures raised during the flush are included.
@@ -542,7 +486,7 @@ struct ContentView: View {
                         throw RecordingError.message("一方の音声が取得できませんでした。元の録画を残しました")
                     }
                     message = "両方の音声をまとめています…"
-                    let finalURL = try await RecordingFinalizer.finalize(url, systemGain: 1, microphoneGain: 1, keepSource: ProcessInfo.processInfo.arguments.contains("--recording-check"))
+                    let finalURL = try await RecordingFinalizer.finalize(url, systemGain: recordingSystemGain, microphoneGain: recordingMicrophoneGain, keepSource: ProcessInfo.processInfo.arguments.contains("--recording-check"))
                     lastFile = finalURL
                     if let reason = stopError ?? stats.error {
                         message = "途中で録画が中断しました: \(reason)。保存できた部分を残しました"
@@ -590,23 +534,5 @@ struct ContentView: View {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(permissionPane)") {
             NSWorkspace.shared.open(url)
         }
-    }
-}
-
-
-struct LevelMeter: View {
-    let peak: Float
-    var body: some View {
-        GeometryReader { geometry in
-            let db = 20 * log10(max(0.000001, peak))
-            let level = CGFloat(min(1, max(0, (db + 60) / 60)))
-            ZStack(alignment: .leading) {
-                Capsule().fill(Color.secondary.opacity(0.15))
-                Capsule().fill(peak >= 0.98 ? Color.red : peak >= 0.5 ? Color.orange : Color.green)
-                    .frame(width: geometry.size.width * level)
-            }
-        }
-        .accessibilityLabel("録音レベル")
-        .accessibilityValue(peak < 0.001 ? "無音" : "\(Int(20 * log10(peak))) dB")
     }
 }
