@@ -1,0 +1,6 @@
+PASS: ジャーナル/2027.md SHA-256 unchanged
+PASS: ジャーナル/2026.md SHA-256 unchanged
+PASS: 52BA7A7F-F5FC-4E45-AEC4-6FE0216A1D45 date=None revision=5 original hash matches
+PASS: 0419B73D-D1C5-4D99-9ED9-2C8F9DB8E01C date=2027-01-01 revision=1 original hash matches
+PASS: both UI inputs preserved byte-for-byte in UTF-8
+PASS: earlier backup remains independent (one entry, original date/revision)

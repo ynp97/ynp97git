@@ -6,6 +6,7 @@ struct ContentView: View {
     @StateObject var store = JournalStore()
     @State private var showFolderPicker = false
     @State private var showTagFilter = false
+    @State private var showInbox = false
 
     var body: some View {
         Group {
@@ -19,6 +20,10 @@ struct ContentView: View {
             }
         }
         .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button("受け箱", systemImage: "tray") { showInbox = true }
+                    .disabled(store.baseURL == nil)
+            }
             ToolbarItem(placement: .automatic) {
                 Button(action: { showFolderPicker = true }) {
                     Image(systemName: "folder")
@@ -38,6 +43,9 @@ struct ContentView: View {
         .sheet(isPresented: $showTagFilter) {
             TagFilterView(store: store)
         }
+        .sheet(isPresented: $showInbox, onDismiss: { store.loadAll() }) {
+            if let root = store.baseURL { CaptureInboxView(root: root) }
+        }
         // ★ .preferredColorScheme(.dark) を外した（2026-07-31）。
         //   ダークを強制していたため、システムがライトでも画面が真っ黒だった（本人評「黒すぎる」）。
         //   いまはmacOSの外観設定に従う。ダークで使いたいときはシステム側で切り替える。
@@ -45,8 +53,17 @@ struct ContentView: View {
 
     private var mainSplitView: some View {
         VStack(spacing: 0) {
+            if ProcessInfo.processInfo.environment["DIARY_LIBRARY_PATH"] != nil {
+                Text("動作確認用ライブラリを表示しています。本人の日記ではありません。")
+                    .font(.callout).frame(maxWidth: .infinity).padding(8)
+                    .background(Color.orange.opacity(0.22))
+            }
             if store.dataSource == .fixtures {
                 fixturesBanner
+            }
+            if let error = store.captureLoadError {
+                Text(error).font(.callout).foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(12)
             }
             NavigationSplitView {
                 SidebarView(store: store)

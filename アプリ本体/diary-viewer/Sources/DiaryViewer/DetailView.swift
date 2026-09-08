@@ -56,7 +56,14 @@ struct DetailView: View {
                 }
 
                 // 本文（インライン置換）
-                bodyWithAttachments
+                if entry.isCapture || entry.isPlainText {
+                    Label(entry.isCapture ? "受け箱の文章 · 日付の変更は受け箱から" : "日記へ保存済み · 原文は受け箱から確認できます", systemImage: entry.isCapture ? "tray" : "book.closed")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Text(entry.body).textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    bodyWithAttachments
+                }
             }
             .padding(.horizontal, 32)
             .padding(.vertical, 26)
@@ -70,7 +77,7 @@ struct DetailView: View {
 
     private var bodyWithAttachments: some View {
         // ★ entry.body ではなく entry.displayBody を使う。
-        //   body は元ファイルそのままで `<!-- dayone-uuid: … -->` を含む（本人の言う「頭の変な文字」）。
+        //   body は閲覧用で、残存コメントをdisplayBodyで隠す。原本の書き戻しには使わない。
         let segments = parseBodySegments(entry.displayBody)
         var views: [AnyView] = []
 

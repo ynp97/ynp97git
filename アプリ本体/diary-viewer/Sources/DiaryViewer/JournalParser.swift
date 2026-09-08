@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(DiaryCore)
+import DiaryCore
+#endif
 
 // MARK: - Journal Parser
 
@@ -8,10 +11,35 @@ struct JournalParser {
     struct ParseResult {
         let entries: [Entry]
         let entryCountFromFrontmatter: Int?
+        var failure: String? = nil
     }
 
     /// 1ファイルをパースし、エントリ一覧を返す
     static func parse(fileContent: String, year: Int) -> ParseResult {
+        do {
+            let document = try OriginalJournal(data: Data(fileContent.utf8))
+            var entries: [Entry] = []
+            for block in document.blocks {
+                if let record = try PlainJournalRecord.decode(block.data) {
+                    let capture = Capture(id: record.id, createdAt: "", journalDate: record.day, text: record.text, revision: 1)
+                    guard var entry = Entry.fromCapture(capture) else { throw DiaryError.invalid("日記の日付が不正です。") }
+                    entry.isCapture = false
+                    entry.isPlainText = true
+                    entries.append(entry)
+                } else {
+                    let lines = String(decoding: block.data, as: UTF8.self).components(separatedBy: .newlines)
+                    guard var entry = parseEntryBlock(lines, year: year) else { throw DiaryError.invalid("日記の見出しを読み込めません。") }
+                    if let id = block.explicitID { entry.id = id }
+                    entries.append(entry)
+                }
+            }
+            return ParseResult(entries: entries, entryCountFromFrontmatter: document.expectedCount)
+        } catch {
+            return ParseResult(entries: [], entryCountFromFrontmatter: nil, failure: error.localizedDescription)
+        }
+    }
+
+    private static func parseLegacy(fileContent: String, year: Int) -> ParseResult {
         let lines = fileContent.components(separatedBy: .newlines)
         var bodyLines: [String] = []
         var inFrontmatter = false
@@ -296,7 +324,7 @@ struct JournalParser {
         options: [.anchorsMatchLines]
     )
 
-    private static func extractTags(from body: String) -> [String] {
+    static func extractTags(from body: String) -> [String] {
         let nsBody = body as NSString
         let matches = tagPattern.matches(in: body, range: NSRange(location: 0, length: nsBody.length))
         var tags: [String] = []

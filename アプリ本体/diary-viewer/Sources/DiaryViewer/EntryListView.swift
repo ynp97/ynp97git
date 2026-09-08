@@ -130,6 +130,9 @@ struct EntryRow: View {
                     .foregroundStyle(.primary)
 
                 HStack(spacing: 8) {
+                    if entry.isCapture {
+                        Label("受け箱", systemImage: "tray").font(.caption).foregroundStyle(.secondary)
+                    }
                     if !entry.time.isEmpty {
                         Text(entry.time)
                             .font(.caption)

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import DiaryCore
 
 // MARK: - Journal Store
 
@@ -24,13 +25,21 @@ class JournalStore: ObservableObject {
     @Published private(set) var dataSource: DataSource = .notSelected
 
     @Published var entries: [Entry] = [] { didSet { recomputeCaches() } }
+    @Published private(set) var captureLoadError: String?
+    private var journalEntries: [Entry] = []
+    private var journalLoadErrors: [String] = []
     @Published var selectedEntry: Entry?
     @Published var allTags: [String] = []
     @Published var selectedTags: Set<String> = [] { didSet { recomputeCaches() } }
     @Published var searchQuery: String = "" { didSet { recomputeCaches() } }
     @Published var filterMode: FilterMode = .all { didSet { recomputeCaches() } }
     @Published var baseURL: URL? = nil {
-        didSet { UserDefaults.standard.set(baseURL?.path, forKey: "diaryBaseURL") }
+        didSet {
+            // 実機検証用の隔離ライブラリで本人の保存済みパスを変更しない。
+            if ProcessInfo.processInfo.environment["DIARY_LIBRARY_PATH"] == nil {
+                UserDefaults.standard.set(baseURL?.path, forKey: "diaryBaseURL")
+            }
+        }
     }
 
 
@@ -86,7 +95,7 @@ class JournalStore: ObservableObject {
         }
 
         // 新しい日付順（降順）
-        result.sort { $0.date > $1.date }
+        result.sort { $0.date == $1.date ? $0.id.uuidString < $1.id.uuidString : $0.date > $1.date }
 
         return result
     }
@@ -129,7 +138,18 @@ class JournalStore: ObservableObject {
     /// 開発用サンプルを読む。**通常の起動経路からは呼ばない。**
     /// 理由は `DataSource` の地雷の項を参照。
     func loadFallbackFixtures() {
-        guard let fixturesURL = Bundle.module.resourceURL?.appendingPathComponent("Fixtures") else {
+        // SwiftPM生成のBundle.moduleは.app直下を探すため、標準の
+        // Contents/Resources配置は明示して解決する。配布.appではビルド先へ
+        // フォールバックしない（開発機だけで動く状態を防ぐ）。
+        let resourceBundle: Bundle?
+        if Bundle.main.bundleURL.pathExtension == "app" {
+            resourceBundle = Bundle.main.resourceURL
+                .map { $0.appendingPathComponent("DiaryViewer_DiaryViewer.bundle") }
+                .flatMap { Bundle(url: $0) }
+        } else {
+            resourceBundle = Bundle.module
+        }
+        guard let fixturesURL = resourceBundle?.resourceURL?.appendingPathComponent("Fixtures") else {
             return
         }
         dataSource = .fixtures
@@ -145,6 +165,8 @@ class JournalStore: ObservableObject {
         } else {
             // フォルダ未選択。**サンプルへ勝手に落ちない。**
             entries = []
+            journalEntries = []
+            captureLoadError = nil
             allTags = []
             dataSource = .notSelected
             return
@@ -158,23 +180,30 @@ class JournalStore: ObservableObject {
         }
 
         var allEntries: [Entry] = []
-        var allTagsSet = Set<String>()
+        journalLoadErrors = []
+        // 中断復旧が年別ファイルを書き換える場合があるため、読む順番は復旧が先。
+        if case .folder(let root) = dataSource,
+           fm.fileExists(atPath: root.appendingPathComponent("日記アプリデータ").path) {
+            do { _ = try CaptureLibrary(root: root, allowJournalWrites: Self.allowsJournalWrites(root)) }
+            catch { journalLoadErrors.append(error.localizedDescription) }
+        }
 
-        // 2013〜2026を試す
-        for year in 2013...2026 {
-            let fileURL = journalDir.appendingPathComponent("\(year).md")
-            guard fm.fileExists(atPath: fileURL.path) else { continue }
+        // 年を固定しない。将来の日記と、2013年より前の取り込みも読む。
+        let yearFiles = (try? fm.contentsOfDirectory(at: journalDir, includingPropertiesForKeys: nil)) ?? []
+        for fileURL in yearFiles.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            guard fileURL.pathExtension == "md",
+                  fileURL.deletingPathExtension().lastPathComponent.count == 4,
+                  let year = Int(fileURL.deletingPathExtension().lastPathComponent) else { continue }
 
             do {
                 let content = try String(contentsOf: fileURL, encoding: .utf8)
                 let result = JournalParser.parse(fileContent: content, year: year)
+                if let failure = result.failure { journalLoadErrors.append("\(fileURL.lastPathComponent): \(failure)") }
                 // 検算
                 JournalParser.validateEntryCount(result: result)
-                for entry in result.entries {
-                    allTagsSet.formUnion(entry.tags)
-                }
                 allEntries.append(contentsOf: result.entries)
             } catch {
+                journalLoadErrors.append("\(fileURL.lastPathComponent): \(error.localizedDescription)")
                 print("[エラー] \(fileURL.lastPathComponent) の読み込みに失敗: \(error.localizedDescription)")
             }
         }
@@ -182,13 +211,47 @@ class JournalStore: ObservableObject {
         // 画像の探索起点。読み込んだ場所そのものを使う。
         imageResolver = ImageResolver(baseURL: journalURL)
 
-        self.entries = allEntries
-        self.allTags = allTagsSet.sorted()
+        self.journalEntries = allEntries
+        refreshCaptures()
+    }
+
+    /// 受け箱を閉じたときに更新。既存日記を再パースせず、選択とIDを維持する。
+    func refreshCaptures() {
+        var combined = journalEntries
+        captureLoadError = journalLoadErrors.isEmpty ? nil : journalLoadErrors.joined(separator: "\n")
+        if case .folder(let root) = dataSource,
+           FileManager.default.fileExists(atPath: root.appendingPathComponent("日記アプリデータ").path) {
+            do {
+                let captures = try CaptureLibrary(root: root).captures()
+                combined = Entry.merge(journals: journalEntries, captures: captures)
+                let journalIDs = Set(journalEntries.map(\.id))
+                if captures.contains(where: { $0.adopted && !journalIDs.contains($0.id) }) {
+                    captureLoadError = "保存済みの日記が見つかりません。年別ファイルを確認してください。原文は受け箱に残っています。"
+                }
+            } catch {
+                captureLoadError = "受け箱の記録を読み込めませんでした。受け箱を開いて確認してください。\n\(error.localizedDescription)"
+            }
+        }
+        let selectedID = selectedEntry?.id
+        entries = combined
+        allTags = Set(combined.flatMap(\.tags)).sorted()
+        selectedEntry = selectedID.flatMap { id in combined.first { $0.id == id } }
+    }
+
+    /// Claude検品と実データの保存検証が済むまでは、専用起動＋架空ライブラリだけ。
+    static func allowsJournalWrites(_ root: URL) -> Bool {
+        ProcessInfo.processInfo.environment["DIARY_ENABLE_JOURNAL_WRITES"] == "1"
+            && (try? String(contentsOf: root.appendingPathComponent(".diary-test-library"), encoding: .utf8)) == "fictional-data-only\n"
     }
 
     var imageResolver: ImageResolver?
 
     init() {
+        if let path = ProcessInfo.processInfo.environment["DIARY_LIBRARY_PATH"], !path.isEmpty {
+            let root = URL(fileURLWithPath: path)
+            Task { @MainActor in self.load(baseURL: root) }
+            return
+        }
         // UserDefaultsから前回のパスを復元
         if let savedPath = UserDefaults.standard.string(forKey: "diaryBaseURL"),
            !savedPath.isEmpty {

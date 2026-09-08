@@ -20,8 +20,8 @@ cd "$(dirname "$0")"
 
 APP_NAME="DiaryViewer"
 BUNDLE_ID="com.ynp97.diaryviewer"
-VERSION="0.1.0"
-BUILD_NUMBER="1"
+VERSION="0.3.0"
+BUILD_NUMBER="3"
 MIN_MACOS="14.0"
 
 DIST_DIR="dist"
@@ -29,11 +29,13 @@ APP_DIR="${DIST_DIR}/${APP_NAME}.app"
 CONTENTS="${APP_DIR}/Contents"
 MACOS_DIR="${CONTENTS}/MacOS"
 RESOURCES="${CONTENTS}/Resources"
+BUILD_PATH="${DIARY_BUILD_PATH:-.build}"
+CONFIGURATION="${DIARY_CONFIGURATION:-release}"
 
-echo "==> 1/5 release ビルド"
-swift build -c release
+echo "==> 1/5 ${CONFIGURATION} ビルド"
+swift build -c "${CONFIGURATION}" --scratch-path "${BUILD_PATH}" --disable-sandbox
 
-BIN_PATH="$(swift build -c release --show-bin-path)"
+BIN_PATH="$(swift build -c "${CONFIGURATION}" --scratch-path "${BUILD_PATH}" --show-bin-path --disable-sandbox)"
 if [ ! -x "${BIN_PATH}/${APP_NAME}" ]; then
     echo "エラー: 実行ファイルが見つかりません: ${BIN_PATH}/${APP_NAME}" >&2
     exit 1
@@ -45,6 +47,8 @@ if [ ! -d "AppIcon.iconset" ]; then
     exit 1
 fi
 mkdir -p "${DIST_DIR}"
+# 2026-09-08: 正常なPNGでもCodex制限内ではInvalid Iconsetとなった。
+# 同じ入力が制限外で成功することを確認済み。画像を作り直す前に実行制限を確認。
 iconutil -c icns AppIcon.iconset -o "${DIST_DIR}/AppIcon.icns"
 
 echo "==> 3/5 .app を組み立て"
@@ -55,17 +59,14 @@ cp "${BIN_PATH}/${APP_NAME}" "${MACOS_DIR}/${APP_NAME}"
 mv "${DIST_DIR}/AppIcon.icns" "${RESOURCES}/AppIcon.icns"
 
 # SwiftPM のリソースバンドル（Fixtures入り）。地雷の項を参照。
-shopt -s nullglob
-bundles=("${BIN_PATH}"/*.bundle)
-if [ ${#bundles[@]} -eq 0 ]; then
+RESOURCE_BUNDLE="${BIN_PATH}/DiaryViewer_DiaryViewer.bundle"
+if [ ! -d "${RESOURCE_BUNDLE}" ]; then
     echo "エラー: リソースバンドルが見つかりません（Bundle.module が落ちます）" >&2
     exit 1
 fi
-for b in "${bundles[@]}"; do
-    cp -R "$b" "${RESOURCES}/"
-    echo "    同梱: $(basename "$b")"
-done
-shopt -u nullglob
+# テスト実行後のビルド先でもテスト専用バンドルを配布物へ混ぜない。
+cp -R "${RESOURCE_BUNDLE}" "${RESOURCES}/"
+echo "    同梱: $(basename "${RESOURCE_BUNDLE}")"
 
 cat > "${CONTENTS}/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

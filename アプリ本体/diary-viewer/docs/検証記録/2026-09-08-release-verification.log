@@ -1,0 +1,7 @@
+Release executable SHA-256: 197c4ec57129a5c8f7e8b8da533767014666a9c5d42465efc3438c96ae003dc9
+codesign --verify --deep --strict: exit 0
+bash -n dist/日記の動作確認.command: exit 0
+Launcher executed with bundled synthetic library.
+CUA: review-library banner visible; 2027 count 2, 2026 count 1.
+CUA: capture dated 2027-01-01 selected; literal original comment, heading, quote and attachment-like text visible.
+No /Applications install; review app remains open.

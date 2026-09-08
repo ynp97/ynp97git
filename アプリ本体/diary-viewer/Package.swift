@@ -8,13 +8,15 @@ let package = Package(
     ],
     dependencies: [],
     targets: [
+        .target(name: "DiaryCore"),
         .executableTarget(
             name: "DiaryViewer",
-            dependencies: [],
+            dependencies: ["DiaryCore"],
             resources: [
                 .copy("Fixtures")
             ]
         ),
+        .testTarget(name: "DiaryCoreTests", dependencies: ["DiaryCore"]),
         .testTarget(
             name: "DiaryViewerTests",
             dependencies: ["DiaryViewer"],

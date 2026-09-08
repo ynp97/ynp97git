@@ -1,0 +1,20 @@
+==> 1/5 release ビルド
+Building for production...
+[0/6] Write sources
+[2/6] Copying Fixtures
+[3/6] Write swift-version--1AB21518FC5DEDBE.txt
+[5/7] Compiling DiaryCore CaptureLibrary.swift
+[6/8] Compiling DiaryViewer CaptureInboxView.swift
+[6/8] Write Objects.LinkFileList
+[7/8] Linking DiaryViewer
+Build complete! (154.62s)
+==> 2/5 アイコンを変換
+==> 3/5 .app を組み立て
+    同梱: DiaryViewer_DiaryViewer.bundle
+==> 4/5 署名（アドホック）
+    アドホック署名しました
+==> 5/5 完了
+    /Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/diary-viewer/dist/DiaryViewer.app
+
+開くには:
+    open "/Users/yoshiakinagumo/Documents/Obsidian Vault/アプリ本体/diary-viewer/dist/DiaryViewer.app"
