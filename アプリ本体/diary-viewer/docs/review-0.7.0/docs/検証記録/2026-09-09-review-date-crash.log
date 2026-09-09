@@ -1,0 +1,5 @@
+PASS SIGKILL at prepared: Recovered once: revision 2, stable UUID, exact original, source 0 / target 1
+PASS SIGKILL at fileWritten(0): Recovered once: revision 2, stable UUID, exact original, source 0 / target 1
+PASS SIGKILL at fileWritten(1): Recovered once: revision 2, stable UUID, exact original, source 0 / target 1
+PASS SIGKILL at committed: Recovered once: revision 2, stable UUID, exact original, source 0 / target 1
+4 process-kill recovery checks passed; fictional libraries only.

@@ -1,0 +1,5 @@
+PASS: CUA normal backup created outside library; 8 files / 2141576 bytes verified.
+PASS: CUA conflict inbox shows exact original and pending; write controls disabled; rescue backup created; 9 files / 2141698 bytes verified.
+PASS: rescue retains pending adoption and EXTERNAL_EDIT_AT_REPLACE bytes.
+PASS: CUA restored copy shows both journals and original detail; read-only inbox disables additions.
+PASS: all 9 restored files including manifest match prelaunch hashes; DB integrity_check=ok.
