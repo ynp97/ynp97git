@@ -54,7 +54,9 @@ struct ContentView: View {
     private var mainSplitView: some View {
         VStack(spacing: 0) {
             if ProcessInfo.processInfo.environment["DIARY_LIBRARY_PATH"] != nil {
-                Text("動作確認用ライブラリを表示しています。本人の日記ではありません。")
+                Text(ProcessInfo.processInfo.environment["DIARY_PERSONAL_COPY"] == store.baseURL?.resolvingSymlinksInPath().standardizedFileURL.path
+                     ? "個人使用用コピーを開いています。保存はこのコピーに反映されます。"
+                     : "指定されたライブラリを開いています。")
                     .font(.callout).frame(maxWidth: .infinity).padding(8)
                     .background(Color.orange.opacity(0.22))
             }

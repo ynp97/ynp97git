@@ -18,9 +18,11 @@ for relative, expected in manifest.items():
             size += len(chunk); digest.update(chunk)
     if size != expected['bytes'] or digest.hexdigest() != expected['sha256']:
         raise SystemExit('Mismatch: ' + relative)
-actual = {'日記アプリデータ/library.sqlite'}
+raw = (root / 'raw-rescue.txt').exists()
+actual = {'raw-rescue.txt'} if raw else {'日記アプリデータ/library.sqlite'}
 if (root / 'recovery-required.txt').exists(): actual.add('recovery-required.txt')
-for folder in ['ジャーナル', 'journal', 'media', '日記アプリデータ/originals', '日記アプリデータ/operations', '日記アプリデータ/staging']:
+folders = ['ジャーナル', 'journal', 'media', '日記アプリデータ'] if raw else ['ジャーナル', 'journal', 'media', '日記アプリデータ/originals', '日記アプリデータ/operations', '日記アプリデータ/staging']
+for folder in folders:
     for path in (root / folder).rglob('*'):
         if path.is_symlink(): raise SystemExit('Symlink in backup')
         if path.is_file(): actual.add(path.relative_to(root).as_posix())

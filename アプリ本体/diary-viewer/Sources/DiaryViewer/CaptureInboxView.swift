@@ -18,7 +18,7 @@ struct CaptureInboxView: View {
     @State private var choosingBackupDestination = false
     @State private var backupFolder = ""
 
-    private var needsRescue: Bool { library?.recoveryIssue != nil || library?.schemaNeedsUpgrade == true }
+    private var needsRescue: Bool { library == nil || library?.recoveryIssue != nil || library?.schemaNeedsUpgrade == true }
     private var canEdit: Bool { library?.canWrite == true }
     private var selected: Capture? { items.first { $0.id == selectedID } }
 
@@ -31,7 +31,6 @@ struct CaptureInboxView: View {
                 Button("文章を追加", systemImage: "plus") { newDraft() }
                     .disabled(!canEdit)
                 Button(needsRescue ? "救出用の退避を作成" : "バックアップを作成", systemImage: "externaldrive") { backup() }
-                    .disabled(library == nil)
                 Button("閉じる") { dismiss() }
             }.padding(20)
             Text("書いたまま保存できます。日付を決めた文章は、日記のその日に表示されます。")
@@ -83,7 +82,7 @@ struct CaptureInboxView: View {
                             Button("保存せず戻る") { composing = false }
                             Button("受け箱に保存") { save() }
                                 .buttonStyle(.borderedProminent)
-                                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || library == nil)
+                                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !canEdit)
                         }
                     } else if let selected {
                         Text(selected.journalDate ?? "日付はまだ決めていません").font(.headline)
@@ -163,11 +162,12 @@ struct CaptureInboxView: View {
         return formatter
     }
     private func load() {
+        library = nil; items = []; composing = false; error = nil; message = nil
         do {
             let writable = JournalStore.allowsJournalWrites(root)
             let opened = try CaptureLibrary(root: root, allowJournalWrites: writable, readOnly: !writable, tolerateRecoveryFailure: true)
-            library = opened
             items = try opened.capturesForInspection()
+            library = opened
             error = opened.recoveryIssue
             if !writable && error == nil { message = "閲覧専用で開いています。日記・原文・データベースは変更しません。" }
         } catch { self.error = error.localizedDescription }
@@ -185,7 +185,7 @@ struct CaptureInboxView: View {
         } catch {
             let failure = error.localizedDescription
             load() // 同じ画面を閉じなくても、保存途中の原文確認・救出へ切り替える。
-            self.error = failure
+            self.error = [failure, self.error].compactMap { $0 }.joined(separator: "\n")
         }
     }
     private func updateDate(_ item: Capture) {
@@ -196,7 +196,7 @@ struct CaptureInboxView: View {
         } catch {
             let failure = error.localizedDescription
             load() // 同じ画面を閉じなくても、保存途中の原文確認・救出へ切り替える。
-            self.error = failure
+            self.error = [failure, self.error].compactMap { $0 }.joined(separator: "\n")
         }
     }
     private func dateChanged(_ item: Capture) -> Bool {
@@ -211,14 +211,13 @@ struct CaptureInboxView: View {
         } catch {
             let failure = error.localizedDescription
             load() // 同じ画面を閉じなくても、保存途中の原文確認・救出へ切り替える。
-            self.error = failure
+            self.error = [failure, self.error].compactMap { $0 }.joined(separator: "\n")
         }
     }
     private func backup() {
         choosingBackupDestination = true
     }
     private func writeBackup() {
-        guard let library else { return }
         let path = (backupFolder.trimmingCharacters(in: .whitespacesAndNewlines) as NSString).expandingTildeInPath
         var isDirectory: ObjCBool = false
         guard path.hasPrefix("/"), FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory), isDirectory.boolValue else {
@@ -229,14 +228,14 @@ struct CaptureInboxView: View {
             .appendingPathComponent("日記バックアップ-" + UUID().uuidString)
         do {
             if needsRescue {
-                try library.rescueBackup(to: destination)
+                try RawLibraryRescue.create(from: root, to: destination)
                 message = "競合・保存途中の状態をそのまま退避しました。復旧完了版ではありません。\n\(destination.path)"
             } else {
-                try library.backup(to: destination)
+                try library?.backup(to: destination)
                 message = "受け箱・日記・写真・動画を退避し、ファイルの一致を確認しました。\n\(destination.path)"
             }
             choosingBackupDestination = false
-            error = library.recoveryIssue
+            error = library?.recoveryIssue
         } catch { self.error = error.localizedDescription }
     }
 }

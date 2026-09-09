@@ -21,7 +21,7 @@ struct BackupSnapshot: Codable, Equatable {
         return Fingerprint(bytes: bytes, sha256: hash.finalize().map { String(format: "%02x", $0) }.joined())
     }
 
-    static func read(root: URL) throws -> BackupSnapshot {
+    static func read(root: URL, paths: [String] = roots) throws -> BackupSnapshot {
         let fm = FileManager.default
         var files: [String: Fingerprint] = [:]
         func visit(_ url: URL, relative: String) throws {
@@ -36,7 +36,7 @@ struct BackupSnapshot: Codable, Equatable {
                 files[relative] = try fingerprint(url)
             }
         }
-        for path in roots {
+        for path in paths {
             let url = root.appendingPathComponent(path)
             // dangling symlinkも「存在しないから省略」しない。
             if fm.fileExists(atPath: url.path) || (try? url.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink) == true {

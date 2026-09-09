@@ -270,10 +270,14 @@ class JournalStore: ObservableObject {
         selectedEntry = selectedID.flatMap { id in combined.first { $0.id == id } }
     }
 
-    /// Claude検品と実データの保存検証が済むまでは、専用起動＋架空ライブラリだけ。
+    /// 専用起動で指定した架空データまたは独立した個人使用コピーだけ。
     static func allowsJournalWrites(_ root: URL) -> Bool {
-        ProcessInfo.processInfo.environment["DIARY_ENABLE_JOURNAL_WRITES"] == "1"
-            && (try? String(contentsOf: root.appendingPathComponent(".diary-test-library"), encoding: .utf8)) == "fictional-data-only\n"
+        let env = ProcessInfo.processInfo.environment
+        guard env["DIARY_ENABLE_JOURNAL_WRITES"] == "1" else { return false }
+        let canonical = root.resolvingSymlinksInPath().standardizedFileURL.path
+        if env["DIARY_PERSONAL_COPY"] == canonical,
+           (try? String(contentsOf: root.appendingPathComponent(".diary-personal-copy"), encoding: .utf8)) == "independent-personal-copy\n" { return true }
+        return (try? String(contentsOf: root.appendingPathComponent(".diary-test-library"), encoding: .utf8)) == "fictional-data-only\n"
     }
 
     var imageResolver: ImageResolver?
