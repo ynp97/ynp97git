@@ -31,10 +31,9 @@ final class AdoptionTests: XCTestCase {
         XCTAssertEqual(try library.captures()[0].text, raw)
         try library.adopt(item.id, expectedRevision: 1)
         XCTAssertEqual(try Data(contentsOf: file("2026")), data)
-        XCTAssertThrowsError(try library.setDate("2027-01-01", for: item.id, expectedRevision: 1))
-        let snapshots = try FileManager.default.contentsOfDirectory(at: root.appendingPathComponent("バックアップ/日記保存前"), includingPropertiesForKeys: nil)
-        XCTAssertEqual(snapshots.count, 1)
-        XCTAssertEqual(try Data(contentsOf: snapshots[0].appendingPathComponent("ジャーナル/2026.md")), original)
+        XCTAssertThrowsError(try CaptureLibrary(root: root).setDate("2027-01-01", for: item.id, expectedRevision: 1))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("バックアップ").path))
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("日記アプリデータ/operations/\(item.id.uuidString)/before.md")), original)
     }
 
     func testEveryInterruptionRecoversOnceForExistingAndNewYears() throws {
@@ -66,7 +65,7 @@ final class AdoptionTests: XCTestCase {
             try external.write(to: target)
             XCTAssertThrowsError(try CaptureLibrary(root: isolated, allowJournalWrites: true))
             XCTAssertEqual(try Data(contentsOf: target), external)
-            XCTAssertEqual(try CaptureLibrary(root: isolated).captures()[0].text, raw)
+            XCTAssertEqual(try CaptureLibrary(root: isolated, readOnly: true).capturesForInspection()[0].text, raw)
         }
     }
 
@@ -114,7 +113,7 @@ final class AdoptionTests: XCTestCase {
         XCTAssertEqual(sqlite3_open(oldRoot.appendingPathComponent("日記アプリデータ/library.sqlite").path, &db), SQLITE_OK)
         defer { sqlite3_close(db) }
         XCTAssertEqual(sqlite3_exec(db, "DROP TABLE adoptions; PRAGMA user_version=1", nil, nil, nil), SQLITE_OK)
-        let migrated = try CaptureLibrary(root: oldRoot)
+        let migrated = try CaptureLibrary(root: oldRoot, migrationBackup: oldRoot.appendingPathComponent("旧形式の退避"))
         XCTAssertEqual(try migrated.captures()[0].id, oldCapture.id)
         XCTAssertEqual(try migrated.captures()[0].text, raw)
     }

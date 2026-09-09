@@ -12,7 +12,7 @@ ERR_LOG="$LOG_DIR/app_error.log"
 
 exec > >(tee "$BUILD_LOG" "$VAULT_LOG") 2>&1
 
-echo "ポケカ戦績 SwiftUI版 v1.20 をビルドします..."
+echo "ポケカ戦績 SwiftUI版 v1.21 をビルドします..."
 echo "場所: $(pwd)"
 echo "ビルドログ: $BUILD_LOG"
 echo ""
@@ -36,11 +36,11 @@ if ! swift build -c release; then
 fi
 
 BIN=".build/release/PokecaRecords"
-APP="PokecaRecords_v1.20.app"
+APP="PokecaRecords_v1.21.app"
 CONTENTS="$APP/Contents"
 MACOS="$CONTENTS/MacOS"
 RES="$CONTENTS/Resources"
-EXEC_NAME="PokecaRecords_v1.20"
+EXEC_NAME="PokecaRecords_v1.21"
 
 if [ ! -f "$BIN" ]; then
   echo "ERROR: ビルド後の実行ファイルが見つかりません: $BIN"
@@ -62,13 +62,13 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>CFBundleDevelopmentRegion</key>
     <string>ja</string>
     <key>CFBundleExecutable</key>
-    <string>PokecaRecords_v1.20</string>
+    <string>PokecaRecords_v1.21</string>
     <key>CFBundleIdentifier</key>
-    <string>com.local.pokecarecords.v120</string>
+    <string>com.local.pokecarecords.v121</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>PokecaRecords_v1.20</string>
+    <string>PokecaRecords_v1.21</string>
     <key>CFBundleDisplayName</key>
     <string>ポケカ戦績</string>
     <key>CFBundleIconFile</key>
@@ -76,9 +76,9 @@ cat > "$CONTENTS/Info.plist" <<'PLIST'
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.20</string>
+    <string>1.21</string>
     <key>CFBundleVersion</key>
-    <string>120</string>
+    <string>121</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>LSApplicationCategoryType</key>
@@ -111,7 +111,7 @@ else
   echo "自動インストールできませんでした。Finderで $APP を /Applications へドラッグしてください。"
 fi
 echo ""
-echo "初回は /Applications の PokecaRecords_v1.20.app を右クリック → 開く で起動してください。"
+echo "初回は /Applications の PokecaRecords_v1.21.app を右クリック → 開く で起動してください。"
 echo "起動が遅くなるランチャー方式はやめて、アプリ本体を直接起動する形式に変更しました。"
 echo ""
 echo "ログ:"

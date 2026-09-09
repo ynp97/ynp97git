@@ -1,0 +1,10 @@
+PASS: save stopped on injected conflict: invalid("外部編集と日記の保存が競合しました。自動復旧を停止しています。置換時のファイルを次の場所に残しました。削除せず確認してください。\n/var/folders/7b/smm8430x29d9fvhqwqrg1q5c0000gn/T/diary-replace-gap-mo23r07r/existing/日記アプリデータ/operations/D0AD32AF-A042-4610-B5A7-97EC56D1967A/exchanged.md")
+PASS: reopen remains blocked
+PASS: existing
+PASS: save stopped on injected conflict: storage("日記の安全な置換を完了できません（errno: 17）。原文と操作記録を残しました。")
+PASS: reopen remains blocked
+PASS: new
+PASS: recovered once and created full backup
+Verified 8 files, 2141576 bytes; no files modified.
+PASS: kill
+Verification artifacts: /var/folders/7b/smm8430x29d9fvhqwqrg1q5c0000gn/T/diary-replace-gap-mo23r07r

@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import DiaryCore
 
 /// 原文を保持し、日付確定後に明示操作で年別日記へ採用する。
@@ -16,6 +17,8 @@ struct CaptureInboxView: View {
     @State private var library: CaptureLibrary?
     @State private var draftID = UUID()
 
+    private var needsRescue: Bool { library?.recoveryIssue != nil || library?.schemaNeedsUpgrade == true }
+    private var canEdit: Bool { library?.canWrite == true }
     private var selected: Capture? { items.first { $0.id == selectedID } }
 
     var body: some View {
@@ -25,8 +28,8 @@ struct CaptureInboxView: View {
                 Text("\(items.count)件").foregroundStyle(.secondary)
                 Spacer()
                 Button("文章を追加", systemImage: "plus") { newDraft() }
-                    .disabled(library == nil)
-                Button("バックアップを作成", systemImage: "externaldrive") { backup() }
+                    .disabled(!canEdit)
+                Button(needsRescue ? "救出用の退避を作成" : "バックアップを作成", systemImage: "externaldrive") { backup() }
                     .disabled(library == nil)
                 Button("閉じる") { dismiss() }
             }.padding(20)
@@ -39,7 +42,7 @@ struct CaptureInboxView: View {
                 List(selection: $selectedID) {
                     ForEach(items) { item in
                         VStack(alignment: .leading, spacing: 6) {
-                            Text((item.journalDate ?? "日付未定") + (item.adopted ? " ・ 日記へ保存済み" : ""))
+                            Text((item.journalDate ?? "日付未定") + (item.savePending ? " ・ 保存途中（原文の確認）" : item.adopted ? " ・ 日記へ保存済み" : ""))
                                 .font(.caption).foregroundStyle(item.journalDate == nil ? Color.orange : .secondary)
                             Text(item.text.trimmingCharacters(in: .whitespacesAndNewlines))
                                 .lineLimit(3)
@@ -72,22 +75,26 @@ struct CaptureInboxView: View {
                                 .padding(4)
                         }.frame(maxHeight: .infinity)
                         Divider()
-                        dateControls.disabled(selected.adopted)
+                        dateControls.disabled(!canEdit || (selected.adopted && !JournalStore.allowsJournalWrites(root)))
                         HStack {
-                            Button("日付を更新") { updateDate(selected) }.disabled(selected.adopted)
+                            Button("日付を更新") { updateDate(selected) }.disabled(!canEdit || (selected.adopted && !JournalStore.allowsJournalWrites(root)))
                             Spacer()
-                            if selected.adopted {
+                            if selected.savePending {
+                                Text("保存途中です。原文を確認し、救出用の退避を作成できます。").foregroundStyle(.orange)
+                            } else if selected.adopted {
                                 Text("日記へ保存済み（原文も保持しています）").foregroundStyle(.secondary)
                             } else if JournalStore.allowsJournalWrites(root) {
                                 Button("日記へ保存") { adopt(selected) }
                                     .buttonStyle(.borderedProminent)
-                                    .disabled(selected.journalDate == nil || dateChanged(selected))
+                                    .disabled(!canEdit || selected.journalDate == nil || dateChanged(selected))
                             } else {
                                 Text("日記への保存は検証中です").foregroundStyle(.secondary)
                             }
                         }
-                        if selected.adopted {
-                            Text("保存済みの日記の日付変更は準備中です。").font(.caption).foregroundStyle(.secondary)
+                        if selected.adopted && JournalStore.allowsJournalWrites(root) {
+                            Text("日付を直すと日記も移動します。指定を外すと受け箱だけに戻ります。").font(.caption).foregroundStyle(.secondary)
+                        } else if selected.adopted {
+                            Text("保存済みの日記の日付変更は検証中です。").font(.caption).foregroundStyle(.secondary)
                         } else if dateChanged(selected) {
                             Text("先に「日付を更新」で書いた日を確定してください。").font(.caption).foregroundStyle(.secondary)
                         }
@@ -97,7 +104,7 @@ struct CaptureInboxView: View {
                             .frame(maxWidth: .infinity)
                         Text("雑感を貼り付けて、まず残しておきましょう。")
                             .frame(maxWidth: .infinity).foregroundStyle(.secondary)
-                        Button("文章を追加") { newDraft() }.buttonStyle(.borderedProminent)
+                        Button("文章を追加") { newDraft() }.disabled(!canEdit).buttonStyle(.borderedProminent)
                             .frame(maxWidth: .infinity).disabled(library == nil)
                         Spacer()
                     }
@@ -139,9 +146,12 @@ struct CaptureInboxView: View {
     }
     private func load() {
         do {
-            let opened = try CaptureLibrary(root: root, allowJournalWrites: JournalStore.allowsJournalWrites(root))
-            let loaded = try opened.captures()
-            library = opened; items = loaded; error = nil
+            let writable = JournalStore.allowsJournalWrites(root)
+            let opened = try CaptureLibrary(root: root, allowJournalWrites: writable, readOnly: !writable, tolerateRecoveryFailure: true)
+            library = opened
+            items = try opened.capturesForInspection()
+            error = opened.recoveryIssue
+            if !writable && error == nil { message = "閲覧専用で開いています。日記・原文・データベースは変更しません。" }
         } catch { self.error = error.localizedDescription }
     }
     private func newDraft() {
@@ -154,14 +164,22 @@ struct CaptureInboxView: View {
             let item = try library.capture(text: text, date: hasDate ? dateFormatter.string(from: date) : nil, id: draftID)
             items = try library.captures(); composing = false; selectedID = item.id
             message = "原文を受け箱に保存しました。"; error = nil
-        } catch { self.error = error.localizedDescription }
+        } catch {
+            let failure = error.localizedDescription
+            load() // 同じ画面を閉じなくても、保存途中の原文確認・救出へ切り替える。
+            self.error = failure
+        }
     }
     private func updateDate(_ item: Capture) {
         guard let library else { return }
         do {
             try library.setDate(hasDate ? dateFormatter.string(from: date) : nil, for: item.id, expectedRevision: item.revision)
             items = try library.captures(); message = "日付を更新しました。原文はそのままです。"; error = nil
-        } catch { self.error = error.localizedDescription }
+        } catch {
+            let failure = error.localizedDescription
+            load() // 同じ画面を閉じなくても、保存途中の原文確認・救出へ切り替える。
+            self.error = failure
+        }
     }
     private func dateChanged(_ item: Capture) -> Bool {
         item.journalDate != (hasDate ? dateFormatter.string(from: date) : nil)
@@ -172,14 +190,37 @@ struct CaptureInboxView: View {
             try library.adopt(item.id, expectedRevision: item.revision)
             items = try library.captures()
             message = "日記へ保存しました。受け箱の原文も残しています。"; error = nil
-        } catch { self.error = error.localizedDescription }
+        } catch {
+            let failure = error.localizedDescription
+            load() // 同じ画面を閉じなくても、保存途中の原文確認・救出へ切り替える。
+            self.error = failure
+        }
     }
     private func backup() {
         guard let library else { return }
-        let destination = root.appendingPathComponent("バックアップ/日記受け箱/\(UUID().uuidString)")
-        do {
-            try library.backup(to: destination)
-            message = "受け箱と年別日記のバックアップを作成しました（写真・動画は対象外）。\n\(destination.path)"; error = nil
-        } catch { self.error = error.localizedDescription }
+        let panel = NSOpenPanel()
+        panel.title = "退避を置くフォルダを選んでください"
+        panel.prompt = "ここに退避"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = true
+        // SwiftUIの受け箱シート内で同期modalループを入れ子にしない。
+        DispatchQueue.main.async {
+            panel.begin { response in
+                guard response == .OK, let parent = panel.url else { return }
+                let destination = parent.appendingPathComponent("日記バックアップ-" + UUID().uuidString)
+                do {
+                    if needsRescue {
+                        try library.rescueBackup(to: destination)
+                        message = "競合・保存途中の状態をそのまま退避しました。復旧完了版ではありません。\n\(destination.path)"
+                    } else {
+                        try library.backup(to: destination)
+                        message = "受け箱・日記・写真・動画を退避し、ファイルの一致を確認しました。\n\(destination.path)"
+                    }
+                    error = library.recoveryIssue
+                } catch { self.error = error.localizedDescription }
+            }
+        }
     }
 }

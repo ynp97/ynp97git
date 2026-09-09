@@ -998,26 +998,69 @@ struct ErrorBanner: View {
     }
 }
 
+// v1.21: レート欄。フォーカスすると入力ソースが英字（Roman）へ切り替わる。
+// SwiftUIのTextFieldでは入力ソースを指定できないため、NSTextFieldを直接使う。
+struct RomanTextField: NSViewRepresentable {
+    @Binding var text: String
+    var placeholder: String
+
+    func makeNSView(context: Context) -> NSTextField {
+        let field = NSTextField(string: text)
+        field.placeholderString = placeholder
+        field.delegate = context.coordinator
+        field.isBordered = true
+        field.isBezeled = true
+        field.bezelStyle = .roundedBezel
+        field.drawsBackground = true
+        field.font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
+        field.allowedInputSourceLocales = [NSAllRomanInputSourcesLocaleIdentifier]
+        return field
+    }
+
+    func updateNSView(_ nsView: NSTextField, context: Context) {
+        nsView.placeholderString = placeholder
+        if nsView.stringValue != text {
+            nsView.stringValue = text
+            if let editor = nsView.currentEditor() {
+                editor.selectedRange = NSRange(location: (text as NSString).length, length: 0)
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(text: $text) }
+
+    final class Coordinator: NSObject, NSTextFieldDelegate {
+        private let text: Binding<String>
+        init(text: Binding<String>) { self.text = text }
+        func controlTextDidChange(_ obj: Notification) {
+            guard let field = obj.object as? NSTextField else { return }
+            text.wrappedValue = field.stringValue
+        }
+    }
+}
+
 struct EntryView: View {
     @EnvironmentObject var store: AppStore
     // v1.20: 日時は「保存を押した瞬間」を記録する。手で動かしたときだけその値を使う。
     @State private var playedAt = Date()
     @State private var dateIsManual = false
-    @State private var myDeck = ""
+    // v1.21: 自分のデッキ・レート・大会は前回入力を引き継ぐ（連続入力用）。
+    @State private var myDeck = UserDefaults.standard.string(forKey: "carry_myDeck") ?? ""
     @State private var opponentDeck = ""
-    @State private var rating = ""
+    @State private var rating = UserDefaults.standard.string(forKey: "carry_rating") ?? ""
     @State private var result = "勝ち"
     @State private var turn = "先攻"
     @State private var opening = "B"
-    @State private var eventName = ""
+    @State private var eventName = UserDefaults.standard.string(forKey: "carry_eventName") ?? ""
     @State private var memo = ""
     @State private var saveFeedback: String?
     @State private var saveFeedbackIsUpdate = false
     @State private var myDeckPriority: [String] = UserDefaults.standard.stringArray(forKey: "priority_myDecks") ?? []
     @State private var opponentDeckPriority: [String] = UserDefaults.standard.stringArray(forKey: "priority_opponentDecks") ?? []
-    @State private var eventPriority: [String] = UserDefaults.standard.stringArray(forKey: "priority_events") ?? []
 
     let memoButtons = ["事故", "プレミ", "相手事故", "リソース切れ", "サイド先行", "後半逆転", "要練習"]
+    // v1.21: 大会はボタンで選ぶ。表記は既存データ（207件）に合わせている。
+    let eventChoices = ["PTCGL午前", "PTCGL午後", "PTCGL夜", "ジムバトル", "1人回し"]
 
     var body: some View {
         ScrollView {
@@ -1039,7 +1082,7 @@ struct EntryView: View {
                 VStack(alignment: .leading, spacing: 14) {
                 Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 12) {
                     GridRow {
-                        Text("日時")
+                        formLabel("日時")
                         VStack(alignment: .leading, spacing: 4) {
                             if dateIsManual {
                                 HStack(spacing: 10) {
@@ -1062,24 +1105,25 @@ struct EntryView: View {
                             }
                         }
                     }
-                    GridRow { Text("自分のデッキ"); deckField($myDeck, names: store.myDeckNames(), kind: "my", priority: $myDeckPriority, priorityKey: "priority_myDecks") }
-                    GridRow { Text("相手のデッキ"); deckField($opponentDeck, names: store.opponentDeckNames(), kind: "opponent", priority: $opponentDeckPriority, priorityKey: "priority_opponentDecks") }
-                    GridRow { Text("レート"); TextField("例：500", text: $rating).textFieldStyle(.roundedBorder).frame(width: 180) }
-                    GridRow { Text("勝敗"); HStack { segmented($result, ["勝ち", "負け"]); ResultBadge(result: result) } }
-                    GridRow { Text("先/後"); segmented($turn, ["先攻", "後攻"]) }
-                    GridRow { Text("初手"); segmented($opening, ["A", "B", "C", "D"]) }
-                    GridRow { Text("大会"); eventField($eventName, names: store.eventNames(), priority: $eventPriority, priorityKey: "priority_events") }
-                    GridRow { Text("メモ"); TextEditor(text: $memo).frame(minHeight: 100).overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary)) }
+                    GridRow { formLabel("自分のデッキ"); deckField($myDeck, names: store.myDeckNames(), kind: "my", priority: $myDeckPriority, priorityKey: "priority_myDecks") }
+                    GridRow { formLabel("相手のデッキ"); deckField($opponentDeck, names: store.opponentDeckNames(), kind: "opponent", priority: $opponentDeckPriority, priorityKey: "priority_opponentDecks") }
+                }
+                // v1.21: レート〜初手の右に大きな保存ボタンを置く。
+                HStack(alignment: .top, spacing: 20) {
+                    Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 12) {
+                        GridRow { formLabel("レート"); RomanTextField(text: $rating, placeholder: "例：500").frame(width: 180, height: 24) }
+                        GridRow { formLabel("勝敗"); HStack { segmented($result, ["勝ち", "負け"]); ResultBadge(result: result) } }
+                        GridRow { formLabel("先/後"); segmented($turn, ["先攻", "後攻"]) }
+                        GridRow { formLabel("初手"); segmented($opening, ["A", "B", "C", "D"]) }
+                    }
+                    saveButtonBlock
+                }
+                Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 12) {
+                    GridRow { formLabel("大会"); eventButtons() }
+                    GridRow { formLabel("メモ"); TextEditor(text: $memo).frame(minHeight: 100).overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary)) }
                 }
                 HStack {
                     ForEach(memoButtons, id: \.self) { word in Button(word) { appendMemo(word) } }
-                }
-                HStack {
-                    Button(store.editingRecord == nil ? "保存する" : "更新する") { save() }
-                        .keyboardShortcut(.defaultAction)
-                        .buttonStyle(.borderedProminent)
-                        .tint(result == "勝ち" ? winColor : lossColor)
-                    if store.editingRecord != nil { Button("編集をキャンセル") { clear(editing: true) } }
                 }
                 }
                 .padding(18)
@@ -1094,6 +1138,43 @@ struct EntryView: View {
         }
         .onChange(of: store.editingRecord) { record in
             loadEditingRecord(record)
+        }
+    }
+
+    private func formLabel(_ text: String) -> some View {
+        Text(text).frame(width: 96, alignment: .leading)
+    }
+
+    // v1.21: 保存ボタン（大）。挙動は従来と同じで見た目と位置だけ変えている。
+    private var saveButtonBlock: some View {
+        VStack(spacing: 8) {
+            Button {
+                save()
+            } label: {
+                Text(store.editingRecord == nil ? "保存する" : "更新する")
+                    .font(.title2.bold())
+                    .frame(width: 160, height: 104)
+            }
+            .keyboardShortcut(.defaultAction)
+            .buttonStyle(.borderedProminent)
+            .tint(result == "勝ち" ? winColor : lossColor)
+            if store.editingRecord != nil {
+                Button("編集をキャンセル") { clear(editing: true) }
+            }
+        }
+    }
+
+    // v1.21: 大会のボタン列。既存データにある未知の大会名は消えないよう右端に足す。
+    private func eventButtons() -> some View {
+        let current = eventName.trimmingCharacters(in: .whitespacesAndNewlines)
+        var choices = eventChoices
+        if !current.isEmpty && !choices.contains(current) { choices.append(current) }
+        return HStack(spacing: 8) {
+            ForEach(choices, id: \.self) { name in
+                Button(name) { eventName = (eventName == name) ? "" : name }
+                    .buttonStyle(.bordered)
+                    .tint(eventName == name ? Color.blue : Color.secondary)
+            }
         }
     }
 
@@ -1152,32 +1233,6 @@ struct EntryView: View {
             try store.registerDeckName(trimmed, kind: kind)
             showSaveFeedback("デッキを登録しました！")
         } catch { store.report(error) }
-    }
-
-    private func eventField(_ binding: Binding<String>, names: [String], priority: Binding<[String]>, priorityKey: String) -> some View {
-        let ordered = orderedCandidates(names: names, counts: usageCounts(kind: "event"), priority: priority.wrappedValue)
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                TextField("例：ジムバトル / フリー", text: binding)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 440)
-                Menu("選択") {
-                    if ordered.isEmpty {
-                        Text("まだ候補がありません")
-                    } else {
-                        ForEach(ordered, id: \.self) { name in
-                            Button(candidateTitle(name, counts: usageCounts(kind: "event"))) { binding.wrappedValue = name }
-                        }
-                    }
-                }
-                .menuStyle(.borderedButton)
-                Button("クリア") { binding.wrappedValue = "" }
-            }
-            candidatePinControls(value: binding.wrappedValue, priority: priority, priorityKey: priorityKey)
-            if !ordered.isEmpty {
-                candidateChips(ordered: ordered, binding: binding, counts: usageCounts(kind: "event"))
-            }
-        }
     }
 
     private func usageCounts(kind: String) -> [String: Int] {
@@ -1289,6 +1344,10 @@ struct EntryView: View {
         do {
             let wasEditing = store.editingRecord != nil
             try store.saveRecord(MatchRecord(id: id, playedAt: stamp, myDeck: trimmedMyDeck, opponentDeck: trimmedOpponentDeck, rating: rating.trimmingCharacters(in: .whitespacesAndNewlines), result: result, turn: turn, opening: opening, eventName: eventName.trimmingCharacters(in: .whitespacesAndNewlines), memo: memo))
+            // v1.21: 次の入力へ引き継ぐ値を控える。
+            UserDefaults.standard.set(trimmedMyDeck, forKey: "carry_myDeck")
+            UserDefaults.standard.set(rating.trimmingCharacters(in: .whitespacesAndNewlines), forKey: "carry_rating")
+            UserDefaults.standard.set(eventName.trimmingCharacters(in: .whitespacesAndNewlines), forKey: "carry_eventName")
             showSaveFeedback(wasEditing ? "更新しました！" : "保存しました！")
             clear(editing: true, keepFeedback: true)
         } catch { store.report(error) }
@@ -1303,7 +1362,12 @@ struct EntryView: View {
     }
 
     private func clear(editing: Bool, keepFeedback: Bool = false) {
-        resetDateToNow(); myDeck = ""; opponentDeck = ""; rating = ""; result = "勝ち"; turn = "先攻"; opening = "B"; eventName = ""; memo = ""
+        // v1.21: 自分のデッキ・レート・大会は前回値を残す。他は従来どおり初期化する。
+        resetDateToNow()
+        myDeck = UserDefaults.standard.string(forKey: "carry_myDeck") ?? ""
+        rating = UserDefaults.standard.string(forKey: "carry_rating") ?? ""
+        eventName = UserDefaults.standard.string(forKey: "carry_eventName") ?? ""
+        opponentDeck = ""; result = "勝ち"; turn = "先攻"; opening = "B"; memo = ""
         if !keepFeedback { saveFeedback = nil }
         if editing { store.editingRecord = nil }
     }

@@ -1,0 +1,7 @@
+CUA: initial 3 rows including 2 identical records; legacy detail shown.
+CUA: external edit -> identity conflict message, empty timeline.
+SQLite: conflict kept previous payload unchanged.
+CUA: original restored, restarted -> 3 rows and legacy detail shown again.
+SQLite: final decoded identity table identical to first launch; integrity_check=ok; schema=4. JSON key order is not stable, so compare decoded objects.
+Fictional Markdown SHA256 matches baseline.
+Executable SHA256: 72115012c25fe0eba6c77296f598b6a1a80bf3bdea7df5d1ba85f02ebda74669

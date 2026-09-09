@@ -20,8 +20,8 @@ cd "$(dirname "$0")"
 
 APP_NAME="DiaryViewer"
 BUNDLE_ID="com.ynp97.diaryviewer"
-VERSION="0.3.0"
-BUILD_NUMBER="3"
+VERSION="0.7.0"
+BUILD_NUMBER="7"
 MIN_MACOS="14.0"
 
 DIST_DIR="dist"

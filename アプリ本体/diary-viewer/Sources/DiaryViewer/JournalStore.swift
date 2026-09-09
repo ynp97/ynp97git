@@ -174,9 +174,12 @@ class JournalStore: ObservableObject {
 
         let fm = FileManager.default
         // 実データは「ジャーナル」、同梱fixtureは「journal」
-        var journalDir = journalURL.appendingPathComponent("ジャーナル")
-        if !fm.fileExists(atPath: journalDir.path) {
-            journalDir = journalURL.appendingPathComponent("journal")
+        let journalDir: URL
+        do { journalDir = try JournalLocation.directory(in: journalURL) }
+        catch {
+            journalLoadErrors = [error.localizedDescription]; captureLoadError = error.localizedDescription
+            journalEntries = []; entries = []; selectedEntry = nil; allTags = []
+            return
         }
 
         var allEntries: [Entry] = []
@@ -184,28 +187,57 @@ class JournalStore: ObservableObject {
         // 中断復旧が年別ファイルを書き換える場合があるため、読む順番は復旧が先。
         if case .folder(let root) = dataSource,
            fm.fileExists(atPath: root.appendingPathComponent("日記アプリデータ").path) {
-            do { _ = try CaptureLibrary(root: root, allowJournalWrites: Self.allowsJournalWrites(root)) }
-            catch { journalLoadErrors.append(error.localizedDescription) }
+            do {
+                let opened = try CaptureLibrary(root: root, allowJournalWrites: Self.allowsJournalWrites(root),
+                    readOnly: !Self.allowsJournalWrites(root), tolerateRecoveryFailure: true)
+                if let issue = opened.recoveryIssue { throw DiaryError.invalid(issue) }
+            }
+            catch {
+                // 複数年の保存途中に片方だけを読んで、重複・欠落した一覧を出さない。
+                journalLoadErrors.append(error.localizedDescription)
+                journalEntries = []; entries = []; selectedEntry = nil; allTags = []
+                captureLoadError = error.localizedDescription
+                return
+            }
         }
 
-        // 年を固定しない。将来の日記と、2013年より前の取り込みも読む。
-        let yearFiles = (try? fm.contentsOfDirectory(at: journalDir, includingPropertiesForKeys: nil)) ?? []
-        for fileURL in yearFiles.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
-            guard fileURL.pathExtension == "md",
-                  fileURL.deletingPathExtension().lastPathComponent.count == 4,
-                  let year = Int(fileURL.deletingPathExtension().lastPathComponent) else { continue }
-
-            do {
-                let content = try String(contentsOf: fileURL, encoding: .utf8)
+        // 全年を読み終えてから対応表を一括確定する。途中までの読込を台帳にしない。
+        do {
+            var files: [String: Data] = [:]
+            for file in try fm.contentsOfDirectory(at: journalDir, includingPropertiesForKeys: nil) {
+                let name = file.deletingPathExtension().lastPathComponent
+                guard file.pathExtension == "md", name.count == 4, Int(name) != nil else { continue }
+                files[file.lastPathComponent] = try Data(contentsOf: file)
+            }
+            var parsed: [String: JournalParser.ParseResult] = [:]
+            for (name, data) in files {
+                let year = Int(name.prefix(4))!
+                guard let content = String(data: data, encoding: .utf8) else { throw DiaryError.invalid("日記がUTF-8ではありません。") }
                 let result = JournalParser.parse(fileContent: content, year: year)
-                if let failure = result.failure { journalLoadErrors.append("\(fileURL.lastPathComponent): \(failure)") }
-                // 検算
+                if let failure = result.failure { throw DiaryError.invalid("\(name): \(failure)") }
+                parsed[name] = result
+            }
+            // 通常ライブラリへの保存開放は検品後。架空データではDBもバックアップ対象。
+            if case .folder(let root) = dataSource, Self.allowsJournalWrites(root) {
+                let identities = try CaptureLibrary(root: root, allowJournalWrites: true).journalIdentities(files: files)
+                for name in parsed.keys.sorted() {
+                    let result = JournalParser.parse(fileContent: String(decoding: files[name]!, as: UTF8.self),
+                                                     year: Int(name.prefix(4))!, persistentIDs: identities[name])
+                    if let failure = result.failure { throw DiaryError.invalid(failure) }
+                    parsed[name] = result
+                }
+            }
+            for name in parsed.keys.sorted() {
+                let result = parsed[name]!
                 JournalParser.validateEntryCount(result: result)
                 allEntries.append(contentsOf: result.entries)
-            } catch {
-                journalLoadErrors.append("\(fileURL.lastPathComponent): \(error.localizedDescription)")
-                print("[エラー] \(fileURL.lastPathComponent) の読み込みに失敗: \(error.localizedDescription)")
             }
+            guard Set(allEntries.map(\.id)).count == allEntries.count else { throw DiaryError.invalid("日記IDが年をまたいで重複しています。") }
+        } catch {
+            journalLoadErrors = [error.localizedDescription]
+            journalEntries = []; entries = []; selectedEntry = nil; allTags = []
+            captureLoadError = error.localizedDescription
+            return
         }
 
         // 画像の探索起点。読み込んだ場所そのものを使う。
@@ -222,7 +254,7 @@ class JournalStore: ObservableObject {
         if case .folder(let root) = dataSource,
            FileManager.default.fileExists(atPath: root.appendingPathComponent("日記アプリデータ").path) {
             do {
-                let captures = try CaptureLibrary(root: root).captures()
+                let captures = try CaptureLibrary(root: root, readOnly: true).captures()
                 combined = Entry.merge(journals: journalEntries, captures: captures)
                 let journalIDs = Set(journalEntries.map(\.id))
                 if captures.contains(where: { $0.adopted && !journalIDs.contains($0.id) }) {

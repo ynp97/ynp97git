@@ -1,0 +1,3 @@
+PASS: separate-process reopen and SIGKILL before COMMIT preserve previous IDs
+PASS: 14 real year files, 1113 distinct IDs, reopen equal, all source hashes unchanged; temporary DB only
+Temporary verification artifacts: /var/folders/7b/smm8430x29d9fvhqwqrg1q5c0000gn/T/diary-identity-uunuh2e4

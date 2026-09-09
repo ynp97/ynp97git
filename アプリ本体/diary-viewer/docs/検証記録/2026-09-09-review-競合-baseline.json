@@ -1,0 +1,13 @@
+{
+  "backup-manifest.json": "eab8f43481f212b49d8056f7b64e92d496788872923e56ca0869a62ab8048c28",
+  ".diary-test-library": "6102e2cdb8ceba6a0ec17680367251062412e11706265fc71714c7eaa47f7662",
+  "recovery-required.txt": "c57e24c118c20754e0d1d7b3765d2b120bdf2ff04ee346f6f7543d613e079e29",
+  "ジャーナル/2026.md": "32de41557f72b6703ca7afdf0adbd26368f05c0cf75dbffbf7faac3ea9869fa7",
+  "日記アプリデータ/library.sqlite": "c410c89beebe1153a81b9cf4214bae4675082bdd78d7da4cc44be4a8c7534299",
+  "日記アプリデータ/originals/3AF5AB13-249C-4903-AFF7-7BD4D4748BD4.txt": "e337d47b6867e141955ce1ddb076b6cdf5731465292398379c7cb20682520fba",
+  "日記アプリデータ/operations/3AF5AB13-249C-4903-AFF7-7BD4D4748BD4/exchanged.md": "dc9f2b6341877ec2fc4be4f2b4327d064395ab1bdb6b92af5bfb3300add9eb11",
+  "日記アプリデータ/operations/3AF5AB13-249C-4903-AFF7-7BD4D4748BD4/before.md": "f2d222131ab7bc27ee2229c919465db7ad8545889a73663549c26cbb0cf5dccc",
+  "日記アプリデータ/operations/3AF5AB13-249C-4903-AFF7-7BD4D4748BD4/after.md": "32de41557f72b6703ca7afdf0adbd26368f05c0cf75dbffbf7faac3ea9869fa7",
+  "media/fixture.mov": "b16f5730555e0d2b48067297b1e259f9af3a251a7c8ed1faeb6f84c35d3a39dc",
+  "media/fixture.jpg": "57111f7584e95dd965d8f62b041c640e564fd18d6b9d73025095102ecf4d9d97"
+}

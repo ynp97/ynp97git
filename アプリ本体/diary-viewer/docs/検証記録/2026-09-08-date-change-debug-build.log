@@ -1,0 +1,20 @@
+warning: /Users/yoshiakinagumo/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.
+warning: /Users/yoshiakinagumo/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.
+[0/1] Planning build
+Building for debugging...
+[0/5] Write sources
+[2/5] Write swift-version--1AB21518FC5DEDBE.txt
+[4/9] Compiling DiaryCore PlainJournalRecord.swift
+[5/9] Compiling DiaryCore OriginalJournal.swift
+[6/9] Compiling DiaryCore CaptureLibrary.swift
+[7/9] Emitting module DiaryCore
+[8/16] Compiling DiaryViewer DetailView.swift
+[9/16] Compiling DiaryViewer JournalParser.swift
+[10/16] Compiling DiaryViewer ContentView.swift
+[11/16] Compiling DiaryViewer JournalStore.swift
+[12/16] Emitting module DiaryViewer
+[13/16] Compiling DiaryViewer CaptureInboxView.swift
+[13/16] Write Objects.LinkFileList
+[14/16] Linking DiaryViewer
+[15/16] Applying DiaryViewer
+Build complete! (20.66s)

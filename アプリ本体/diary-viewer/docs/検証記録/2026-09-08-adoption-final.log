@@ -1,0 +1,5 @@
+Final release binary SHA-256: 09675fd12e0e7a799a9d4743c1c1d70c6dee1ccfc4fd0933aaa6f4a538b832c0
+Actual journal: all 14 year files still match pre-GUI read-only hashes.
+GUI: adopt one fictional record; ready label; 2027 list stays at two entries; search returns one; original text visible.
+GUI backup: all journal files and original texts byte-equal; DB integrity ok, one ready adoption.
+Restart final release with backup: three total entries, adopted record once, raw comment/quote visible, corrected saved label visible.
