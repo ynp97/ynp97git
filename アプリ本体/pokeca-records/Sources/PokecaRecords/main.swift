@@ -1,6 +1,7 @@
 import SwiftUI
 import SQLite3
 import AppKit
+import Carbon.HIToolbox
 import UniformTypeIdentifiers
 
 // MARK: - Models
@@ -998,14 +999,45 @@ struct ErrorBanner: View {
     }
 }
 
-// v1.21: レート欄。フォーカスすると入力ソースが英字（Roman）へ切り替わる。
-// SwiftUIのTextFieldでは入力ソースを指定できないため、NSTextFieldを直接使う。
+// v1.21: レート欄に入ると入力ソースを英字（ASCII可能なキーボード）へ切り替え、
+// 欄から出たら元の入力ソースへ戻す。デッキ名の日本語入力には影響させない。
+final class RomanNSTextField: NSTextField {
+    private var previousInputSource: TISInputSource?
+
+    override func becomeFirstResponder() -> Bool {
+        let accepted = super.becomeFirstResponder()
+        if accepted { switchToRoman() }
+        return accepted
+    }
+
+    override func textDidEndEditing(_ notification: Notification) {
+        restoreInputSource()
+        super.textDidEndEditing(notification)
+    }
+
+    private func switchToRoman() {
+        if previousInputSource == nil {
+            previousInputSource = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue()
+        }
+        guard let roman = TISCopyCurrentASCIICapableKeyboardInputSource()?.takeRetainedValue() else { return }
+        TISSelectInputSource(roman)
+    }
+
+    private func restoreInputSource() {
+        if let previous = previousInputSource {
+            TISSelectInputSource(previous)
+        }
+        previousInputSource = nil
+    }
+}
+
+// v1.21: レート欄。SwiftUIのTextFieldでは入力ソースを指定できないため、NSTextFieldを直接使う。
 struct RomanTextField: NSViewRepresentable {
     @Binding var text: String
     var placeholder: String
 
-    func makeNSView(context: Context) -> NSTextField {
-        let field = NSTextField(string: text)
+    func makeNSView(context: Context) -> RomanNSTextField {
+        let field = RomanNSTextField(string: text)
         field.placeholderString = placeholder
         field.delegate = context.coordinator
         field.isBordered = true
@@ -1013,11 +1045,10 @@ struct RomanTextField: NSViewRepresentable {
         field.bezelStyle = .roundedBezel
         field.drawsBackground = true
         field.font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
-        field.allowedInputSourceLocales = [NSAllRomanInputSourcesLocaleIdentifier]
         return field
     }
 
-    func updateNSView(_ nsView: NSTextField, context: Context) {
+    func updateNSView(_ nsView: RomanNSTextField, context: Context) {
         nsView.placeholderString = placeholder
         if nsView.stringValue != text {
             nsView.stringValue = text
@@ -1176,6 +1207,12 @@ struct EntryView: View {
                     .tint(eventName == name ? Color.blue : Color.secondary)
             }
         }
+    }
+
+    // v1.21: 保険。全角で入力されたレートは半角へ直して保存する。
+    private func normalizedRating(_ value: String) -> String {
+        let half = value.applyingTransform(.fullwidthToHalfwidth, reverse: false) ?? value
+        return half.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func resetDateToNow() {
@@ -1343,10 +1380,10 @@ struct EntryView: View {
         let id = store.editingRecord?.id ?? 0
         do {
             let wasEditing = store.editingRecord != nil
-            try store.saveRecord(MatchRecord(id: id, playedAt: stamp, myDeck: trimmedMyDeck, opponentDeck: trimmedOpponentDeck, rating: rating.trimmingCharacters(in: .whitespacesAndNewlines), result: result, turn: turn, opening: opening, eventName: eventName.trimmingCharacters(in: .whitespacesAndNewlines), memo: memo))
+            try store.saveRecord(MatchRecord(id: id, playedAt: stamp, myDeck: trimmedMyDeck, opponentDeck: trimmedOpponentDeck, rating: normalizedRating(rating), result: result, turn: turn, opening: opening, eventName: eventName.trimmingCharacters(in: .whitespacesAndNewlines), memo: memo))
             // v1.21: 次の入力へ引き継ぐ値を控える。
             UserDefaults.standard.set(trimmedMyDeck, forKey: "carry_myDeck")
-            UserDefaults.standard.set(rating.trimmingCharacters(in: .whitespacesAndNewlines), forKey: "carry_rating")
+            UserDefaults.standard.set(normalizedRating(rating), forKey: "carry_rating")
             UserDefaults.standard.set(eventName.trimmingCharacters(in: .whitespacesAndNewlines), forKey: "carry_eventName")
             showSaveFeedback(wasEditing ? "更新しました！" : "保存しました！")
             clear(editing: true, keepFeedback: true)

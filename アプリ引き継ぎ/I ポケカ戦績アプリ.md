@@ -81,4 +81,26 @@
 **状態**: v1.20 ビルド・配置・画面動作まで確認済み。保存時刻の一致確認のみ次回の実入力待ち。v1.19の`.app`はロールバック用に残置。
 
 
+
+#### 2026-09-09 v1.21（入力画面の操作性）
+
+記録内容・集計・バックアップ・SQLiteスキーマは v1.20 のまま。**入力画面の操作性だけ**を変えた。DBはそのまま引き継げる。
+
+1. **大会をボタン式に**: `PTCGL午前` `PTCGL午後` `PTCGL夜` `ジムバトル` `1人回し` の5ボタン。テキスト欄・候補メニュー・「左端に固定」は大会欄から外した（デッキ欄には従来どおり残る）。**表記は既存207件のデータに合わせている**（本人の指示は「午前中」「一人回し」だったが、それだと集計上、別大会に割れるため既存表記を採用。本人了承）。選択中をもう一度押すと未選択。編集時に5つに無い大会名が入っていれば、その名前のボタンを右端に足して値が消えないようにしている。
+2. **保存ボタンを大きく、レート〜初手の右へ**: 160×104。色・Returnキー・編集時「更新する」は従来どおり。「編集をキャンセル」はその下。
+3. **自分のデッキ・レート・大会は前回入力を引き継ぐ**: `UserDefaults` の `carry_myDeck` / `carry_rating` / `carry_eventName`。保存後も残り、アプリ終了後も復元する。相手のデッキ・勝敗・先後・初手・メモは従来どおり初期化。
+4. **レート欄が英字入力に自動で切り替わる**: 欄に入ると入力ソースを英字へ、出ると元へ戻す。保険として全角で入ったレートは半角へ直して保存する（`normalizedRating`）。
+
+**★踏んではいけない地雷（v1.21で踏んだ）**
+- `allowedInputSourceLocales` は **`NSTextField` にはない**。持っているのは `NSTextInputContext`。`field.allowedInputSourceLocales = ...` はビルドエラー（`value of type 'NSTextField' has no member ...`）になる。
+- 採った方法: `NSTextField` を継承した `RomanNSTextField` で `becomeFirstResponder()` / `textDidEndEditing()` を上書きし、Carbon の `TISCopyCurrentASCIICapableKeyboardInputSource()` + `TISSelectInputSource()` で切り替え、離れるときに `TISCopyCurrentKeyboardInputSource()` で控えた元の入力ソースへ戻す。`import Carbon.HIToolbox` が要る。
+- フィールドエディタは**ウインドウで共有**される。入力ソースを戻す処理を入れないと、デッキ名欄まで英字になる。
+
+**バンドルID**: `com.local.pokecarecords.v121`。版ごとにIDが変わる作りなので、`UserDefaults`（デッキの「左端に固定」、v1.21で足した引き継ぎ値）は**版を上げるとリセットされる**。v1.19→v1.20でも同じ。
+
+**検証（2026-09-09 実機・15インチAir）**: 1回目のビルドは上記の `allowedInputSourceLocales` でコンパイルエラー。修正後 `Build complete! (9.99s)`、署名・`/Applications/PokecaRecords_v1.21.app` への配置まで成功。本人が起動して画面を確認、「いい感じ」と了承。残る警告は209行目の `try?` 未使用1件のみ（v1.19以前から出ているもの、今回未着手）。
+
+**状態**: v1.21 稼働中。v1.20の`.app`はロールバック用に残置。README は `アプリ本体/pokeca-records/README_v1.21.md`。
+
+
 ---
