@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 990" width="1000" height="990" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Yu Gothic, Meiryo, sans-serif">
+  <rect width="1000" height="990" fill="#FFFFFF"/>
+
+  <text x="40" y="44" font-size="24" font-weight="bold" fill="#212529">2灯用・ソケット4個の配線</text>
+  <text x="40" y="72" font-size="14" fill="#666666">端子台から左端2個へ L、右端2個へ N。器具を上から見た図。</text>
+
+  <!-- lamps -->
+  <rect x="190" y="170" width="620" height="32" rx="16" fill="#F1F8FF" stroke="#339AF0" stroke-width="2"/>
+  <text x="500" y="192" font-size="14" text-anchor="middle" fill="#0B4F8A">ランプ1（BTL16）</text>
+  <rect x="190" y="300" width="620" height="32" rx="16" fill="#F1F8FF" stroke="#339AF0" stroke-width="2"/>
+  <text x="500" y="322" font-size="14" text-anchor="middle" fill="#0B4F8A">ランプ2（BTL16）</text>
+
+  <!-- sockets -->
+  <g stroke="#212529" stroke-width="2.5" fill="#F8F9FA">
+    <rect x="100" y="148" width="90" height="76" rx="4"/>
+    <rect x="100" y="278" width="90" height="76" rx="4"/>
+    <rect x="810" y="148" width="90" height="76" rx="4"/>
+    <rect x="810" y="278" width="90" height="76" rx="4"/>
+  </g>
+  <g fill="#868E96">
+    <rect x="112" y="156" width="9" height="18" rx="1"/><rect x="128" y="156" width="9" height="18" rx="1"/>
+    <rect x="154" y="156" width="9" height="18" rx="1"/><rect x="170" y="156" width="9" height="18" rx="1"/>
+    <rect x="112" y="286" width="9" height="18" rx="1"/><rect x="128" y="286" width="9" height="18" rx="1"/>
+    <rect x="154" y="286" width="9" height="18" rx="1"/><rect x="170" y="286" width="9" height="18" rx="1"/>
+    <rect x="822" y="156" width="9" height="18" rx="1"/><rect x="838" y="156" width="9" height="18" rx="1"/>
+    <rect x="864" y="156" width="9" height="18" rx="1"/><rect x="880" y="156" width="9" height="18" rx="1"/>
+    <rect x="822" y="286" width="9" height="18" rx="1"/><rect x="838" y="286" width="9" height="18" rx="1"/>
+    <rect x="864" y="286" width="9" height="18" rx="1"/><rect x="880" y="286" width="9" height="18" rx="1"/>
+  </g>
+  <g font-size="17" font-weight="bold" text-anchor="middle">
+    <text x="145" y="213" fill="#C92A2A">A1</text>
+    <text x="145" y="343" fill="#C92A2A">A2</text>
+    <text x="855" y="213" fill="#1864AB">B1</text>
+    <text x="855" y="343" fill="#1864AB">B2</text>
+  </g>
+  <text x="145" y="128" font-size="14" font-weight="bold" text-anchor="middle" fill="#C92A2A">左端（L側）</text>
+  <text x="855" y="128" font-size="14" font-weight="bold" text-anchor="middle" fill="#1864AB">右端（N側）</text>
+
+  <!-- L wiring -->
+  <path d="M420 445 H60 V186 H100" fill="none" stroke="#E03131" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M145 224 V278" fill="none" stroke="#E03131" stroke-width="5"/>
+  <text x="215" y="254" font-size="13" font-weight="bold" fill="#E03131">渡り</text>
+
+  <!-- N wiring -->
+  <path d="M600 470 H945 V186 H900" fill="none" stroke="#1971C2" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M855 224 V278" fill="none" stroke="#1971C2" stroke-width="5"/>
+  <text x="742" y="254" font-size="13" font-weight="bold" fill="#1971C2">渡り</text>
+
+  <!-- terminal block -->
+  <rect x="420" y="420" width="180" height="90" rx="4" fill="#FFFFFF" stroke="#212529" stroke-width="2.5"/>
+  <text x="510" y="410" font-size="16" font-weight="bold" text-anchor="middle" fill="#212529">端子台</text>
+  <g fill="#868E96">
+    <rect x="442" y="438" width="11" height="22" rx="1"/><rect x="461" y="438" width="11" height="22" rx="1"/>
+    <rect x="548" y="438" width="11" height="22" rx="1"/><rect x="567" y="438" width="11" height="22" rx="1"/>
+  </g>
+  <text x="457" y="482" font-size="14" font-weight="bold" text-anchor="middle" fill="#E03131">L極</text>
+  <text x="563" y="482" font-size="14" font-weight="bold" text-anchor="middle" fill="#1971C2">N極</text>
+  <text x="510" y="502" font-size="11.5" text-anchor="middle" fill="#868E96">各極2穴（1つは天井から・1つは送り出し）</text>
+
+  <!-- incoming VVF -->
+  <path d="M457 590 V510" fill="none" stroke="#212529" stroke-width="5"/>
+  <path d="M563 590 V510" fill="none" stroke="#868E96" stroke-width="5"/>
+  <text x="510" y="614" font-size="14" font-weight="bold" text-anchor="middle" fill="#212529">天井からの電源ケーブル（黒＝L ／ 白＝N）</text>
+
+  <!-- table -->
+  <rect x="40" y="650" width="920" height="44" fill="#E9ECEF"/>
+  <g font-size="13.5" font-weight="bold" fill="#212529">
+    <text x="58" y="678">ソケット</text>
+    <text x="188" y="678">電線はどこから来るか</text>
+    <text x="470" y="678">どの穴に差すか</text>
+  </g>
+  <g font-size="13" fill="#212529">
+    <text x="58" y="722">A1（左端）</text><text x="188" y="722">端子台の L極 の空き穴から</text><text x="470" y="722">同じ端子の2穴を使う。1つ＝端子台から、もう1つ＝A2への渡り</text>
+    <text x="58" y="766">A2（左端）</text><text x="188" y="766">A1 からの渡り線</text><text x="470" y="766">同じ端子に1本。残り3穴は空きのまま</text>
+    <text x="58" y="810">B1（右端）</text><text x="188" y="810">端子台の N極 の空き穴から</text><text x="470" y="810">同じ端子の2穴を使う。1つ＝端子台から、もう1つ＝B2への渡り</text>
+    <text x="58" y="854">B2（右端）</text><text x="188" y="854">B1 からの渡り線</text><text x="470" y="854">同じ端子に1本。残り3穴は空きのまま</text>
+  </g>
+  <g stroke="#DEE2E6" stroke-width="1">
+    <line x1="40" y1="694" x2="960" y2="694"/><line x1="40" y1="738" x2="960" y2="738"/>
+    <line x1="40" y1="782" x2="960" y2="782"/><line x1="40" y1="826" x2="960" y2="826"/>
+    <line x1="40" y1="870" x2="960" y2="870"/>
+  </g>
+  <line x1="175" y1="650" x2="175" y2="870" stroke="#DEE2E6" stroke-width="1"/>
+  <line x1="455" y1="650" x2="455" y2="870" stroke="#DEE2E6" stroke-width="1"/>
+
+  <rect x="40" y="890" width="920" height="76" rx="6" fill="#FFF9DB" stroke="#E8B00A" stroke-width="2"/>
+  <text x="60" y="916" font-size="13.5" fill="#5C4400">・ソケットの4スリットは「端子A×2 ＋ 端子B×2」。同じ端子の2穴は内部でつながっているので、渡り線は必ず同じ端子から取る。</text>
+  <text x="60" y="938" font-size="13.5" fill="#5C4400">・どの2穴が同じ端子かは、テスターの導通レンジでスリット同士を当たれば分かる（導通する2つが同じ端子）。</text>
+  <text x="60" y="960" font-size="13.5" fill="#5C4400">・端子A・B間のジャンパーは不要。BTL16は管の中で両ピンが導通しているため、片方の端子に給電すれば点灯する。</text>
+</svg>
