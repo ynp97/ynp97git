@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1240" width="960" height="1240" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Yu Gothic, Meiryo, sans-serif">
+  <rect width="960" height="1240" fill="#FFFFFF"/>
+
+  <text x="40" y="50" font-size="27" font-weight="bold" fill="#212529">BTL16（両側給電）への配線</text>
+  <text x="40" y="78" font-size="15" fill="#666666">40形蛍光灯器具の安定器バイパス工事</text>
+
+  <!-- ===== Panel 1 ===== -->
+  <rect x="40" y="100" width="880" height="34" fill="#E9ECEF"/>
+  <text x="58" y="123" font-size="17" font-weight="bold" fill="#212529">① 現状：蛍光ランプ（安定器・グロー球を経由）</text>
+
+  <rect x="150" y="170" width="660" height="90" rx="4" fill="#F8F9FA" stroke="#CED4DA" stroke-width="2"/>
+  <rect x="150" y="190" width="46" height="50" fill="#FFFFFF" stroke="#495057" stroke-width="2"/>
+  <rect x="764" y="190" width="46" height="50" fill="#FFFFFF" stroke="#495057" stroke-width="2"/>
+  <rect x="205" y="200" width="550" height="30" rx="15" fill="#FFF9DB" stroke="#E8B00A" stroke-width="2"/>
+  <text x="480" y="220" font-size="14" text-anchor="middle" fill="#212529">蛍光ランプ 40形</text>
+  <text x="173" y="285" font-size="12" text-anchor="middle" fill="#495057">ソケットA</text>
+  <text x="787" y="285" font-size="12" text-anchor="middle" fill="#495057">ソケットB</text>
+
+  <line x1="450" y1="260" x2="450" y2="300" stroke="#495057" stroke-width="2"/>
+  <rect x="380" y="300" width="140" height="46" fill="#DEE2E6" stroke="#495057" stroke-width="2"/>
+  <text x="450" y="329" font-size="15" text-anchor="middle" fill="#212529">安定器</text>
+
+  <line x1="665" y1="260" x2="665" y2="302" stroke="#495057" stroke-width="2"/>
+  <rect x="620" y="302" width="90" height="42" rx="21" fill="#E9ECEF" stroke="#495057" stroke-width="2"/>
+  <text x="665" y="329" font-size="14" text-anchor="middle" fill="#212529">グロー球</text>
+
+  <rect x="120" y="300" width="90" height="46" fill="#FFFFFF" stroke="#495057" stroke-width="2"/>
+  <text x="165" y="329" font-size="14" text-anchor="middle" fill="#212529">AC100V</text>
+  <line x1="210" y1="323" x2="380" y2="323" stroke="#495057" stroke-width="2"/>
+
+  <text x="40" y="382" font-size="13" fill="#868E96">※ 細かい結線は器具ごとに違う。ランプ電流が安定器を通る点は共通。</text>
+
+  <!-- ===== Panel 2 ===== -->
+  <rect x="40" y="410" width="880" height="34" fill="#D0EBFF"/>
+  <text x="58" y="433" font-size="17" font-weight="bold" fill="#0B4F8A">② 改造後：LED（両側給電）＝ 安定器バイパス直結</text>
+
+  <rect x="150" y="490" width="660" height="90" rx="4" fill="#F8F9FA" stroke="#CED4DA" stroke-width="2"/>
+  <rect x="150" y="510" width="46" height="50" fill="#FFFFFF" stroke="#212529" stroke-width="2.5"/>
+  <rect x="764" y="510" width="46" height="50" fill="#FFFFFF" stroke="#212529" stroke-width="2.5"/>
+  <rect x="205" y="520" width="550" height="30" rx="15" fill="#F1F8FF" stroke="#339AF0" stroke-width="2"/>
+  <text x="480" y="540" font-size="13" text-anchor="middle" fill="#0B4F8A">BTL16-Ra98-5000K　両側給電・G13・1198mm</text>
+  <text x="173" y="605" font-size="13" font-weight="bold" text-anchor="middle" fill="#C92A2A">A端</text>
+  <text x="787" y="605" font-size="13" font-weight="bold" text-anchor="middle" fill="#1864AB">B端</text>
+
+  <rect x="40" y="640" width="100" height="70" fill="#FFFFFF" stroke="#212529" stroke-width="2.5"/>
+  <text x="90" y="670" font-size="14" text-anchor="middle" fill="#212529">AC100V</text>
+  <text x="90" y="692" font-size="12" text-anchor="middle" fill="#868E96">電源</text>
+
+  <!-- L wire -->
+  <path d="M140 660 H173 V560" fill="none" stroke="#E03131" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="173" cy="560" r="6" fill="#E03131"/>
+  <text x="196" y="655" font-size="14" font-weight="bold" fill="#E03131">L（非接地側）→ A端ソケットへ</text>
+
+  <!-- N wire -->
+  <path d="M140 695 H787 V560" fill="none" stroke="#1971C2" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="787" cy="560" r="6" fill="#1971C2"/>
+  <text x="330" y="688" font-size="14" font-weight="bold" fill="#1971C2">N（接地側）→ B端ソケットへ</text>
+
+  <!-- removed parts -->
+  <rect x="300" y="760" width="140" height="46" fill="#F1F3F5" stroke="#ADB5BD" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="370" y="789" font-size="15" text-anchor="middle" fill="#ADB5BD">安定器</text>
+  <line x1="306" y1="766" x2="434" y2="800" stroke="#E03131" stroke-width="4"/>
+  <line x1="434" y1="766" x2="306" y2="800" stroke="#E03131" stroke-width="4"/>
+  <text x="370" y="828" font-size="13" text-anchor="middle" fill="#C92A2A">撤去（残すなら全線を外して絶縁）</text>
+
+  <rect x="580" y="762" width="90" height="42" rx="21" fill="#F1F3F5" stroke="#ADB5BD" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="625" y="789" font-size="14" text-anchor="middle" fill="#ADB5BD">グロー球</text>
+  <line x1="586" y1="766" x2="664" y2="800" stroke="#E03131" stroke-width="4"/>
+  <line x1="664" y1="766" x2="586" y2="800" stroke="#E03131" stroke-width="4"/>
+  <text x="625" y="828" font-size="13" text-anchor="middle" fill="#C92A2A">ソケットごと撤去・線は絶縁</text>
+
+  <!-- ===== Panel 3 ===== -->
+  <rect x="40" y="870" width="880" height="34" fill="#E9ECEF"/>
+  <text x="58" y="893" font-size="17" font-weight="bold" fill="#212529">③ ソケット端子の処理（A端・B端とも同じ）</text>
+
+  <rect x="120" y="940" width="120" height="130" rx="4" fill="#FFFFFF" stroke="#495057" stroke-width="2.5"/>
+  <rect x="240" y="962" width="32" height="14" fill="#868E96"/>
+  <rect x="240" y="1034" width="32" height="14" fill="#868E96"/>
+  <text x="256" y="1090" font-size="12" text-anchor="middle" fill="#868E96">G13ピン</text>
+
+  <circle cx="165" cy="969" r="9" fill="#495057"/>
+  <circle cx="165" cy="1041" r="9" fill="#495057"/>
+  <line x1="165" y1="969" x2="165" y2="1041" stroke="#E03131" stroke-width="4.5"/>
+  <path d="M50 1005 H165" fill="none" stroke="#212529" stroke-width="4"/>
+  <text x="52" y="995" font-size="13" fill="#212529">電源線</text>
+  <text x="182" y="1010" font-size="13" font-weight="bold" fill="#E03131">2端子を短絡</text>
+
+  <text x="330" y="960" font-size="14" fill="#212529">・BTL16 は各端の2ピンが内部で導通しているため、片側の端子だけでも点灯する。</text>
+  <text x="330" y="990" font-size="14" fill="#212529">・接触不良や挿し向きの保険として、各ソケットの2端子は短絡しておく。</text>
+  <text x="330" y="1020" font-size="14" fill="#212529">・A端＝L、B端＝N。両端を同じ極につながない（点かない）。</text>
+  <text x="330" y="1050" font-size="14" fill="#212529">・2灯用器具なら、2本目も同じくA端＝L／B端＝Nで並列に接続する。</text>
+
+  <!-- warning -->
+  <rect x="40" y="1110" width="880" height="106" rx="6" fill="#FFF5F5" stroke="#E03131" stroke-width="2"/>
+  <text x="62" y="1141" font-size="14" fill="#C92A2A">⚠　安定器を残したまま挿すと即故障する。Hf・ラピッド問わず必ずバイパスする。</text>
+  <text x="62" y="1170" font-size="14" fill="#C92A2A">⚠　両側給電は、ランプ交換時に片端のピンが充電状態になる。交換は必ずブレーカーOFFで。</text>
+  <text x="62" y="1199" font-size="14" fill="#C92A2A">⚠　100Vの固定配線を触るこの工事は、第二種電気工事士の資格が必要。</text>
+</svg>
