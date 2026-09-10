@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 560" width="820" height="560" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Yu Gothic, Meiryo, sans-serif">
+  <rect width="820" height="560" fill="#FFFFFF"/>
+  <text x="36" y="44" font-size="22" font-weight="bold" fill="#212529">G13ソケット：どこに何を差すか</text>
+
+  <line x1="330" y1="80" x2="330" y2="470" stroke="#DEE2E6" stroke-width="2"/>
+
+  <!-- 正面 -->
+  <text x="36" y="110" font-size="16" font-weight="bold" fill="#212529">① 正面（ランプ側）</text>
+  <path d="M70 300 V180 A75 75 0 0 1 220 180 V300 Z" fill="#F8F9FA" stroke="#495057" stroke-width="2.5"/>
+  <circle cx="127" cy="200" r="15" fill="#343A40"/>
+  <circle cx="163" cy="200" r="15" fill="#343A40"/>
+  <text x="145" y="340" font-size="14" text-anchor="middle" fill="#212529">丸穴2つ ＝ ランプのG13ピンが入る所</text>
+  <text x="145" y="364" font-size="14" font-weight="bold" text-anchor="middle" fill="#C92A2A">ここに電線は差さない</text>
+
+  <!-- 底面 -->
+  <text x="366" y="110" font-size="16" font-weight="bold" fill="#212529">② 底面（速結端子・4スリット）</text>
+  <rect x="420" y="140" width="290" height="80" rx="4" fill="#F8F9FA" stroke="#495057" stroke-width="2.5"/>
+  <rect x="447" y="158" width="20" height="46" rx="2" fill="#868E96"/>
+  <rect x="487" y="158" width="20" height="46" rx="2" fill="#868E96"/>
+  <rect x="613" y="158" width="20" height="46" rx="2" fill="#868E96"/>
+  <rect x="653" y="158" width="20" height="46" rx="2" fill="#868E96"/>
+
+  <path d="M447 232 V244 H507 V232" fill="none" stroke="#1971C2" stroke-width="2"/>
+  <text x="477" y="266" font-size="13" font-weight="bold" text-anchor="middle" fill="#1971C2">端子A（片方のピン）</text>
+  <path d="M613 232 V244 H673 V232" fill="none" stroke="#1971C2" stroke-width="2"/>
+  <text x="643" y="266" font-size="13" font-weight="bold" text-anchor="middle" fill="#1971C2">端子B（もう片方のピン）</text>
+
+  <!-- 電源線 -->
+  <path d="M457 390 V212" fill="none" stroke="#E03131" stroke-width="4.5"/>
+  <path d="M457 204 l-8 14 h16 Z" fill="#E03131"/>
+  <text x="440" y="412" font-size="14" font-weight="bold" text-anchor="middle" fill="#E03131">電源線（端子台から）1本</text>
+
+  <!-- ジャンパー -->
+  <path d="M497 212 V330 H623 V212" fill="none" stroke="#F08C00" stroke-width="4"/>
+  <path d="M497 204 l-8 14 h16 Z" fill="#F08C00"/>
+  <path d="M623 204 l-8 14 h16 Z" fill="#F08C00"/>
+  <text x="560" y="356" font-size="14" font-weight="bold" text-anchor="middle" fill="#B35C00">ジャンパー線で端子A・Bを短絡</text>
+
+  <text x="366" y="452" font-size="13" fill="#868E96">※ 空いている残り2スリットは送り配線用。使わなくてよい。</text>
+
+  <rect x="36" y="480" width="748" height="56" rx="6" fill="#FFF5F5" stroke="#E03131" stroke-width="2"/>
+  <text x="56" y="506" font-size="13.5" fill="#C92A2A">・A端ソケットの2端子はまとめて L、B端ソケットの2端子はまとめて N。1本のソケット内で L と N を混ぜない。</text>
+  <text x="56" y="527" font-size="13.5" fill="#C92A2A">・速結端子は単線1.6mm専用のものが多い。差し込む前に本体のストリップゲージ（剥き長さ）を確認する。</text>
+</svg>
