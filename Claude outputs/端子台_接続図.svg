@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 920" width="940" height="920" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Yu Gothic, Meiryo, sans-serif">
+  <rect width="940" height="920" fill="#FFFFFF"/>
+  <text x="36" y="40" font-size="22" font-weight="bold" fill="#212529">端子台 41-11443ANL への接続</text>
+  <text x="36" y="66" font-size="13" fill="#666666">20A 300V ／ φ1.6×2 ／ Cu単線専用（より線は不可）</text>
+
+  <!-- labels above -->
+  <text x="240" y="112" font-size="13" font-weight="bold" fill="#2B8A3E">アース線（緑）専用</text>
+  <text x="500" y="112" font-size="14" font-weight="bold" text-anchor="middle" fill="#212529">黒①</text>
+
+  <!-- block -->
+  <rect x="230" y="150" width="440" height="290" rx="6" fill="#F8F9FA" stroke="#212529" stroke-width="3"/>
+  <rect x="242" y="162" width="188" height="266" rx="4" fill="#EBFBEE" stroke="#2B8A3E" stroke-width="2"/>
+  <rect x="440" y="162" width="218" height="266" rx="4" fill="#FFFFFF" stroke="#495057" stroke-width="2"/>
+
+  <text x="336" y="192" font-size="16" font-weight="bold" text-anchor="middle" fill="#2B8A3E">アース ⏚</text>
+  <text x="549" y="192" font-size="16" font-weight="bold" text-anchor="middle" fill="#212529">電 源</text>
+
+  <!-- earth holes -->
+  <circle cx="336" cy="250" r="22" fill="#FFFFFF" stroke="#2B8A3E" stroke-width="3"/>
+  <circle cx="336" cy="330" r="22" fill="#FFFFFF" stroke="#2B8A3E" stroke-width="3"/>
+  <text x="336" y="390" font-size="12" text-anchor="middle" fill="#2B8A3E">電源線は入れない</text>
+
+  <!-- power holes -->
+  <circle cx="500" cy="250" r="24" fill="#212529"/>
+  <circle cx="500" cy="340" r="24" fill="#212529"/>
+  <circle cx="600" cy="250" r="24" fill="#F1F3F5" stroke="#495057" stroke-width="3"/>
+  <circle cx="600" cy="340" r="24" fill="#F1F3F5" stroke="#495057" stroke-width="3"/>
+  <text x="638" y="222" font-size="18" font-weight="bold" fill="#1971C2">W</text>
+  <text x="600" y="410" font-size="12" text-anchor="middle" fill="#1971C2">W刻印＝接地側</text>
+
+  <!-- leaders -->
+  <path d="M336 120 V228" fill="none" stroke="#2B8A3E" stroke-width="4"/>
+  <path d="M500 120 V226" fill="none" stroke="#212529" stroke-width="4"/>
+  <path d="M500 364 V500 H430" fill="none" stroke="#212529" stroke-width="4"/>
+  <text x="420" y="505" font-size="14" font-weight="bold" text-anchor="end" fill="#212529">黒②</text>
+  <path d="M624 250 H790" fill="none" stroke="#ADB5BD" stroke-width="4"/>
+  <text x="800" y="256" font-size="14" font-weight="bold" fill="#495057">白①</text>
+  <path d="M624 340 H790" fill="none" stroke="#ADB5BD" stroke-width="4"/>
+  <text x="800" y="346" font-size="14" font-weight="bold" fill="#495057">白②</text>
+
+  <!-- internal leads -->
+  <path d="M500 440 V545" fill="none" stroke="#E03131" stroke-width="5"/>
+  <path d="M600 440 V545" fill="none" stroke="#1971C2" stroke-width="5"/>
+  <text x="470" y="572" font-size="13" font-weight="bold" text-anchor="end" fill="#E03131">器具内リード（黒側）</text>
+  <text x="470" y="592" font-size="13" font-weight="bold" text-anchor="end" fill="#E03131">→ 左端 A1 の ①</text>
+  <text x="630" y="572" font-size="13" font-weight="bold" fill="#1971C2">器具内リード（W側）</text>
+  <text x="630" y="592" font-size="13" font-weight="bold" fill="#1971C2">→ 右端 B1 の ①</text>
+
+  <!-- table -->
+  <rect x="36" y="626" width="868" height="40" fill="#E9ECEF"/>
+  <text x="54" y="652" font-size="14" font-weight="bold" fill="#212529">端子</text>
+  <text x="330" y="652" font-size="14" font-weight="bold" fill="#212529">つなぐもの</text>
+  <g font-size="13.5" fill="#212529">
+    <text x="54" y="692">電源部・W側の上</text><text x="330" y="692">天井ケーブル① の 白</text>
+    <text x="54" y="722">電源部・W側の下</text><text x="330" y="722">天井ケーブル② の 白</text>
+    <text x="54" y="752">電源部・反対側の上</text><text x="330" y="752">天井ケーブル① の 黒</text>
+    <text x="54" y="782">電源部・反対側の下</text><text x="330" y="782">天井ケーブル② の 黒</text>
+    <text x="54" y="812">アース部（2穴）</text><text x="330" y="812">天井に緑のアース線があればここ。無ければ空き</text>
+  </g>
+  <g stroke="#DEE2E6" stroke-width="1">
+    <line x1="36" y1="666" x2="904" y2="666"/><line x1="36" y1="702" x2="904" y2="702"/>
+    <line x1="36" y1="732" x2="904" y2="732"/><line x1="36" y1="762" x2="904" y2="762"/>
+    <line x1="36" y1="792" x2="904" y2="792"/><line x1="36" y1="822" x2="904" y2="822"/>
+  </g>
+  <line x1="315" y1="626" x2="315" y2="822" stroke="#DEE2E6" stroke-width="1"/>
+
+  <text x="36" y="852" font-size="13" fill="#C92A2A">※ 電源部は1極2穴。送り配線がちょうど収まるので、器具内リードのぶんで穴が足りなくなる心配はない。</text>
+  <text x="36" y="874" font-size="13" fill="#C92A2A">※ 器具内リードが安定器につながっているなら、安定器側で切り離してソケットへ回す。</text>
+  <text x="36" y="896" font-size="13" fill="#C92A2A">※ 線を抜くときは「さし込み」矢印の横にある解除穴へマイナスドライバー。引っ張っても抜けない。</text>
+</svg>

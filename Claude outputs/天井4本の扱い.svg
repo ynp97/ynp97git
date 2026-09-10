@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 600" width="880" height="600" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Yu Gothic, Meiryo, sans-serif">
+  <rect width="880" height="600" fill="#FFFFFF"/>
+  <text x="36" y="40" font-size="22" font-weight="bold" fill="#212529">天井から4本＝2芯ケーブル2本（送り配線）</text>
+
+  <!-- ceiling -->
+  <rect x="36" y="58" width="808" height="14" fill="#E9ECEF"/>
+  <text x="250" y="96" font-size="14" font-weight="bold" text-anchor="middle" fill="#212529">天井ケーブル①</text>
+  <text x="600" y="96" font-size="14" font-weight="bold" text-anchor="middle" fill="#212529">天井ケーブル②</text>
+  <path d="M250 72 V140" fill="none" stroke="#868E96" stroke-width="12"/>
+  <path d="M600 72 V140" fill="none" stroke="#868E96" stroke-width="12"/>
+
+  <!-- cable 1 -->
+  <path d="M250 140 V180 H170 V250" fill="none" stroke="#CED4DA" stroke-width="6"/>
+  <path d="M250 140 V212 H560 V250" fill="none" stroke="#212529" stroke-width="6"/>
+  <!-- cable 2 -->
+  <path d="M600 140 V180 H300 V250" fill="none" stroke="#CED4DA" stroke-width="6"/>
+  <path d="M600 140 V212 H690 V250" fill="none" stroke="#212529" stroke-width="6"/>
+
+  <text x="140" y="176" font-size="12" text-anchor="end" fill="#868E96">白①</text>
+  <text x="326" y="172" font-size="12" fill="#868E96">白②</text>
+  <text x="430" y="204" font-size="12" text-anchor="middle" fill="#212529">黒①</text>
+  <text x="716" y="208" font-size="12" fill="#212529">黒②</text>
+
+  <!-- N block -->
+  <rect x="90" y="250" width="290" height="110" rx="4" fill="#F8F9FA" stroke="#1971C2" stroke-width="3"/>
+  <text x="235" y="292" font-size="18" font-weight="bold" text-anchor="middle" fill="#1971C2">N 極</text>
+  <text x="235" y="320" font-size="13" text-anchor="middle" fill="#1971C2">接地側・白い線を3本ここへ</text>
+  <text x="235" y="344" font-size="12" text-anchor="middle" fill="#868E96">白① ＋ 白② ＋ 器具内へ1本</text>
+
+  <!-- L block -->
+  <rect x="470" y="250" width="290" height="110" rx="4" fill="#F8F9FA" stroke="#E03131" stroke-width="3"/>
+  <text x="615" y="292" font-size="18" font-weight="bold" text-anchor="middle" fill="#E03131">L 極</text>
+  <text x="615" y="320" font-size="13" text-anchor="middle" fill="#E03131">非接地側・黒い線を3本ここへ</text>
+  <text x="615" y="344" font-size="12" text-anchor="middle" fill="#868E96">黒① ＋ 黒② ＋ 器具内へ1本</text>
+
+  <!-- outputs -->
+  <path d="M235 360 V440" fill="none" stroke="#1971C2" stroke-width="6"/>
+  <path d="M235 448 l-8 -14 h16 Z" fill="#1971C2"/>
+  <text x="235" y="472" font-size="14" font-weight="bold" text-anchor="middle" fill="#1971C2">右端のソケットへ（B1 の ①）</text>
+
+  <path d="M615 360 V440" fill="none" stroke="#E03131" stroke-width="6"/>
+  <path d="M615 448 l-8 -14 h16 Z" fill="#E03131"/>
+  <text x="615" y="472" font-size="14" font-weight="bold" text-anchor="middle" fill="#E03131">左端のソケットへ（A1 の ①）</text>
+
+  <rect x="36" y="500" width="808" height="86" rx="6" fill="#FFF9DB" stroke="#E8B00A" stroke-width="2"/>
+  <text x="56" y="527" font-size="13.5" fill="#5C4400">・ケーブル②は次の器具へ送っている線。外すとそちらの照明が消える。必ず元どおり同じ極へ戻す。</text>
+  <text x="56" y="549" font-size="13.5" fill="#5C4400">・白と黒を混ぜない。どちらのケーブルが電源側かは区別しなくてよい（同じ極同士でまとめる）。</text>
+  <text x="56" y="571" font-size="13.5" fill="#5C4400">・端子台の穴が各極2つしかなければ3本入らない。その場合は差込形コネクタ（3本用）を2個使う。</text>
+</svg>
