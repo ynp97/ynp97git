@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 900" width="1020" height="900" font-family="Hiragino Sans, Hiragino Kaku Gothic ProN, Yu Gothic, Meiryo, sans-serif">
+  <rect width="1020" height="900" fill="#FFFFFF"/>
+  <text x="36" y="42" font-size="23" font-weight="bold" fill="#212529">取り回し ── ソケットの線が2本でも4本でも同じ</text>
+  <text x="36" y="68" font-size="13.5" fill="#666666">各ソケットで使うのは1本だけ。どの1本でもよい。残りは全部切って絶縁する。</text>
+
+  <!-- ceiling -->
+  <rect x="380" y="96" width="260" height="10" fill="#E9ECEF"/>
+  <text x="510" y="90" font-size="12.5" text-anchor="middle" fill="#868E96">天井から4本</text>
+  <path d="M425 106 V150" fill="none" stroke="#212529" stroke-width="5"/>
+  <path d="M448 106 V150" fill="none" stroke="#212529" stroke-width="5"/>
+  <path d="M572 106 V150" fill="none" stroke="#868E96" stroke-width="8"/>
+  <path d="M572 106 V150" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+  <path d="M595 106 V150" fill="none" stroke="#868E96" stroke-width="8"/>
+  <path d="M595 106 V150" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+
+  <!-- terminal block -->
+  <rect x="380" y="150" width="260" height="96" rx="4" fill="#FFFFFF" stroke="#212529" stroke-width="2.5"/>
+  <text x="510" y="178" font-size="15" font-weight="bold" text-anchor="middle" fill="#212529">端子台 41-11443ANL</text>
+  <text x="437" y="204" font-size="12.5" text-anchor="middle" fill="#212529">黒2本 → L極</text>
+  <text x="583" y="204" font-size="12.5" text-anchor="middle" fill="#1971C2">白2本 → W極</text>
+  <text x="510" y="228" font-size="11.5" text-anchor="middle" fill="#868E96">アース部は空き</text>
+
+  <!-- leads down -->
+  <path d="M440 246 V266" fill="none" stroke="#212529" stroke-width="5"/>
+  <path d="M580 246 V266" fill="none" stroke="#868E96" stroke-width="8"/>
+  <path d="M580 246 V266" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+
+  <!-- 2-way connectors -->
+  <rect x="390" y="266" width="100" height="46" rx="4" fill="#FFF9DB" stroke="#E8B00A" stroke-width="2.5"/>
+  <text x="440" y="288" font-size="12" font-weight="bold" text-anchor="middle" fill="#5C4400">221-412</text>
+  <text x="440" y="304" font-size="11" text-anchor="middle" fill="#5C4400">2本用</text>
+  <rect x="530" y="266" width="100" height="46" rx="4" fill="#FFF9DB" stroke="#E8B00A" stroke-width="2.5"/>
+  <text x="580" y="288" font-size="12" font-weight="bold" text-anchor="middle" fill="#5C4400">221-412</text>
+  <text x="580" y="304" font-size="11" text-anchor="middle" fill="#5C4400">2本用</text>
+  <text x="310" y="258" font-size="11.5" text-anchor="end" fill="#868E96">口出線（安定器側で切る）</text>
+
+  <!-- VVF runs -->
+  <path d="M440 312 V470 H315" fill="none" stroke="#212529" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M580 312 V470 H705" fill="none" stroke="#868E96" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M580 312 V470 H705" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"/>
+  <text x="452" y="392" font-size="12.5" font-weight="bold" fill="#212529">VVFの黒</text>
+  <text x="592" y="392" font-size="12.5" font-weight="bold" fill="#495057">VVFの白</text>
+
+  <!-- 3-way connectors -->
+  <rect x="195" y="440" width="120" height="60" rx="4" fill="#FFF9DB" stroke="#E8B00A" stroke-width="2.5"/>
+  <text x="255" y="466" font-size="13" font-weight="bold" text-anchor="middle" fill="#5C4400">221-413</text>
+  <text x="255" y="486" font-size="11.5" text-anchor="middle" fill="#5C4400">3本用</text>
+  <rect x="705" y="440" width="120" height="60" rx="4" fill="#FFF9DB" stroke="#E8B00A" stroke-width="2.5"/>
+  <text x="765" y="466" font-size="13" font-weight="bold" text-anchor="middle" fill="#5C4400">221-413</text>
+  <text x="765" y="486" font-size="11.5" text-anchor="middle" fill="#5C4400">3本用</text>
+
+  <!-- sockets left -->
+  <g>
+    <rect x="60" y="330" width="130" height="80" rx="4" fill="#F8F9FA" stroke="#212529" stroke-width="2.5"/>
+    <text x="125" y="360" font-size="16" font-weight="bold" text-anchor="middle" fill="#212529">A1</text>
+    <text x="125" y="382" font-size="11" text-anchor="middle" fill="#868E96">既存の線 2本 or 4本</text>
+    <path d="M190 370 H255 V440" fill="none" stroke="#212529" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M190 392 H228" fill="none" stroke="#CED4DA" stroke-width="4"/>
+    <path d="M190 400 H228" fill="none" stroke="#CED4DA" stroke-width="4"/>
+    <path d="M222 388 l12 16 M234 388 l-12 16" stroke="#E03131" stroke-width="2.5"/>
+  </g>
+  <g>
+    <rect x="60" y="540" width="130" height="80" rx="4" fill="#F8F9FA" stroke="#212529" stroke-width="2.5"/>
+    <text x="125" y="570" font-size="16" font-weight="bold" text-anchor="middle" fill="#212529">A2</text>
+    <text x="125" y="592" font-size="11" text-anchor="middle" fill="#868E96">既存の線 2本 or 4本</text>
+    <path d="M190 580 H255 V500" fill="none" stroke="#212529" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M190 602 H228" fill="none" stroke="#CED4DA" stroke-width="4"/>
+    <path d="M190 610 H228" fill="none" stroke="#CED4DA" stroke-width="4"/>
+    <path d="M222 598 l12 16 M234 598 l-12 16" stroke="#E03131" stroke-width="2.5"/>
+  </g>
+  <!-- sockets right -->
+  <g>
+    <rect x="830" y="330" width="130" height="80" rx="4" fill="#F8F9FA" stroke="#212529" stroke-width="2.5"/>
+    <text x="895" y="360" font-size="16" font-weight="bold" text-anchor="middle" fill="#212529">B1</text>
+    <text x="895" y="382" font-size="11" text-anchor="middle" fill="#868E96">既存の線 2本 or 4本</text>
+    <path d="M830 370 H765 V440" fill="none" stroke="#868E96" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M830 370 H765 V440" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M830 392 H792" fill="none" stroke="#CED4DA" stroke-width="4"/>
+    <path d="M830 400 H792" fill="none" stroke="#CED4DA" stroke-width="4"/>
+    <path d="M786 388 l12 16 M798 388 l-12 16" stroke="#E03131" stroke-width="2.5"/>
+  </g>
+  <g>
+    <rect x="830" y="540" width="130" height="80" rx="4" fill="#F8F9FA" stroke="#212529" stroke-width="2.5"/>
+    <text x="895" y="570" font-size="16" font-weight="bold" text-anchor="middle" fill="#212529">B2</text>
+    <text x="895" y="592" font-size="11" text-anchor="middle" fill="#868E96">既存の線 2本 or 4本</text>
+    <path d="M830 580 H765 V500" fill="none" stroke="#868E96" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M830 580 H765 V500" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M830 602 H792" fill="none" stroke="#CED4DA" stroke-width="4"/>
+    <path d="M830 610 H792" fill="none" stroke="#CED4DA" stroke-width="4"/>
+    <path d="M786 598 l12 16 M798 598 l-12 16" stroke="#E03131" stroke-width="2.5"/>
+  </g>
+
+  <text x="125" y="308" font-size="13" font-weight="bold" text-anchor="middle" fill="#212529">左端（黒＝L）</text>
+  <text x="895" y="308" font-size="13" font-weight="bold" text-anchor="middle" fill="#495057">右端（白＝N）</text>
+  <text x="255" y="530" font-size="11.5" text-anchor="middle" fill="#868E96">濃い線＝使う1本／灰色＝切って絶縁</text>
+
+  <!-- notes -->
+  <rect x="36" y="672" width="948" height="200" rx="6" fill="#F8F9FA" stroke="#CED4DA" stroke-width="2"/>
+  <text x="58" y="704" font-size="16" font-weight="bold" fill="#212529">2本でも4本でも手順は同じ</text>
+  <g font-size="14" fill="#212529">
+    <text x="58" y="736">1.　各ソケットの線を、全部まとめて根元から5cm残して切る。</text>
+    <text x="58" y="764">2.　そのうち好きな1本を選ぶ。どの端子の線でもよい（BTL16は管の中で両ピンが導通している）。</text>
+    <text x="58" y="792">3.　左端の2個から選んだ2本と、VVFの黒を 3本用コネクタ1個へ。右端も同じく白で。</text>
+    <text x="58" y="820">4.　選ばなかった線は、被覆を剥かずに根元3〜5mmで切って絶縁する。1本も宙ぶらりんにしない。</text>
+  </g>
+  <text x="58" y="852" font-size="13" fill="#C92A2A">※ 同じソケットの線を2本以上つながない。使うのは必ず1本だけ。</text>
+</svg>
