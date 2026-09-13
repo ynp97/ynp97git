@@ -116,15 +116,10 @@ def main() -> int:
 
     title = require(data, "title")
     document_title = require(data, "document_title")
-    # 系図など、一つの本文ボックスが1ページに収まらない日だけ true にする。
-    # avoid-page のままだとボックスが丸ごと次ページへ送られ、前ページが大きく空く。
-    long_blocks_css = (
-        "\n.verse{break-inside:auto}\n.verse-label{break-after:avoid-page}\n" if data.get("long_verse_blocks") else ""
-    )
     html = f'''<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(document_title)}</title>
-<style>{CSS}{long_blocks_css}</style></head><body><main>
+<style>{CSS}</style></head><body><main>
 <h1>{multiline(title)}</h1>
 <h2>全体の流れと結論</h2>
 <ol>{''.join(f'<li>{multiline(item)}</li>' for item in require(data, "flow"))}</ol>
