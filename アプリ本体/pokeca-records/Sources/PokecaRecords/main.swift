@@ -1015,6 +1015,13 @@ final class RomanNSTextField: NSTextField {
         super.textDidEndEditing(notification)
     }
 
+    override func textDidBeginEditing(_ notification: Notification) {
+        super.textDidBeginEditing(notification)
+        // マウスで入る経路でも、共有フィールドエディタの生成後に指定する。
+        switchToRoman()
+        currentEditor()?.inputContext?.allowedInputSourceLocales = ["en"]
+    }
+
     private func switchToRoman() {
         if previousInputSource == nil {
             previousInputSource = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue()
@@ -1024,6 +1031,7 @@ final class RomanNSTextField: NSTextField {
     }
 
     private func restoreInputSource() {
+        currentEditor()?.inputContext?.allowedInputSourceLocales = nil
         if let previous = previousInputSource {
             TISSelectInputSource(previous)
         }
@@ -1184,11 +1192,14 @@ struct EntryView: View {
             } label: {
                 Text(store.editingRecord == nil ? "保存する" : "更新する")
                     .font(.title2.bold())
-                    .frame(width: 160, height: 104)
+                    .foregroundStyle(.white)
+                    .frame(width: 180, height: 112)
+                    .background(result == "勝ち" ? winColor : lossColor, in: RoundedRectangle(cornerRadius: 14))
+                    .contentShape(RoundedRectangle(cornerRadius: 14))
             }
             .keyboardShortcut(.defaultAction)
-            .buttonStyle(.borderedProminent)
-            .tint(result == "勝ち" ? winColor : lossColor)
+            // macOS標準ボタンの高さへ縮められないよう、押せる面全体を明示する。
+            .buttonStyle(.plain)
             if store.editingRecord != nil {
                 Button("編集をキャンセル") { clear(editing: true) }
             }
@@ -1236,7 +1247,9 @@ struct EntryView: View {
     }
 
     private func deckField(_ binding: Binding<String>, names: [String], kind: String, priority: Binding<[String]>, priorityKey: String) -> some View {
-        let ordered = orderedCandidates(names: names, counts: usageCounts(kind: kind), priority: priority.wrappedValue)
+        let counts = usageCounts(kind: kind)
+        let ordered = orderedCandidates(names: names, counts: counts, priority: priority.wrappedValue, alphabetizeLowCounts: kind == "opponent")
+        let separatorBefore = kind == "opponent" ? ordered.first(where: { counts[$0, default: 0] <= 10 && !priority.wrappedValue.contains($0) }) : nil
         return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 TextField("デッキ名を入力、または右の選択から選ぶ", text: binding)
@@ -1247,6 +1260,10 @@ struct EntryView: View {
                         Text("まだ候補がありません")
                     } else {
                         ForEach(ordered, id: \.self) { name in
+                            if name == separatorBefore {
+                                Divider()
+                                Text("10回以下・アイウエオ順")
+                            }
                             Button(candidateTitle(name, counts: usageCounts(kind: kind))) { binding.wrappedValue = name }
                         }
                     }
@@ -1258,7 +1275,7 @@ struct EntryView: View {
             }
             candidatePinControls(value: binding.wrappedValue, priority: priority, priorityKey: priorityKey)
             if !ordered.isEmpty {
-                candidateChips(ordered: ordered, binding: binding, counts: usageCounts(kind: kind))
+                candidateChips(ordered: ordered, binding: binding, counts: counts, separatorBefore: separatorBefore)
             }
         }
     }
@@ -1287,7 +1304,7 @@ struct EntryView: View {
         return counts
     }
 
-    private func orderedCandidates(names: [String], counts: [String: Int], priority: [String]) -> [String] {
+    private func orderedCandidates(names: [String], counts: [String: Int], priority: [String], alphabetizeLowCounts: Bool = false) -> [String] {
         let unique = Array(Set(names.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }))
         let priorityIndex = Dictionary(uniqueKeysWithValues: priority.enumerated().map { ($0.element, $0.offset) })
         return unique.sorted { a, b in
@@ -1299,6 +1316,9 @@ struct EntryView: View {
             }
             let ac = counts[a, default: 0]
             let bc = counts[b, default: 0]
+            if alphabetizeLowCounts && ac <= 10 && bc <= 10 {
+                return a.compare(b, options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive, .numeric], locale: Locale(identifier: "ja_JP")) == .orderedAscending
+            }
             if ac != bc { return ac > bc }
             return a.localizedStandardCompare(b) == .orderedAscending
         }
@@ -1309,10 +1329,15 @@ struct EntryView: View {
         return c > 0 ? "\(name)（\(c)回）" : name
     }
 
-    private func candidateChips(ordered: [String], binding: Binding<String>, counts: [String: Int]) -> some View {
+    private func candidateChips(ordered: [String], binding: Binding<String>, counts: [String: Int], separatorBefore: String? = nil) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
                 ForEach(ordered, id: \.self) { name in
+                    if name == separatorBefore {
+                        Divider().frame(height: 24).padding(.horizontal, 6)
+                        Text("10回以下・アイウエオ順")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                     Button(candidateTitle(name, counts: counts)) { binding.wrappedValue = name }
                         .buttonStyle(.bordered)
                         .tint(binding.wrappedValue == name ? Color.blue : Color.secondary)

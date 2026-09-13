@@ -9,10 +9,10 @@ if [ ! -f "$HTML" ]; then
   exit 1
 fi
 
-# 起動を速くするため python3 は呼ばない。file URL に必要なのは空白の %20 だけ。
+# Pythonは呼ばず、macOS標準Perlで日本語を含むパスをUTF-8バイト単位でURL化する。
 zmodload zsh/datetime 2>/dev/null
 T=${EPOCHREALTIME:-0}
-URL="file://${HTML// /%20}"
+URL="file://$(/usr/bin/perl -e '$s=shift; $s =~ s{([^A-Za-z0-9/_.~-])}{sprintf("%%%02X",ord($1))}ge; print $s' "$HTML")"
 
 if [ -x "$CHROME" ]; then
   # 保存分岐防止: プロファイルをDefaultに固定し、?app=1 を付ける

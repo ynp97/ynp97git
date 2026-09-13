@@ -217,13 +217,18 @@ def build(doc, outfile, template=TEMPLATE):
         head = s[:s.index("<w:body>") + len("<w:body>")]
         open(dp, "w", encoding="utf-8").write(head + "".join(parts) + sect + "</w:body></w:document>")
 
-        if os.path.exists(outfile):
-            os.remove(outfile)
-        with zipfile.ZipFile(outfile, "w", zipfile.ZIP_DEFLATED) as zf:
+        # いったんテンポラリへ組んでから、中身だけを出力先へ上書きする。
+        # 出力先を削除してから作り直すと、連結フォルダ（AIから見たマウント）では
+        # 削除が許されず、2回目以降のビルドが必ず失敗する（2026-09-12）。
+        tmp_zip = os.path.join(work, "_out.docx")
+        with zipfile.ZipFile(tmp_zip, "w", zipfile.ZIP_DEFLATED) as zf:
             for root, _, files in os.walk(work):
                 for f in files:
+                    if f == "_out.docx":
+                        continue
                     fp = os.path.join(root, f)
                     zf.write(fp, os.path.relpath(fp, work))
+        shutil.copyfile(tmp_zip, outfile)   # 削除を伴わない上書き
     finally:
         shutil.rmtree(work, ignore_errors=True)
 

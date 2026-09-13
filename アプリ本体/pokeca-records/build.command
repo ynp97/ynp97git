@@ -28,7 +28,13 @@ swift --version
 
 echo ""
 echo "ビルド中..."
-if ! swift build -c release; then
+# 2026-09-12: CLTの27 SDKにはSwiftUIMacrosプラグインが不足していた。
+# 実機ビルド・起動を確認した26.5 SDKがあれば明示して再発を防ぐ。
+BUILD_SDK_ARGS=()
+if [ -d /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk ]; then
+  BUILD_SDK_ARGS=(--sdk /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk)
+fi
+if ! swift build -c release "${BUILD_SDK_ARGS[@]}"; then
   echo ""
   echo "ERROR: ビルドに失敗しました。上のエラーを送ってください。"
   read -n 1 -s -r "?何かキーを押すと閉じます..."

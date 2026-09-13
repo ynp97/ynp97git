@@ -48,8 +48,8 @@ zmodload zsh/datetime 2>/dev/null
 T=${EPOCHREALTIME:-0}
 HTML="$HOME/Documents/Obsidian Vault/アプリ本体/ラベル管理/資料請求ラベル管理.html"
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-# 起動を速くするため python3 は呼ばない。file URL に必要なのは空白の %20 だけ（日本語はChromeがそのまま扱える）。
-URL="file://${HTML// /%20}"
+# Pythonは呼ばず、macOS標準Perlで日本語を含むパスをUTF-8バイト単位でURL化する。
+URL="file://$(/usr/bin/perl -e '$s=shift; $s =~ s{([^A-Za-z0-9/_.~-])}{sprintf("%%%02X",ord($1))}ge; print $s' "$HTML")"
 if [ -x "$CHROME" ]; then
   "$CHROME" --profile-directory=Default --app="${URL}?app=1&t=${T}" --window-size=1200,840 >/dev/null 2>&1 &
 else
