@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE fcpxml>
+<fcpxml version="1.14">
+  <resources>
+    <format id="r1" name="FFVideoFormat1080p60" frameDuration="100/6000s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)" />
+    <asset id="r2" name="2026-09-14 06-06-40" uid="111281904C7A043A42C1D91BD7F85801" start="0s" duration="1034950/1000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+      <media-rep kind="original-media" sig="111281904C7A043A42C1D91BD7F85801" src="file:///Users/yoshiakinagumo/Movies/2026-09-14%2006-06-40.mov">
+        <bookmark>Ym9va0wDAAAAAAUQQAAAAKgYcnVNQwPuEFj4uBhFKic8eQG7isb7HXzrkx5pYbPFAAAAAAAAAAAAAAAAAAAAAAgCAAAgAAAAAQIAAExVf56dTg9XW/0adhUaNPoZzgaKmiTAsExfX1V/19xBBAAAAAMDAAAAGAAoBQAAAAEBAABVc2VycwAAAA4AAAABAQAAeW9zaGlha2luYWd1bW8AAAYAAAABAQAATW92aWVzAAAXAAAAAQEAADIwMjYtMDktMTQgMDYtMDYtNDAubW92ABAAAAABBgAAOAAAAEgAAABgAAAAcAAAAAgAAAAEAwAAP0gAAAAAAAAIAAAABAMAAGTNAAAAAAAACAAAAAQDAACTzQAAAAAAAAgAAAAEAwAAAP8eAgAAAAAQAAAAAQYAAKgAAAC4AAAAyAAAANgAAAAIAAAAAAQAAEHIK6PwcaV8GAAAAAECAAABAAAAAAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAQUAAAQAAAADAwAACAAAAAQAAAADAwAAAgAAAAgAAAAEAwAAAgAAAAAAAAAEAAAAAwMAAPUBAAAIAAAAAQkAAGZpbGU6Ly8vDAAAAAEBAABNYWNpbnRvc2ggSEQIAAAABAMAAAAAhxE5AAAACAAAAAAEAABByBa0ZYAAACQAAAABAQAAQTJFREYxNkItREIxNC00OEVBLUIzNTMtQjI5MzAzNTJCQTZGGAAAAAECAACBAAAAAQAAAO8TAAABAAAAAAAAAAAAAAABAAAAAQEAAC8AAAD8AAAA/v///wEAAAAAAAAAFAAAAAQQAACQAAAAAAAAAAUQAADoAAAAAAAAABAQAAAQAQAAAAAAAEAQAAAAAQAAAAAAAFQQAAA4AQAAAAAAAFUQAABEAQAAAAAAAFYQAAAwAQAAAAAAAAIgAAD8AQAAAAAAAAUgAABsAQAAAAAAABAgAAB8AQAAAAAAABEgAACwAQAAAAAAABIgAACQAQAAAAAAABMgAACgAQAAAAAAACAgAADcAQAAAAAAADAgAAAwAQAAAAAAAAHAAABQAQAAAAAAABHAAABIAAAAAAAAABLAAABgAQAAAAAAABDQAAAsAAAAAAAAAITwAAAEAAAAAAAAAA==</bookmark>
+      </media-rep>
+      <metadata>
+        <md key="com.apple.proapps.studio.rawToLogConversion" value="0" />
+        <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD（1-1-1）" />
+        <md key="com.apple.proapps.studio.cameraISO" value="0" />
+        <md key="com.apple.proapps.studio.cameraColorTemperature" value="0" />
+        <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+          <array>
+            <string>com.apple.videotoolbox.videoenc</string>
+            <string>MPEG-4 AAC</string>
+          </array>
+        </md>
+        <md key="com.apple.proapps.mio.ingestDate" value="2026-09-15 07:07:43 +0900" />
+      </metadata>
+    </asset>
+  </resources>
+  <library location="file:///Users/yoshiakinagumo/Movies/%E6%97%A9%E5%A4%A9%E7%B7%A8%E9%9B%86%E3%82%B9%E3%82%BF%E3%82%B7%E3%82%99%E3%82%AA.fcpbundle/">
+    <event name="毎日の早天">
+      <project name="早天20260914_無音カット">
+        <sequence format="r1" duration="54651/60s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+          <spine>
+            <asset-clip ref="r2" offset="0/60s" name="2026-09-14 06-06-40" duration="553/60s" tcFormat="NDF" audioRole="dialogue" start="0/60s" />
+            <asset-clip ref="r2" offset="553/60s" name="2026-09-14 06-06-40" duration="1966/60s" tcFormat="NDF" audioRole="dialogue" start="574/60s" />
+            <asset-clip ref="r2" offset="2519/60s" name="2026-09-14 06-06-40" duration="696/60s" tcFormat="NDF" audioRole="dialogue" start="2565/60s" />
+            <asset-clip ref="r2" offset="3215/60s" name="2026-09-14 06-06-40" duration="243/60s" tcFormat="NDF" audioRole="dialogue" start="3294/60s" />
+            <asset-clip ref="r2" offset="3458/60s" name="2026-09-14 06-06-40" duration="372/60s" tcFormat="NDF" audioRole="dialogue" start="3572/60s" />
+            <asset-clip ref="r2" offset="3830/60s" name="2026-09-14 06-06-40" duration="2528/60s" tcFormat="NDF" audioRole="dialogue" start="4006/60s" />
+            <asset-clip ref="r2" offset="6358/60s" name="2026-09-14 06-06-40" duration="746/60s" tcFormat="NDF" audioRole="dialogue" start="6552/60s" />
+            <asset-clip ref="r2" offset="7104/60s" name="2026-09-14 06-06-40" duration="957/60s" tcFormat="NDF" audioRole="dialogue" start="7315/60s" />
+            <asset-clip ref="r2" offset="8061/60s" name="2026-09-14 06-06-40" duration="673/60s" tcFormat="NDF" audioRole="dialogue" start="8292/60s" />
+            <asset-clip ref="r2" offset="8734/60s" name="2026-09-14 06-06-40" duration="339/60s" tcFormat="NDF" audioRole="dialogue" start="9157/60s" />
+            <asset-clip ref="r2" offset="9073/60s" name="2026-09-14 06-06-40" duration="32/60s" tcFormat="NDF" audioRole="dialogue" start="9550/60s" />
+            <asset-clip ref="r2" offset="9105/60s" name="2026-09-14 06-06-40" duration="2213/60s" tcFormat="NDF" audioRole="dialogue" start="9625/60s" />
+            <asset-clip ref="r2" offset="11318/60s" name="2026-09-14 06-06-40" duration="374/60s" tcFormat="NDF" audioRole="dialogue" start="11922/60s" />
+            <asset-clip ref="r2" offset="11692/60s" name="2026-09-14 06-06-40" duration="461/60s" tcFormat="NDF" audioRole="dialogue" start="12327/60s" />
+            <asset-clip ref="r2" offset="12153/60s" name="2026-09-14 06-06-40" duration="166/60s" tcFormat="NDF" audioRole="dialogue" start="12824/60s" />
+            <asset-clip ref="r2" offset="12319/60s" name="2026-09-14 06-06-40" duration="280/60s" tcFormat="NDF" audioRole="dialogue" start="13015/60s" />
+            <asset-clip ref="r2" offset="12599/60s" name="2026-09-14 06-06-40" duration="185/60s" tcFormat="NDF" audioRole="dialogue" start="13399/60s" />
+            <asset-clip ref="r2" offset="12784/60s" name="2026-09-14 06-06-40" duration="879/60s" tcFormat="NDF" audioRole="dialogue" start="13628/60s" />
+            <asset-clip ref="r2" offset="13663/60s" name="2026-09-14 06-06-40" duration="822/60s" tcFormat="NDF" audioRole="dialogue" start="14644/60s" />
+            <asset-clip ref="r2" offset="14485/60s" name="2026-09-14 06-06-40" duration="41/60s" tcFormat="NDF" audioRole="dialogue" start="15493/60s" />
+            <asset-clip ref="r2" offset="14526/60s" name="2026-09-14 06-06-40" duration="142/60s" tcFormat="NDF" audioRole="dialogue" start="15628/60s" />
+            <asset-clip ref="r2" offset="14668/60s" name="2026-09-14 06-06-40" duration="548/60s" tcFormat="NDF" audioRole="dialogue" start="15812/60s" />
+            <asset-clip ref="r2" offset="15216/60s" name="2026-09-14 06-06-40" duration="138/60s" tcFormat="NDF" audioRole="dialogue" start="16394/60s" />
+            <asset-clip ref="r2" offset="15354/60s" name="2026-09-14 06-06-40" duration="171/60s" tcFormat="NDF" audioRole="dialogue" start="16602/60s" />
+            <asset-clip ref="r2" offset="15525/60s" name="2026-09-14 06-06-40" duration="31/60s" tcFormat="NDF" audioRole="dialogue" start="16822/60s" />
+            <asset-clip ref="r2" offset="15556/60s" name="2026-09-14 06-06-40" duration="256/60s" tcFormat="NDF" audioRole="dialogue" start="16912/60s" />
+            <asset-clip ref="r2" offset="15812/60s" name="2026-09-14 06-06-40" duration="1334/60s" tcFormat="NDF" audioRole="dialogue" start="17254/60s" />
+            <asset-clip ref="r2" offset="17146/60s" name="2026-09-14 06-06-40" duration="169/60s" tcFormat="NDF" audioRole="dialogue" start="18661/60s" />
+            <asset-clip ref="r2" offset="17315/60s" name="2026-09-14 06-06-40" duration="2850/60s" tcFormat="NDF" audioRole="dialogue" start="18849/60s" />
+            <asset-clip ref="r2" offset="20165/60s" name="2026-09-14 06-06-40" duration="555/60s" tcFormat="NDF" audioRole="dialogue" start="21775/60s" />
+            <asset-clip ref="r2" offset="20720/60s" name="2026-09-14 06-06-40" duration="594/60s" tcFormat="NDF" audioRole="dialogue" start="22377/60s" />
+            <asset-clip ref="r2" offset="21314/60s" name="2026-09-14 06-06-40" duration="33/60s" tcFormat="NDF" audioRole="dialogue" start="23144/60s" />
+            <asset-clip ref="r2" offset="21347/60s" name="2026-09-14 06-06-40" duration="32/60s" tcFormat="NDF" audioRole="dialogue" start="23214/60s" />
+            <asset-clip ref="r2" offset="21379/60s" name="2026-09-14 06-06-40" duration="34/60s" tcFormat="NDF" audioRole="dialogue" start="23479/60s" />
+            <asset-clip ref="r2" offset="21413/60s" name="2026-09-14 06-06-40" duration="110/60s" tcFormat="NDF" audioRole="dialogue" start="23607/60s" />
+            <asset-clip ref="r2" offset="21523/60s" name="2026-09-14 06-06-40" duration="358/60s" tcFormat="NDF" audioRole="dialogue" start="23762/60s" />
+            <asset-clip ref="r2" offset="21881/60s" name="2026-09-14 06-06-40" duration="280/60s" tcFormat="NDF" audioRole="dialogue" start="24169/60s" />
+            <asset-clip ref="r2" offset="22161/60s" name="2026-09-14 06-06-40" duration="42/60s" tcFormat="NDF" audioRole="dialogue" start="24502/60s" />
+            <asset-clip ref="r2" offset="22203/60s" name="2026-09-14 06-06-40" duration="1762/60s" tcFormat="NDF" audioRole="dialogue" start="24610/60s" />
+            <asset-clip ref="r2" offset="23965/60s" name="2026-09-14 06-06-40" duration="312/60s" tcFormat="NDF" audioRole="dialogue" start="26393/60s" />
+            <asset-clip ref="r2" offset="24277/60s" name="2026-09-14 06-06-40" duration="110/60s" tcFormat="NDF" audioRole="dialogue" start="26760/60s" />
+            <asset-clip ref="r2" offset="24387/60s" name="2026-09-14 06-06-40" duration="80/60s" tcFormat="NDF" audioRole="dialogue" start="26893/60s" />
+            <asset-clip ref="r2" offset="24467/60s" name="2026-09-14 06-06-40" duration="550/60s" tcFormat="NDF" audioRole="dialogue" start="27003/60s" />
+            <asset-clip ref="r2" offset="25017/60s" name="2026-09-14 06-06-40" duration="182/60s" tcFormat="NDF" audioRole="dialogue" start="27598/60s" />
+            <asset-clip ref="r2" offset="25199/60s" name="2026-09-14 06-06-40" duration="452/60s" tcFormat="NDF" audioRole="dialogue" start="27820/60s" />
+            <asset-clip ref="r2" offset="25651/60s" name="2026-09-14 06-06-40" duration="655/60s" tcFormat="NDF" audioRole="dialogue" start="28336/60s" />
+            <asset-clip ref="r2" offset="26306/60s" name="2026-09-14 06-06-40" duration="192/60s" tcFormat="NDF" audioRole="dialogue" start="29022/60s" />
+            <asset-clip ref="r2" offset="26498/60s" name="2026-09-14 06-06-40" duration="967/60s" tcFormat="NDF" audioRole="dialogue" start="29734/60s" />
+            <asset-clip ref="r2" offset="27465/60s" name="2026-09-14 06-06-40" duration="412/60s" tcFormat="NDF" audioRole="dialogue" start="30912/60s" />
+            <asset-clip ref="r2" offset="27877/60s" name="2026-09-14 06-06-40" duration="50/60s" tcFormat="NDF" audioRole="dialogue" start="31356/60s" />
+            <asset-clip ref="r2" offset="27927/60s" name="2026-09-14 06-06-40" duration="39/60s" tcFormat="NDF" audioRole="dialogue" start="31520/60s" />
+            <asset-clip ref="r2" offset="27966/60s" name="2026-09-14 06-06-40" duration="109/60s" tcFormat="NDF" audioRole="dialogue" start="31590/60s" />
+            <asset-clip ref="r2" offset="28075/60s" name="2026-09-14 06-06-40" duration="1007/60s" tcFormat="NDF" audioRole="dialogue" start="31747/60s" />
+            <asset-clip ref="r2" offset="29082/60s" name="2026-09-14 06-06-40" duration="249/60s" tcFormat="NDF" audioRole="dialogue" start="32817/60s" />
+            <asset-clip ref="r2" offset="29331/60s" name="2026-09-14 06-06-40" duration="114/60s" tcFormat="NDF" audioRole="dialogue" start="33096/60s" />
+            <asset-clip ref="r2" offset="29445/60s" name="2026-09-14 06-06-40" duration="833/60s" tcFormat="NDF" audioRole="dialogue" start="33236/60s" />
+            <asset-clip ref="r2" offset="30278/60s" name="2026-09-14 06-06-40" duration="1204/60s" tcFormat="NDF" audioRole="dialogue" start="34094/60s" />
+            <asset-clip ref="r2" offset="31482/60s" name="2026-09-14 06-06-40" duration="182/60s" tcFormat="NDF" audioRole="dialogue" start="35379/60s" />
+            <asset-clip ref="r2" offset="31664/60s" name="2026-09-14 06-06-40" duration="150/60s" tcFormat="NDF" audioRole="dialogue" start="35588/60s" />
+            <asset-clip ref="r2" offset="31814/60s" name="2026-09-14 06-06-40" duration="65/60s" tcFormat="NDF" audioRole="dialogue" start="35783/60s" />
+            <asset-clip ref="r2" offset="31879/60s" name="2026-09-14 06-06-40" duration="271/60s" tcFormat="NDF" audioRole="dialogue" start="35872/60s" />
+            <asset-clip ref="r2" offset="32150/60s" name="2026-09-14 06-06-40" duration="867/60s" tcFormat="NDF" audioRole="dialogue" start="36222/60s" />
+            <asset-clip ref="r2" offset="33017/60s" name="2026-09-14 06-06-40" duration="130/60s" tcFormat="NDF" audioRole="dialogue" start="37171/60s" />
+            <asset-clip ref="r2" offset="33147/60s" name="2026-09-14 06-06-40" duration="126/60s" tcFormat="NDF" audioRole="dialogue" start="37331/60s" />
+            <asset-clip ref="r2" offset="33273/60s" name="2026-09-14 06-06-40" duration="133/60s" tcFormat="NDF" audioRole="dialogue" start="37521/60s" />
+            <asset-clip ref="r2" offset="33406/60s" name="2026-09-14 06-06-40" duration="357/60s" tcFormat="NDF" audioRole="dialogue" start="37741/60s" />
+            <asset-clip ref="r2" offset="33763/60s" name="2026-09-14 06-06-40" duration="530/60s" tcFormat="NDF" audioRole="dialogue" start="38170/60s" />
+            <asset-clip ref="r2" offset="34293/60s" name="2026-09-14 06-06-40" duration="32/60s" tcFormat="NDF" audioRole="dialogue" start="38734/60s" />
+            <asset-clip ref="r2" offset="34325/60s" name="2026-09-14 06-06-40" duration="1181/60s" tcFormat="NDF" audioRole="dialogue" start="38869/60s" />
+            <asset-clip ref="r2" offset="35506/60s" name="2026-09-14 06-06-40" duration="47/60s" tcFormat="NDF" audioRole="dialogue" start="40653/60s" />
+            <asset-clip ref="r2" offset="35553/60s" name="2026-09-14 06-06-40" duration="237/60s" tcFormat="NDF" audioRole="dialogue" start="40734/60s" />
+            <asset-clip ref="r2" offset="35790/60s" name="2026-09-14 06-06-40" duration="762/60s" tcFormat="NDF" audioRole="dialogue" start="41029/60s" />
+            <asset-clip ref="r2" offset="36552/60s" name="2026-09-14 06-06-40" duration="244/60s" tcFormat="NDF" audioRole="dialogue" start="41814/60s" />
+            <asset-clip ref="r2" offset="36796/60s" name="2026-09-14 06-06-40" duration="114/60s" tcFormat="NDF" audioRole="dialogue" start="42121/60s" />
+            <asset-clip ref="r2" offset="36910/60s" name="2026-09-14 06-06-40" duration="69/60s" tcFormat="NDF" audioRole="dialogue" start="42259/60s" />
+            <asset-clip ref="r2" offset="36979/60s" name="2026-09-14 06-06-40" duration="174/60s" tcFormat="NDF" audioRole="dialogue" start="42351/60s" />
+            <asset-clip ref="r2" offset="37153/60s" name="2026-09-14 06-06-40" duration="289/60s" tcFormat="NDF" audioRole="dialogue" start="42673/60s" />
+            <asset-clip ref="r2" offset="37442/60s" name="2026-09-14 06-06-40" duration="87/60s" tcFormat="NDF" audioRole="dialogue" start="43394/60s" />
+            <asset-clip ref="r2" offset="37529/60s" name="2026-09-14 06-06-40" duration="62/60s" tcFormat="NDF" audioRole="dialogue" start="43544/60s" />
+            <asset-clip ref="r2" offset="37591/60s" name="2026-09-14 06-06-40" duration="85/60s" tcFormat="NDF" audioRole="dialogue" start="43786/60s" />
+            <asset-clip ref="r2" offset="37676/60s" name="2026-09-14 06-06-40" duration="55/60s" tcFormat="NDF" audioRole="dialogue" start="43891/60s" />
+            <asset-clip ref="r2" offset="37731/60s" name="2026-09-14 06-06-40" duration="305/60s" tcFormat="NDF" audioRole="dialogue" start="43996/60s" />
+            <asset-clip ref="r2" offset="38036/60s" name="2026-09-14 06-06-40" duration="868/60s" tcFormat="NDF" audioRole="dialogue" start="44326/60s" />
+            <asset-clip ref="r2" offset="38904/60s" name="2026-09-14 06-06-40" duration="436/60s" tcFormat="NDF" audioRole="dialogue" start="45226/60s" />
+            <asset-clip ref="r2" offset="39340/60s" name="2026-09-14 06-06-40" duration="4969/60s" tcFormat="NDF" audioRole="dialogue" start="45705/60s" />
+            <asset-clip ref="r2" offset="44309/60s" name="2026-09-14 06-06-40" duration="755/60s" tcFormat="NDF" audioRole="dialogue" start="50692/60s" />
+            <asset-clip ref="r2" offset="45064/60s" name="2026-09-14 06-06-40" duration="188/60s" tcFormat="NDF" audioRole="dialogue" start="51468/60s" />
+            <asset-clip ref="r2" offset="45252/60s" name="2026-09-14 06-06-40" duration="101/60s" tcFormat="NDF" audioRole="dialogue" start="51735/60s" />
+            <asset-clip ref="r2" offset="45353/60s" name="2026-09-14 06-06-40" duration="1020/60s" tcFormat="NDF" audioRole="dialogue" start="51945/60s" />
+            <asset-clip ref="r2" offset="46373/60s" name="2026-09-14 06-06-40" duration="461/60s" tcFormat="NDF" audioRole="dialogue" start="52986/60s" />
+            <asset-clip ref="r2" offset="46834/60s" name="2026-09-14 06-06-40" duration="107/60s" tcFormat="NDF" audioRole="dialogue" start="53470/60s" />
+            <asset-clip ref="r2" offset="46941/60s" name="2026-09-14 06-06-40" duration="100/60s" tcFormat="NDF" audioRole="dialogue" start="53605/60s" />
+            <asset-clip ref="r2" offset="47041/60s" name="2026-09-14 06-06-40" duration="233/60s" tcFormat="NDF" audioRole="dialogue" start="53837/60s" />
+            <asset-clip ref="r2" offset="47274/60s" name="2026-09-14 06-06-40" duration="311/60s" tcFormat="NDF" audioRole="dialogue" start="54090/60s" />
+            <asset-clip ref="r2" offset="47585/60s" name="2026-09-14 06-06-40" duration="512/60s" tcFormat="NDF" audioRole="dialogue" start="54437/60s" />
+            <asset-clip ref="r2" offset="48097/60s" name="2026-09-14 06-06-40" duration="346/60s" tcFormat="NDF" audioRole="dialogue" start="54969/60s" />
+            <asset-clip ref="r2" offset="48443/60s" name="2026-09-14 06-06-40" duration="60/60s" tcFormat="NDF" audioRole="dialogue" start="55454/60s" />
+            <asset-clip ref="r2" offset="48503/60s" name="2026-09-14 06-06-40" duration="476/60s" tcFormat="NDF" audioRole="dialogue" start="55617/60s" />
+            <asset-clip ref="r2" offset="48979/60s" name="2026-09-14 06-06-40" duration="366/60s" tcFormat="NDF" audioRole="dialogue" start="56138/60s" />
+            <asset-clip ref="r2" offset="49345/60s" name="2026-09-14 06-06-40" duration="1738/60s" tcFormat="NDF" audioRole="dialogue" start="56522/60s" />
+            <asset-clip ref="r2" offset="51083/60s" name="2026-09-14 06-06-40" duration="183/60s" tcFormat="NDF" audioRole="dialogue" start="58278/60s" />
+            <asset-clip ref="r2" offset="51266/60s" name="2026-09-14 06-06-40" duration="236/60s" tcFormat="NDF" audioRole="dialogue" start="58555/60s" />
+            <asset-clip ref="r2" offset="51502/60s" name="2026-09-14 06-06-40" duration="72/60s" tcFormat="NDF" audioRole="dialogue" start="58863/60s" />
+            <asset-clip ref="r2" offset="51574/60s" name="2026-09-14 06-06-40" duration="516/60s" tcFormat="NDF" audioRole="dialogue" start="59003/60s" />
+            <asset-clip ref="r2" offset="52090/60s" name="2026-09-14 06-06-40" duration="2561/60s" tcFormat="NDF" audioRole="dialogue" start="59536/60s" />
+          </spine>
+        </sequence>
+      </project>
+    </event>
+  </library>
+</fcpxml>

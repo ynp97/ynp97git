@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE fcpxml>
+
+<fcpxml version="1.14">
+    <resources>
+        <format id="r1" name="FFVideoFormat1080p60" frameDuration="100/6000s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)"/>
+        <asset id="r2" name="2026-09-14 06-06-40" uid="111281904C7A043A42C1D91BD7F85801" start="0s" duration="1034950/1000s" hasVideo="1" format="r1" hasAudio="1" videoSources="1" audioSources="1" audioChannels="2" audioRate="48000">
+            <media-rep kind="original-media" sig="111281904C7A043A42C1D91BD7F85801" src="file:///Users/yoshiakinagumo/Movies/2026-09-14%2006-06-40.mov">
+                <bookmark>Ym9va0wDAAAAAAUQQAAAAKgYcnVNQwPuEFj4uBhFKic8eQG7isb7HXzrkx5pYbPFAAAAAAAAAAAAAAAAAAAAAAgCAAAgAAAAAQIAAExVf56dTg9XW/0adhUaNPoZzgaKmiTAsExfX1V/19xBBAAAAAMDAAAAGAAoBQAAAAEBAABVc2VycwAAAA4AAAABAQAAeW9zaGlha2luYWd1bW8AAAYAAAABAQAATW92aWVzAAAXAAAAAQEAADIwMjYtMDktMTQgMDYtMDYtNDAubW92ABAAAAABBgAAOAAAAEgAAABgAAAAcAAAAAgAAAAEAwAAP0gAAAAAAAAIAAAABAMAAGTNAAAAAAAACAAAAAQDAACTzQAAAAAAAAgAAAAEAwAAAP8eAgAAAAAQAAAAAQYAAKgAAAC4AAAAyAAAANgAAAAIAAAAAAQAAEHIK6PwcaV8GAAAAAECAAABAAAAAAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAQUAAAQAAAADAwAACAAAAAQAAAADAwAAAgAAAAgAAAAEAwAAAgAAAAAAAAAEAAAAAwMAAPUBAAAIAAAAAQkAAGZpbGU6Ly8vDAAAAAEBAABNYWNpbnRvc2ggSEQIAAAABAMAAAAAhxE5AAAACAAAAAAEAABByBa0ZYAAACQAAAABAQAAQTJFREYxNkItREIxNC00OEVBLUIzNTMtQjI5MzAzNTJCQTZGGAAAAAECAACBAAAAAQAAAO8TAAABAAAAAAAAAAAAAAABAAAAAQEAAC8AAAD8AAAA/v///wEAAAAAAAAAFAAAAAQQAACQAAAAAAAAAAUQAADoAAAAAAAAABAQAAAQAQAAAAAAAEAQAAAAAQAAAAAAAFQQAAA4AQAAAAAAAFUQAABEAQAAAAAAAFYQAAAwAQAAAAAAAAIgAAD8AQAAAAAAAAUgAABsAQAAAAAAABAgAAB8AQAAAAAAABEgAACwAQAAAAAAABIgAACQAQAAAAAAABMgAACgAQAAAAAAACAgAADcAQAAAAAAADAgAAAwAQAAAAAAAAHAAABQAQAAAAAAABHAAABIAAAAAAAAABLAAABgAQAAAAAAABDQAAAsAAAAAAAAAITwAAAEAAAAAAAAAA==</bookmark>
+            </media-rep>
+            <metadata>
+                <md key="com.apple.proapps.studio.rawToLogConversion" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemProfileName" value="HD（1-1-1）"/>
+                <md key="com.apple.proapps.studio.cameraISO" value="0"/>
+                <md key="com.apple.proapps.studio.cameraColorTemperature" value="0"/>
+                <md key="com.apple.proapps.spotlight.kMDItemCodecs">
+                    <array>
+                        <string>com.apple.videotoolbox.videoenc</string>
+                        <string>MPEG-4 AAC</string>
+                    </array>
+                </md>
+                <md key="com.apple.proapps.mio.ingestDate" value="2026-09-15 07:07:43 +0900"/>
+            </metadata>
+        </asset>
+    </resources>
+    <library location="file:///Users/yoshiakinagumo/Movies/%E6%97%A9%E5%A4%A9%E7%B7%A8%E9%9B%86%E3%82%B9%E3%82%BF%E3%82%B7%E3%82%99%E3%82%AA.fcpbundle/">
+        <event name="毎日の早天" uid="6253B606-06A4-4982-A1A0-50ADF2B197A4">
+            <project name="早天20260914" uid="A8EC4569-302D-4790-A661-040E0FB33E65" modDate="2026-09-15 07:07:52 +0900">
+                <sequence format="r1" duration="6209700/6000s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+                    <spine>
+                        <asset-clip ref="r2" offset="0s" name="2026-09-14 06-06-40" duration="6209700/6000s" tcFormat="NDF" audioRole="dialogue"/>
+                    </spine>
+                </sequence>
+            </project>
+        </event>
+        <smart-collection name="プロジェクト" match="all">
+            <match-clip rule="is" type="project"/>
+        </smart-collection>
+        <smart-collection name="すべてのビデオ" match="any">
+            <match-media rule="is" type="videoOnly"/>
+            <match-media rule="is" type="videoWithAudio"/>
+        </smart-collection>
+        <smart-collection name="オーディオのみ" match="all">
+            <match-media rule="is" type="audioOnly"/>
+        </smart-collection>
+        <smart-collection name="静止画" match="all">
+            <match-media rule="is" type="stills"/>
+        </smart-collection>
+        <smart-collection name="よく使う項目" match="all">
+            <match-ratings value="favorites"/>
+        </smart-collection>
+        <smart-collection name="解析がありません" match="all">
+            <match-analysis-type rule="isMissing" value="any"/>
+        </smart-collection>
+    </library>
+</fcpxml>
