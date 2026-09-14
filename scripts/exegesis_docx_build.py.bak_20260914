@@ -87,19 +87,6 @@ add_rich(p, SUBTITLE, color=GREY)
 
 lines = open(MD, encoding='utf-8').read().split('\n')
 
-# 中心本文（青・黒太字）の範囲を md から自動判定する。
-#   例: **新改訳2017（マルコ4:21–25）** → ('マルコ', 4, 21, 25)
-# これが決まると、引用ブロック内の「書名章:節　本文」行は
-#   中心範囲内 → 青ラベル＋黒太字 / 範囲外 → オレンジ
-# に自動で振り分けられる（箇所ごとの書き換え不要）。
-CENTER = None
-for _l in lines:
-    _m = re.match(r'^\*\*新改訳2017（([^\d]+?)(\d+):(\d+)[–—-](\d+)）', _l)
-    if _m:
-        CENTER = (_m.group(1), int(_m.group(2)), int(_m.group(3)), int(_m.group(4)))
-        break
-ESV_BOOK, ESV_CH = 'Mark', None
-
 quote_mode = None   # 'esv' / 'sky' / ('ref', ラベル書名)
 i = 0
 def flush_table(rows):
@@ -162,11 +149,9 @@ while i < len(lines):
         continue
 
     # --- 引用ブロックの直前の合図 ---
-    if line.lstrip('*').startswith('ESV（'):
-        _m = re.search(r'ESV（([A-Za-z0-9 ]+?) (\d+):', line)
-        if _m: ESV_BOOK, ESV_CH = _m.group(1), _m.group(2)
+    if 'ESV（Mark 3:20–35）' in line:
         p = newp(); add_rich(p, line, base_bold=True); quote_mode = 'esv'; continue
-    if line.lstrip('*').startswith('新改訳2017（'):
+    if '新改訳2017（マルコ3:20–35）' in line:
         p = newp(); add_rich(p, line, base_bold=True); quote_mode = 'sky'; continue
     if 'イザヤ49:24–25' in line and '旧約の背景' in line:
         p = newp(); add_rich(p, line); quote_mode = ('ref', 'イザヤ49:'); continue
@@ -179,35 +164,16 @@ while i < len(lines):
         if not content: continue
         p = newp(); pf = p.paragraph_format
         pf.left_indent = INDENT; pf.space_after = SPACE
-
-        # 「マルコ4:21　本文」「マタイ5:15　本文」形式の行
-        m_ref = re.match(r'^([^\d\s][^\d]*?)(\d+):(\d+)(?:[–—-](\d+))?　(.+)$', content)
-        if m_ref:
-            bk, ch, v1 = m_ref.group(1), int(m_ref.group(2)), int(m_ref.group(3))
-            label = f'{bk}{ch}:{m_ref.group(3)}' + (f'–{m_ref.group(4)}' if m_ref.group(4) else '')
-            body_txt = strip_md(m_ref.group(5))
-            central = bool(CENTER) and bk == CENTER[0] and ch == CENTER[1] and CENTER[2] <= v1 <= CENTER[3]
-            if central:
-                r = p.add_run(label);  setfont(r, S.VERSE_PT, bold=True, color=BLUE)
-                r = p.add_run('　');    setfont(r, S.VERSE_PT, bold=True, color=BLUE)
-                r = p.add_run(body_txt); setfont(r, S.VERSE_PT, bold=True)
-            else:
-                r = p.add_run(f'{label}　{body_txt}'); setfont(r, S.VERSE_PT, color=ORANGE)
-            continue
-
         if quote_mode == 'esv':
             m2 = re.match(r'^(\d+) (.*)$', content)
             if m2:
-                _ch = ESV_CH or (str(CENTER[1]) if CENTER else '')
-                r = p.add_run(f'ESV {ESV_BOOK} {_ch}:{m2.group(1)}　{m2.group(2)}'); setfont(r, S.VERSE_PT, color=GREY)
+                r = p.add_run(f'ESV Mark 3:{m2.group(1)}　{m2.group(2)}'); setfont(r, S.VERSE_PT, color=GREY)
             else:
                 r = p.add_run(content); setfont(r, S.VERSE_PT, color=GREY)
         elif quote_mode == 'sky':
             m2 = re.match(r'^(\d+)　(.*)$', content)
             if m2:
-                _bk = CENTER[0] if CENTER else 'マルコ'
-                _ch = CENTER[1] if CENTER else 3
-                r = p.add_run(f'{_bk}{_ch}:{m2.group(1)}'); setfont(r, S.VERSE_PT, bold=True, color=BLUE)
+                r = p.add_run(f'マルコ3:{m2.group(1)}'); setfont(r, S.VERSE_PT, bold=True, color=BLUE)
                 r = p.add_run('　');                 setfont(r, S.VERSE_PT, bold=True, color=BLUE)
                 r = p.add_run(m2.group(2));              setfont(r, S.VERSE_PT, bold=True)
             else:
