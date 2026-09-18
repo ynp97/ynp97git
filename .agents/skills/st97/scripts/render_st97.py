@@ -12,7 +12,7 @@ import re
 
 CSS = r"""
 :root{--blue:#006699;--ink:#000;--muted:#59636b;--gold:#fff6dd;--verse-bg:#dceaf5}
-@page{size:A4 portrait;margin:35mm 30mm 30mm}
+@page{size:A4 portrait;margin:35mm 30mm 30mm;@bottom-center{content:counter(page);font-family:"Meiryo UI",Meiryo,sans-serif;font-size:9pt;color:#000}}
 *{box-sizing:border-box}
 html{background:#e8ebed}
 body{width:210mm;min-height:297mm;margin:12mm auto;padding:35mm 30mm 30mm;background:#fff;color:var(--ink);font-family:"Meiryo UI",Meiryo,sans-serif;font-size:10.5pt;line-height:1.43;box-shadow:0 2mm 8mm rgba(0,0,0,.16)}
