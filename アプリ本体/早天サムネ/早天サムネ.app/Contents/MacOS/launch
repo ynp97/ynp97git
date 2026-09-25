@@ -1,0 +1,3 @@
+#!/bin/zsh
+APP_DIR="${0:A:h:h:h:h}"
+exec /usr/bin/open -a "Google Chrome" "$APP_DIR/index.html"

@@ -1,0 +1,177 @@
+[
+  {
+    "source": "AGENTS.md",
+    "bundle": "01_共通ルールと本人背景.txt",
+    "sha256": "978deaed78faa75c40de65b30878709bf2a6e475c10228f82327669672d382b2"
+  },
+  {
+    "source": "🚦 モード別の読み方（AI共通）.md",
+    "bundle": "01_共通ルールと本人背景.txt",
+    "sha256": "a5e9874e42c03f30f947a4751b27d46cd1156737d93e1fc33f1945a506f6fc7e"
+  },
+  {
+    "source": "🧭 AIブリーフィング（最初に読む）.md",
+    "bundle": "01_共通ルールと本人背景.txt",
+    "sha256": "0e584fa502186f16505faaf092c4fa5281f0d87e3cdcff4161ce52dc49270b43"
+  },
+  {
+    "source": "🗂 話題別インデックス（AI共通）.md",
+    "bundle": "01_共通ルールと本人背景.txt",
+    "sha256": "ae40da01d4b3063c5186f979c7c2bf0d6b2be4e81f965b056f4a76e3c74a5a8a"
+  },
+  {
+    "source": "📌 事実と前提（AI参照用）.md",
+    "bundle": "01_共通ルールと本人背景.txt",
+    "sha256": "e093dea8218416076577cfae3c4222e231f5fe98eba2a90b6bfb5d31415012b1"
+  },
+  {
+    "source": "🔭 検討中プロジェクト（オープンな問い）.md",
+    "bundle": "01_共通ルールと本人背景.txt",
+    "sha256": "64d39c612d49f60f276528986fd6bc46ef4a159ce38a85bb0c3414413cc13f9d"
+  },
+  {
+    "source": "🤖 AI関連引き継ぎ（AI共通）.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "85ad46b816499ad93c8f78e63f6d6b2dd9a7bd9e4aec59e99037da92c42b6b89"
+  },
+  {
+    "source": "🤖 Obsidian×ローカルAI引き継ぎ（AI共通）.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "334d842f1b5b1423a061abf28fc63b2aea88519922eeca99795f7bfbc071247c"
+  },
+  {
+    "source": "🤖 DS運用引き継ぎ（AI共通）.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "ac87b6f20a31b10067217c17391af4b6e702364711fb7bb406389545b6f2f15b"
+  },
+  {
+    "source": "🧭 実行環境の能力表（AI共通）.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "0df36089b107704729cf467fde443816dcf6b992c4dc474a548609442b7659dd"
+  },
+  {
+    "source": "🧩 アプリ開発状況（AI共通）.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "82c8c9bf635339c3a9140c07627e752bf98a89cfcbb0ab4f16e815a64a13d1d3"
+  },
+  {
+    "source": "🧩 シランガナ引き継ぎ（AI共通）.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "f0b03f4d40a0c22e2609a9208ff08c23a480218ff47aebca1174e61257bd3584"
+  },
+  {
+    "source": "🎛 音楽制作環境引き継ぎ（AI共通）.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "56a0a4dcfd8c291bcde6db0c6f3b94cd0e9e20c3d58ca8ce784275125049b077"
+  },
+  {
+    "source": "🎬 動画編集引き継ぎ（AI共通）.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "3c2cd6c215e2ecae869d3c2e9a75400930063a2fde41e0dcc2803294e3e6e0ce"
+  },
+  {
+    "source": "🎬 FCP早見メモ.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "c3049a31271df370e4148c157f74850062040cd6a1180e6e640ea7f269fd878a"
+  },
+  {
+    "source": ".agents/skills/ai97/SKILL.md",
+    "bundle": "02_AIとアプリと制作環境.txt",
+    "sha256": "4e1cb8bf1786937d229ee4db8a339cf35e6cb841c55a61aa3d5e78b484bad3e1"
+  },
+  {
+    "source": "📖 釈義スキル（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "3ee6d89e51f84fdf018d2c4785e41eeea470f02c4e43bf14af0d14c833f10053"
+  },
+  {
+    "source": "📖 説教スキル（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "c56b2a346b8eb9fe206083f7b3be6cdc227984dd8ddd32da33fc7e0628690bd3"
+  },
+  {
+    "source": "📖 構造分解スキル（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "c47a0b741b4860acad432f80b562967e7fa0a48578b7138803098a50ddb1a222"
+  },
+  {
+    "source": "🌅 早天メッセージスキル（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "d52759057ede22ca52a5c26012dcddd9abaf01043a95025ebd709552ff721bde"
+  },
+  {
+    "source": "📝 英訳スキル（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "80de88ad41dfb55fbed2fb8f2ca22b96327ce1edce137c963117e87547683ec1"
+  },
+  {
+    "source": "📄 Word出力仕様（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "b16c63050db26fb6c9d2629675d9593e0f8940eb6f8e82450d6fbe926f034014"
+  },
+  {
+    "source": "🌅 早天Word出力仕様（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "767d43b8b9adf0e42821f842d5020b39589a05fc43c03ac678f264f37a0ca39c"
+  },
+  {
+    "source": "📄 説教原稿Word出力仕様（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "b58f0a79a75fb20638acba4240a83076815e6829a41fde32a3f7630a09fb95b1"
+  },
+  {
+    "source": "📖 説教箇所の進行表（AI共通）.md",
+    "bundle": "03_聖書と説教と英訳.txt",
+    "sha256": "cc228f2392a06ce649e2cff3623dbe98ff83a499a313ece101607fab9ce2385e"
+  },
+  {
+    "source": "💴 物販・オークション引き継ぎ（AI共通）.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "1b3b42e78805e6ac1cf5a971a55eadc9cb416d7d273441dc888a9e38890c5d84"
+  },
+  {
+    "source": "🏫 学校事業引き継ぎ（AI共通）.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "51750aa39e15150948e926adb4c7bdd60b65e6606062cc8af2f437fd4855e47a"
+  },
+  {
+    "source": "🌴 POP・シキホール引き継ぎ（AI共通）.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "c170c528945003d24b6f8470cf25a43220610453099f166ffcf5cf249bdc67e2"
+  },
+  {
+    "source": "🃏 ポケカ引き継ぎ（AI共通）.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "4879d6cf1a14099db02fb190103583fc23570d7b58f7c7d1f7b8456ad170cd67"
+  },
+  {
+    "source": "🛟 人生相談スキル（AI共通）.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "66edc93e865613d2c76071184dbb5eaaf80a41e053d58e900a42d8c041944e11"
+  },
+  {
+    "source": "🥗 ダイエット引き継ぎ（AI共通）.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "123c31c079f578700a37b423ea0a2b85a2f22ac8bc0be14c2e937aedb0ae36af"
+  },
+  {
+    "source": "🖨 プロキシ印刷パターン（AI共通）.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "dab82bc532aeccced58c7f3c635e4dfe3f478db3e2c5930dcff447ff5b5ede30"
+  },
+  {
+    "source": ".agents/skills/poke97/SKILL.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "cf3ee80f488f29101e1f7f889e05d1292b7178f3167c7d580ea82ee46e6d7904"
+  },
+  {
+    "source": ".agents/skills/poke97/references/card-search.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "437660a0cb8879eb47add77ed9ee35b1a4e0e1eb26fb7ec5a0de628681d0f458"
+  },
+  {
+    "source": ".agents/skills/pop97/SKILL.md",
+    "bundle": "04_事業と生活とポケカ.txt",
+    "sha256": "918ec58761008f2038e8277cf7e6b1e0007f10a956ccf7081cc487778081ee5e"
+  }
+]

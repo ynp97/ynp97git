@@ -44,6 +44,80 @@ rt{color:#4e6570;font-size:.5em;font-weight:500;letter-spacing:0}
 """
 
 
+# iPad閲覧用（2026-09-25 本人指示）。--ipad のときだけ固定CSSの後ろに追記する。
+# 4:3の小さい用紙・横余白ほぼなし・大きい字・ページ頭に「日付｜箇所｜ページ/総ページ」。
+IPAD_CSS = r"""
+@page{size:150mm 200mm;margin:15mm 4mm 5mm;@bottom-center{content:none}}
+body{font-size:13.5pt;line-height:1.55}
+h1{margin:0 0 4mm;font-size:17pt}
+h2{margin:0 0 2.5mm;font-size:16pt}
+h3{margin:3mm 0 1mm;font-size:12.5pt}
+ol,ul{padding-left:6mm}
+.verse{margin:3.5mm 0 3mm 0;padding:2.5mm 3mm;font-size:18pt;line-height:1.6}
+.verse-label{font-size:12.5pt}
+.points-heading{font-size:14.5pt}
+.points{font-size:13.5pt}
+.check-inline{font-size:10pt}
+.overview{color:#000}
+rt{color:#333}
+.message-section,.overall-section,.apps-section{break-before:page}
+.mk{font-size:1pt;color:#fff;line-height:0}
+.toc{margin:0 0 4mm;padding:2mm 3mm;border:.4mm solid #006699;border-radius:1.5mm;font-size:12.5pt}
+.toc b{color:#006699}
+@media print{body{padding:0}}
+@media screen{body{width:100%;margin:0;padding:6mm 4mm;box-shadow:none}}
+"""
+
+
+OPEN, CLOSE = "「『（(", "」』）)"
+
+
+def ipad_breaks(text: str) -> str:
+    """iPad版だけ：地の文の長いところに改行を入れる（本人指示・2026-09-25）。聖書本文には使わない。
+    ①括弧の外の「。」の後 ②「——」の前の見出し部分が短いとき、その後 ③それでも70字を超える文は、括弧の外の「、」で中ほど付近。"""
+    out, depth = [], 0
+    for i, ch in enumerate(text):
+        out.append(ch)
+        if ch in OPEN: depth += 1
+        elif ch in CLOSE: depth = max(0, depth - 1)
+        elif depth == 0 and ch == "。" and i + 1 < len(text) and text[i + 1] != "\n":
+            out.append("\n")
+    lines = []
+    for line in "".join(out).split("\n"):
+        if "——" in line and line.index("——") <= 40 and len(line) > 45:
+            k = line.index("——") + 2
+            lines += [line[:k], line[k:]]
+        else:
+            lines.append(line)
+    final = []
+    for line in lines:
+        while len(line) > 70:
+            depth, cands = 0, []
+            for i, ch in enumerate(line):
+                if ch in OPEN: depth += 1
+                elif ch in CLOSE: depth = max(0, depth - 1)
+                elif ch == "、" and depth == 0 and 25 <= i <= len(line) - 15: cands.append(i)
+            if not cands: break
+            k = min(cands, key=lambda i: abs(i - len(line) / 2)) + 1
+            final.append(line[:k]); line = line[k:]
+        final.append(line)
+    return "\n".join(x for x in final if x)
+
+
+def apply_ipad_breaks(data: dict) -> None:
+    for key in ("conclusion", "overview"):
+        data[key] = ipad_breaks(data[key])
+    data["flow"] = [ipad_breaks(x) for x in data["flow"]]
+    data["overall"] = [ipad_breaks(x) for x in data["overall"]]
+    for sec in data["sections"]:
+        sec["summary"] = ipad_breaks(sec["summary"])
+        sec["points"] = [ipad_breaks(x) for x in sec["points"]]
+        for v in sec["verses"]:
+            v["notes"] = [ipad_breaks(x) for x in v["notes"]]
+    for a in data["applications"]:
+        a["text"] = ipad_breaks(a["text"])
+
+
 def require(data: dict, key: str):
     if key not in data:
         raise ValueError(f"Required key is missing: {key}")
@@ -54,9 +128,13 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("payload", type=Path)
     parser.add_argument("html_output", type=Path)
+    parser.add_argument("--ipad", action="store_true", help="iPad閲覧用の版（4:3用紙・大きい字・段落ごとに改ページ・位置表示は st97_ipad_pdf.py が重ねる）")
+    parser.add_argument("--toc", default="", help="iPad版の目次行（st97_ipad_pdf.py が2回目の組版で渡す）")
     args = parser.parse_args()
 
     data = json.loads(args.payload.read_text(encoding="utf-8"))
+    if args.ipad:
+        apply_ipad_breaks(data)
     ruby_map = data.get("ruby", {})
     words = sorted(ruby_map, key=len, reverse=True)
     ruby_pattern = re.compile("|".join(re.escape(word) for word in words)) if words else None
@@ -77,8 +155,11 @@ def main() -> int:
         attr = f' class="{class_name}"' if class_name else ""
         return f"<ul{attr}>" + "".join(f"<li>{multiline(item)}</li>" for item in items) + "</ul>"
 
+    def mk(tag: str) -> str:
+        return f'<span class="mk">§{tag}§</span>' if args.ipad else ""
+
     section_html = []
-    for section in require(data, "sections"):
+    for sec_index, section in enumerate(require(data, "sections"), start=1):
         verse_html = []
         for verse in section["verses"]:
             verse_html.append(
@@ -91,7 +172,7 @@ def main() -> int:
             )
         section_html.append(
             '<section class="message-section">'
-            f'<h2>{ruby(section["heading"])}</h2>'
+            f'{mk(f"S{sec_index}")}<h2>{ruby(section["heading"])}</h2>'
             '<h3>段落の簡単なまとめ</h3>'
             f'<p class="summary-box">{multiline(section["summary"])}</p>'
             f'{"".join(verse_html)}'
@@ -121,6 +202,9 @@ def main() -> int:
     long_blocks_css = (
         "\n.verse{break-inside:auto}\n.verse-label{break-after:avoid-page}\n" if data.get("long_verse_blocks") else ""
     )
+    toc_html = f'<p class="toc">{escape(args.toc)}</p>' if args.toc else ""
+    if args.ipad:
+        long_blocks_css += IPAD_CSS
     html = f'''<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(document_title)}</title>
@@ -128,11 +212,11 @@ def main() -> int:
 <h1>{multiline(title)}</h1>
 <h2>全体の流れと結論</h2>
 <ol>{''.join(f'<li>{multiline(item)}</li>' for item in require(data, "flow"))}</ol>
-<p class="conclusion">結論：{multiline(require(data, "conclusion"))}</p>
+{toc_html}<p class="conclusion">結論：{multiline(require(data, "conclusion"))}</p>
 <p class="overview">{multiline(require(data, "overview"))}</p>
 {''.join(section_html)}
-<section class="overall-section"><h2>全体のまとめ</h2>{bullets(require(data, "overall"))}</section>
-<section><h2>五段階の適用</h2>{''.join(applications)}</section>
+<section class="overall-section">{mk("SM")}<h2>全体のまとめ</h2>{bullets(require(data, "overall"))}</section>
+<section class="apps-section">{mk("SA")}<h2>五段階の適用</h2>{''.join(applications)}</section>
 </main></body></html>'''
 
     args.html_output.parent.mkdir(parents=True, exist_ok=True)

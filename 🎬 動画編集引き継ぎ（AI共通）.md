@@ -75,6 +75,7 @@ FCPを広く学ぶこと自体を目的にしない。毎回、完成条件を�
 ### 無音処理
 
 - Silenci導入済み。FCP自体には無音の自動検出機能がない。
+- **★15インチAirへの再導入（2026-09-24・ai97でClaude）**: 8/15の初期化でAirからSilenciが消えていた（9/15にCodexが見つけられなかった原因）。導入手順＝①公式GitHub `leeyc09/Silence-Cutter` のリリースから `Silenci-v0.4.0-macOS.dmg`（1.05MB、sha256が公式値と一致）を入れ、アプリ名 `SilenciApp` をアプリケーションフォルダへ ②初回起動で **Environment Setup Failed**（Homebrewの自動導入は管理者パスワードが要るので、アプリの中からは失敗する）③**Homebrew公式の `Homebrew.pkg`（GitHub `Homebrew/brew` の最新リリース、7.0.6・142MB）を本人がパスワード入力して導入** ④Silenciで「Retry」→ Python環境の自動導入が約5分で終わり、「Drag a video file here」のメイン画面まで表示。Gatekeeperの警告は出なかった。**AIモデルのダウンロードと、実際に動画を無音カットできるかはまだ確認していない。** 最終確認: 2026-09-24（メイン画面の表示まで）
 - Silenciはローカル処理。日本語文字起こしは最終稿としては精度不足なので、「無音処理の土台＝Silenci／仕上げ＝FCP」とする。
 - 詳しい導入・FCPXML手順は [[🎬 FCP早見メモ]]。
 

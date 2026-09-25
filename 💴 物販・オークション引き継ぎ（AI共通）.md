@@ -583,6 +583,15 @@ FedExの料金はサーチャージで毎月変動するため、**eLogiは料�
 - **eLogi** … 2〜3年前に登録したが本人の記憶が曖昧。**状態未確認。ログインすれば実料金が見えるはず**（実料金は非公開・問い合わせ制なので、これが最も速くて正確）。
 - **Discogs** … アーティスト登録あり（Yoshiaki Nagumo `a1472411` / Dolphin Skull Headphone `a6535203`）。**セラー登録は別途必要で、その手間は未確認。**
 
+### ★相場の自動収集で使ってよい経路（2026-09-24 ai97・公式ページで確認）
+- **eBayのページを機械で読むのは禁止**。User Agreement に「robot, spider, scraper, data mining tools … or other automated means to access our Services … except with the prior express permission of eBay」とある。
+- **eBayの落札データ**: 旧Finding API（findCompletedItems）は2025-02-04に廃止。後継のMarketplace Insights APIは「select developers approved by business units」だけが使える限定公開で、取れるのも過去90日分。**個人では実質使えない。** 落札相場は **Terapeak**（Seller Hubの中、無料）を手で見る。
+- **eBayの現在の出品価格**: 公式のBrowse APIで取得できる（落札価格ではなく、出品中の価格）。
+- **ヤフオク**: 一般向けの「オークションWeb API」は2020年1月に提供終了し、公開の検索APIはない。ガイドライン（2026-07-07改定）6項(2)で、取引に必要な範囲を超えて他人の投稿コンテンツを収集することを禁止。細則A-33では一定期間内の大量アクセスを禁止。**自動収集はしない。** 落札相場はヤフオク公式の落札相場ページかオークファンを手で見る。
+- **Terapeakの操作を自動化するのも同じ禁止に当たる**（TerapeakはeBayのサービスの一部。本人のアカウントでログインして自動で操作するので、アカウント停止になれば販売の経路そのものを失う）。組むなら、検索と画面を開くのは本人が手で行い、保存したページから表を作る以降を自動化する（2026-09-24提案。採否は未定）。
+- **Discogs**: 公式APIでよい（`record_lister.py` がすでに使っている）。
+- **結論**: 夜間の自動収集はDiscogs APIとeBay Browse APIだけで組む。落札価格の確認は手作業（Terapeak／ヤフオク落札相場）。Yahoo! JAPAN共通利用規約の本文はまだ読んでいない（取得に失敗）。
+
 ## 7. ★踏んではいけない地雷
 
 - **売却記録1件を平均として扱わない。** ヤフオク29,780円もDiscogs $99.91も同じ形。
