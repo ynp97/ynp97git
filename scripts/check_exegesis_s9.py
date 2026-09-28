@@ -19,7 +19,7 @@ def check(path):
     errs = []
     if s9 is None:
         return ['§9 が見つからない']
-    items = re.findall(r'【\s*(\d+)-(\d+)\s*(?:←\s*(\d+)-(\d+)\s*)?】', s9)
+    items = re.findall(r'^\s*[-*]?\s*【\s*(\d+)-(\d+)\s*(?:←\s*(\d+)-(\d+)\s*)?】', s9, re.M)  # 行頭の項目見出しだけを数える（本文中の参照は数えない）
     if not items:
         return ['§9 に【n-k】形式の項目がない（旧形式の四層のまま）']
     seen = set()
