@@ -23,6 +23,16 @@ def running():
 def start():
     if running():
         return
+    agent = Path.home() / 'Library/LaunchAgents/local.ynp97.soten-broadcast.plist'
+    if sys.platform == 'darwin' and agent.exists():
+        # The socket activates the service. Never start a second server on this port.
+        subprocess.run(['launchctl', 'bootstrap', f'gui/{os.getuid()}', str(agent)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        for _ in range(30):
+            if running():
+                return
+            time.sleep(.2)
+        raise SystemExit('早天配信サービスに接続できません。.runtime/server.log を確認してください。')
     runtime = HERE / '.runtime'
     runtime.mkdir(exist_ok=True)
     with (runtime / 'server.log').open('ab') as output:

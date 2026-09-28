@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """早天配信 — Python標準ライブラリだけで動く、この端末専用の表示サーバー。"""
 import argparse
+import ctypes
+import socket
 import datetime as dt
 import json
 import os
@@ -298,11 +300,33 @@ def handler(app):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--launchd', action='store_true')
     parser.add_argument('--vault')
     parser.add_argument('--port', type=int, default=PORT)
     args = parser.parse_args()
     app = Broadcast(find_vault(args.vault), HERE / 'user_data/extra_pages.json')
-    server = ThreadingHTTPServer(('127.0.0.1', args.port), handler(app))
+    if args.launchd:
+        # launchd owns the listening socket even while this process is stopped.
+        lib = ctypes.CDLL('/usr/lib/libSystem.B.dylib', use_errno=True)
+        activate = lib.launch_activate_socket
+        activate.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.POINTER(ctypes.c_int)), ctypes.POINTER(ctypes.c_size_t)]
+        activate.restype = ctypes.c_int
+        fds = ctypes.POINTER(ctypes.c_int)()
+        count = ctypes.c_size_t()
+        result = activate(b'Listener', ctypes.byref(fds), ctypes.byref(count))
+        if result or count.value != 1:
+            raise RuntimeError(f'launchd socket unavailable: {result}, count={count.value}')
+        listener = socket.socket(fileno=fds[0])
+        lib.free.argtypes = [ctypes.c_void_p]
+        lib.free(fds)
+        server = ThreadingHTTPServer(('127.0.0.1', args.port), handler(app), bind_and_activate=False)
+        server.socket.close()
+        server.socket = listener
+        server.server_address = listener.getsockname()
+        server.server_name = 'localhost'
+        server.server_port = server.server_address[1]
+    else:
+        server = ThreadingHTTPServer(('127.0.0.1', args.port), handler(app))
     print(f'早天配信 http://127.0.0.1:{args.port}', flush=True)
     server.serve_forever()
 
