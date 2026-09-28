@@ -65,7 +65,9 @@ rt{color:#333}
 @page{margin-top:21mm}
 .verse-unit,.points-block{break-before:page}
 .verse-unit .verse{margin-top:1mm;font-size:21pt;line-height:1.62}
-.verse-unit .verse-label{font-size:13.5pt}
+.verse-unit .verse-label{font-size:13.5pt;line-height:1.1;margin-bottom:2.5mm}
+.vl-num{font-size:30pt;font-weight:800;margin-left:.5mm}
+.vl-num small{font-size:14pt;font-weight:700;margin-left:.5mm}
 .notes{font-size:14pt;line-height:1.6}
 .summary-box{font-size:14pt;line-height:1.65;padding:2.5mm 3mm}
 .range{margin:0 0 3mm;color:#59636b;font-size:12pt}
@@ -174,6 +176,13 @@ def main() -> int:
         m = re.search(r":\s*(\d+(?:\s*[–〜~\-]\s*\d+)?)\s*$", label)
         return m.group(1).replace(" ", "") if m else label
 
+    def big_label(label: str) -> str:
+        # iPad版：節番号を大きく（2026-09-28 本人指示）。書名・章は小さいまま
+        m = re.search(r"^(.*:)\s*(\d+(?:\s*[–〜~\-]\s*\d+)?)\s*$", label)
+        if not args.ipad or not m:
+            return ruby(label)
+        return f'{ruby(m.group(1))}<span class="vl-num">{escape(m.group(2))}<small>節</small></span>'
+
     section_html = []
     for sec_index, section in enumerate(require(data, "sections"), start=1):
         if args.ipad:
@@ -190,7 +199,7 @@ def main() -> int:
             verse_html.append(
                 '<article class="verse-unit">'
                 f'{mk(f"V{sec_index}_{v_index}")}'
-                f'<p class="verse"><span class="verse-label">{ruby(verse["label"])}</span>'
+                f'<p class="verse"><span class="verse-label">{big_label(verse["label"])}</span>'
                 f'<span class="verse-text">{multiline(verse["text"])}</span></p>'
                 '<h3>背景・語句</h3>'
                 f'{bullets(verse["notes"], "notes")}'
