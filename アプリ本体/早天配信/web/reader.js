@@ -103,7 +103,11 @@ document.addEventListener('keydown',event=>{
   if(event.key==='ArrowRight'||event.key==='PageDown'){event.preventDefault();go(1);}
   if(event.key==='ArrowLeft'||event.key==='PageUp'){event.preventDefault();go(-1);}
 });
-fetch('/sample.pdf').then(async response=>{
-  if(!response.ok) throw new Error('試作用PDFが見つかりません');
-  await openPdf(new Uint8Array(await response.arrayBuffer()),'sample-20260928','20260928の原稿（試作）');
-}).catch(e=>status(e.message));
+if(new Date().toLocaleDateString('sv-SE') === '2026-09-28' || new URLSearchParams(location.search).has('sample')) {
+  fetch('/sample.pdf').then(async response=>{
+    if(!response.ok) throw new Error('試作用PDFが見つかりません');
+    await openPdf(new Uint8Array(await response.arrayBuffer()),'sample-20260928','20260928の原稿（試作）');
+  }).catch(e=>status(e.message));
+} else {
+  status('今日のPDFを選んでください');
+}

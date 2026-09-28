@@ -60,8 +60,7 @@ if __name__ == '__main__':
             response.read()
         if sys.platform == 'darwin':
             subprocess.run(['open', '-a', 'OBS'], check=False)
-            if '--browser' in sys.argv:
-                subprocess.run(['open', '-a', 'Google Chrome', URL], check=False)
+            subprocess.run(['open', '-a', 'Google Chrome', URL + '/reader'], check=False)
         else:
             import webbrowser
             webbrowser.open(URL)
