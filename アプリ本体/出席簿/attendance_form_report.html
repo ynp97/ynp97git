@@ -238,7 +238,7 @@
 
     .summary {
       display: grid;
-      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      grid-template-columns: repeat(3, minmax(100px, 1fr));
       gap: 10px;
       padding: 0 18px 14px;
     }
@@ -348,20 +348,6 @@
       transform: translateY(0);
     }
 
-    .print-heading {
-      display: none;
-    }
-
-    .print-heading h2,
-    .print-heading p {
-      margin: 0;
-    }
-
-    .report-greeting {
-      display: none;
-      white-space: pre-wrap;
-    }
-
     .greeting-edit {
       padding: 0 18px 8px;
       margin-bottom: 0;
@@ -371,120 +357,247 @@
       min-height: 60px;
     }
 
-    body.a4-preview {
-      background: #e4e7ec;
+    /* ── 出席カレンダー ── */
+    .calendar-box {
+      padding: 4px 18px 16px;
     }
 
-    body.a4-preview .shell {
-      max-width: none;
+    .calendar-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .calendar-head .hint {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .calendar-head button {
+      min-height: 30px;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-dow {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 2px 0;
+    }
+
+    .cal-dow.sun { color: var(--red); }
+    .cal-dow.sat { color: var(--blue); }
+
+    .cal-day {
+      position: relative;
+      min-height: 46px;
+      padding: 4px 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      color: #98a2b3;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .cal-day.in {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .cal-day.holiday:not(.in) { color: #f97066; }
+    .cal-day .cal-sub {
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.1;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .cal-day .cal-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .cal-day.in .cal-dot { background: #fff; }
+    .cal-day.today { box-shadow: 0 0 0 2px var(--amber); }
+    .cal-blank { min-height: 46px; }
+
+    .weekday-picks {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .weekday-picks label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin: 0;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .weekday-picks input {
+      width: auto;
       min-height: 0;
-      margin: 18px auto;
-      padding: 0 12px 24px;
-      background: transparent;
-      box-shadow: none;
     }
 
-    body.a4-preview .topbar,
-    body.a4-preview .entry-panel,
-    body.a4-preview .greeting-edit,
-    body.a4-preview #reportTitle {
-      display: none;
-    }
+    tr.no-content td { color: var(--muted); }
 
-    body.a4-preview .report-greeting:not([hidden]) {
-      display: block;
+    /* ── 印刷用シート（プレビューと印刷で同じものを使う） ── */
+    .print-sheet { display: none; }
+    .preview-bar { display: none; }
+
+    .print-sheet {
+      font-family: "Hiragino Sans", "Meiryo UI", Meiryo, "Yu Gothic", sans-serif;
       color: #000;
-      font-size: 11px;
-      line-height: 1.6;
-      margin-bottom: 4mm;
+      font-size: 10.5pt;
+      line-height: 1.55;
     }
 
-    body.a4-preview .grid {
+    .ps-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 4mm;
+      padding-bottom: 3mm;
+      border-bottom: 1.2pt solid #000;
+      margin-bottom: 5mm;
+    }
+
+    .ps-org {
+      font-size: 10.5pt;
+      margin: 0 0 1mm;
+    }
+
+    .ps-title {
+      font-size: 16pt;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    .ps-student {
+      margin: 2mm 0 0;
+      font-size: 12pt;
+    }
+
+    .ps-student strong { font-size: 13pt; }
+
+    .ps-count {
+      text-align: right;
+      font-size: 10pt;
+      white-space: nowrap;
+    }
+
+    .ps-count strong {
       display: block;
+      font-size: 22pt;
+      line-height: 1.1;
     }
 
-    body.a4-preview .panel {
+    .ps-greeting {
+      margin: 0 0 6mm;
+      white-space: pre-wrap;
+    }
+
+    .ps-table {
+      width: 100%;
+      min-width: 0;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .ps-table th,
+    .ps-table td {
+      border: none;
+      color: #000;
+      font-size: 10pt;
+      line-height: 1.45;
+      padding: 1.5mm 3mm 1.5mm 0;
+      vertical-align: top;
+      text-align: left;
+      word-break: break-word;
+      background: transparent;
+      position: static;
+    }
+
+    .ps-table thead th {
+      font-size: 9.5pt;
+      font-weight: 700;
+      border-top: 0.8pt solid #000;
+      border-bottom: 0.8pt solid #000;
+      padding-top: 1.4mm;
+      padding-bottom: 1.4mm;
+      white-space: nowrap;
+    }
+
+    .ps-table tbody tr:last-child td { border-bottom: 0.8pt solid #000; }
+    .ps-table tr { break-inside: avoid; page-break-inside: avoid; }
+    .ps-table .c-date { width: 17mm; white-space: nowrap; }
+    .ps-table .c-dow { width: 11mm; white-space: nowrap; }
+    .ps-table .c-act { width: 34%; }
+    .ps-empty { margin-top: 8mm; }
+
+    body.a4-preview { background: #e4e7ec; }
+    body.a4-preview .topbar,
+    body.a4-preview .grid,
+    body.a4-preview .roster-panel { display: none; }
+
+    body.a4-preview .shell { max-width: none; padding: 18px 12px 40px; }
+
+    body.a4-preview .print-sheet {
+      display: block;
       width: 210mm;
       min-height: 297mm;
       margin: 0 auto;
-      padding: 10mm;
-      border: none;
+      padding: 18mm 18mm 20mm;
+      background: #fff;
       box-shadow: 0 18px 44px rgba(16, 24, 40, 0.18);
     }
 
-    body.a4-preview .print-heading {
-      display: block;
-      color: #000;
-      padding-bottom: 4mm;
-      margin-bottom: 4mm;
-    }
-
-    body.a4-preview .report-actions {
+    body.a4-preview .preview-bar {
+      display: flex;
+      gap: 8px;
       position: fixed;
       top: 12px;
       right: 18px;
-      z-index: 2;
-      width: auto;
-      margin: 0;
+      z-index: 5;
       padding: 8px;
       background: white;
       border: 1px solid var(--line);
       border-radius: 8px;
       box-shadow: var(--shadow);
-      justify-content: flex-end;
     }
-
-    body.a4-preview #csvBtn,
-    body.a4-preview #newEntryBtn {
-      display: none;
-    }
-
-    body.a4-preview .print-only-action {
-      display: inline-block;
-    }
-
-    body.a4-preview .summary {
-      display: none;
-    }
-
-    body.a4-preview .print-heading p {
-      display: block;
-      margin-top: 3mm;
-      color: #000;
-      font-size: 11px;
-    }
-
-    body.a4-preview table {
-      min-width: 0;
-      table-layout: fixed;
-    }
-
-    body.a4-preview th,
-    body.a4-preview td {
-      border: none;
-      color: #000;
-      font-size: 10px;
-      line-height: 1.4;
-      padding: 5px 6px 5px 0;
-      word-break: break-word;
-    }
-
-    body.a4-preview th {
-      background: transparent;
-      color: #000;
-      font-weight: 700;
-    }
-
-    body.a4-preview th:nth-child(1),
-    body.a4-preview td:nth-child(1) { width: 24mm; }
-    body.a4-preview th:nth-child(2),
-    body.a4-preview td:nth-child(2) { width: 12mm; }
-    body.a4-preview th:nth-child(3),
-    body.a4-preview td:nth-child(3) { width: 70mm; }
-    body.a4-preview th:nth-child(4),
-    body.a4-preview td:nth-child(4) { width: auto; }
-    body.a4-preview th:nth-child(5),
-    body.a4-preview td:nth-child(5) { display: none; }
 
     @media (max-width: 880px) {
       .shell { padding: 14px; }
@@ -496,109 +609,27 @@
 
     @page {
       size: A4 portrait;
-      margin: 10mm;
+      margin: 18mm 18mm 20mm;
+      @bottom-center {
+        content: counter(page);
+        font-size: 9pt;
+        color: #000;
+      }
     }
 
     @media print {
-      html, body {
-        width: 210mm;
-        background: white;
-      }
-
-      body {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-
-      .shell {
-        max-width: none;
-        padding: 0;
-      }
-
-      .topbar, .entry-panel, .report-actions, .toast, #reportTitle, .greeting-edit {
-        display: none;
-      }
-
-      .grid { display: block; }
-      .panel { box-shadow: none; border: none; }
-
-      .print-heading {
+      html, body, body.a4-preview { background: #fff !important; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .shell, body.a4-preview .shell { max-width: none; padding: 0 !important; margin: 0; }
+      .topbar, .grid, .roster-panel, .preview-bar, .toast { display: none !important; }
+      body.a4-preview .print-sheet,
+      .print-sheet {
         display: block;
-        color: #000;
-        padding-bottom: 4mm;
-        margin-bottom: 4mm;
-      }
-
-      .report-greeting:not([hidden]) {
-        display: block;
-        color: #000;
-        font-size: 11px;
-        line-height: 1.6;
-        margin-bottom: 4mm;
-      }
-
-      .print-heading h2 {
-        font-size: 18px;
-        line-height: 1.25;
-      }
-
-      .print-heading p {
-        margin-top: 3mm;
-        font-size: 11px;
-        line-height: 1.5;
-        color: #000;
-      }
-
-      .summary {
-        display: none;
-      }
-
-      .empty {
-        border: none;
-        padding: 10mm;
-      }
-
-      .table-wrap {
-        overflow: visible;
-        border-top: none;
-      }
-
-      table {
-        min-width: 0;
-        table-layout: fixed;
-      }
-
-      th {
-        position: static;
-      }
-
-      th, td {
-        border: none;
-        color: #000;
-        font-size: 8.5px;
-        line-height: 1.35;
-        padding: 3px 4px 3px 0;
-        word-break: break-word;
-      }
-
-      th {
-        background: transparent;
-        color: #000;
-        font-weight: 700;
-      }
-
-      th:nth-child(1), td:nth-child(1) { width: 22mm; }
-      th:nth-child(2), td:nth-child(2) { width: 11mm; }
-      th:nth-child(3), td:nth-child(3) { width: 72mm; }
-      th:nth-child(4), td:nth-child(4) { width: auto; }
-      th:nth-child(5), td:nth-child(5) { display: none; }
-
-      .badge {
-        min-width: 0;
-        border-radius: 0;
+        width: auto;
+        min-height: 0;
+        margin: 0;
         padding: 0;
-        background: transparent !important;
-        color: #182230 !important;
+        box-shadow: none;
       }
     }
   </style>
@@ -708,31 +739,31 @@
       </div>
 
       <div class="panel">
-        <div class="print-heading">
-          <p id="reportGreeting" class="report-greeting" hidden></p>
-          <h2 id="printTitle">月次出席レポート</h2>
-          <p id="printSubtitle">月次一覧</p>
-        </div>
         <h2 id="reportTitle">月のレポート</h2>
+        <div class="calendar-box">
+          <div class="calendar-head">
+            <span class="hint">出席しなかった日を押すと一覧から外れます（もう一度押すと戻ります）</span>
+            <button id="resetMonthBtn" type="button">曜日どおりに戻す</button>
+          </div>
+          <div id="calendar" class="calendar"></div>
+        </div>
+        <div class="summary">
+          <div class="metric"><span>出席日数</span><strong id="totalCount">0</strong></div>
+          <div class="metric"><span>記入済み</span><strong id="filledCount">0</strong></div>
+          <div class="metric"><span>未記入</span><strong id="blankCount">0</strong></div>
+        </div>
         <div class="field greeting-edit">
           <label for="greetingInput">挨拶文（レポートの一番上に表示）</label>
           <textarea id="greetingInput" placeholder="例：いつもお世話になっております。今月の学習の様子をお知らせいたします。"></textarea>
         </div>
-        <div class="summary">
-          <div class="metric"><span>登録日数</span><strong id="totalCount">0</strong></div>
-          <div class="metric"><span>出席</span><strong id="presentCount">0</strong></div>
-          <div class="metric"><span>欠席</span><strong id="absentCount">0</strong></div>
-          <div class="metric"><span>出席率</span><strong id="rateCount">0%</strong></div>
-        </div>
         <div class="report-actions">
           <div>
-            <button id="a4PreviewBtn" type="button">レポート確認</button>
-            <button id="printBtn" class="print-only-action" type="button">印刷</button>
+            <button id="a4PreviewBtn" type="button">レポート確認・印刷</button>
             <button id="csvBtn" type="button">CSV出力</button>
           </div>
           <button id="newEntryBtn" type="button">新規入力</button>
         </div>
-        <div id="emptyState" class="empty">この月の登録はまだありません。</div>
+        <div id="emptyState" class="empty">この月の出席日はありません。カレンダーで日付を押すと追加されます。</div>
         <div class="table-wrap" id="tableWrap" hidden>
           <table>
             <thead>
@@ -787,6 +818,10 @@
             <input id="studentNameInput" type="text" />
           </div>
         </div>
+        <div class="field">
+          <label>選択中の生徒が通う曜日（まだ開いていない月の初期値）</label>
+          <div id="weekdayPicks" class="weekday-picks"></div>
+        </div>
         <div class="actions">
           <button id="renameSchoolBtn" type="button">施設名を更新</button>
           <button id="deleteSchoolBtn" class="danger" type="button">施設を削除</button>
@@ -802,6 +837,13 @@
         </div>
       </div>
     </section>
+
+    <div class="preview-bar">
+      <button id="closePreviewBtn" type="button">入力に戻る</button>
+      <button id="printBtn" class="primary" type="button">印刷</button>
+    </div>
+
+    <section id="printSheet" class="print-sheet" aria-label="印刷用レポート"></section>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -867,15 +909,119 @@
     const toast = document.getElementById("toast");
     const saveStatus = document.getElementById("saveStatus");
     const dataSaveStatus = document.getElementById("dataSaveStatus");
-    const printTitle = document.getElementById("printTitle");
-    const printSubtitle = document.getElementById("printSubtitle");
     const greetingInput = document.getElementById("greetingInput");
-    const reportGreeting = document.getElementById("reportGreeting");
+    const calendarEl = document.getElementById("calendar");
+    const printSheet = document.getElementById("printSheet");
+    const weekdayPicks = document.getElementById("weekdayPicks");
+    const DOW = ["日", "月", "火", "水", "木", "金", "土"];
+    const DEFAULT_WEEKDAYS = [1, 2, 3, 4, 5];
 
-    function renderGreeting() {
-      const text = String(state.reportGreeting || "").trim();
-      reportGreeting.textContent = text;
-      reportGreeting.hidden = !text;
+    // ── 日本の祝日（春分・秋分は近似式。1980〜2099年で有効） ──
+    const holidayCache = new Map();
+    function nthMonday(year, month, n) {
+      const first = new Date(year, month - 1, 1).getDay();
+      const offset = (8 - first) % 7;
+      return 1 + offset + (n - 1) * 7;
+    }
+    function holidaysOf(year) {
+      if (holidayCache.has(year)) return holidayCache.get(year);
+      const map = new Map();
+      const add = (m, d, name) => map.set(`${year}-${pad(m)}-${pad(d)}`, name);
+      const k = Math.floor((year - 1980) / 4);
+      add(1, 1, "元日");
+      add(1, nthMonday(year, 1, 2), "成人の日");
+      add(2, 11, "建国記念の日");
+      add(2, 23, "天皇誕生日");
+      add(3, Math.floor(20.8431 + 0.242194 * (year - 1980) - k), "春分の日");
+      add(4, 29, "昭和の日");
+      add(5, 3, "憲法記念日");
+      add(5, 4, "みどりの日");
+      add(5, 5, "こどもの日");
+      add(7, nthMonday(year, 7, 3), "海の日");
+      add(8, 11, "山の日");
+      add(9, nthMonday(year, 9, 3), "敬老の日");
+      add(9, Math.floor(23.2488 + 0.242194 * (year - 1980) - k), "秋分の日");
+      add(10, nthMonday(year, 10, 2), "スポーツの日");
+      add(11, 3, "文化の日");
+      add(11, 23, "勤労感謝の日");
+      const base = [...map.keys()].sort();
+      // 国民の休日（祝日に挟まれた平日）
+      for (const key of base) {
+        const d = new Date(`${key}T00:00:00`);
+        const next = new Date(d); next.setDate(d.getDate() + 1);
+        const after = new Date(d); after.setDate(d.getDate() + 2);
+        const nk = localDateString(next), ak = localDateString(after);
+        if (!map.has(nk) && map.has(ak) && next.getDay() !== 0) map.set(nk, "国民の休日");
+      }
+      // 振替休日（日曜の祝日 → 次の祝日でない日）
+      for (const key of [...map.keys()].sort()) {
+        const d = new Date(`${key}T00:00:00`);
+        if (d.getDay() !== 0) continue;
+        const sub = new Date(d);
+        do { sub.setDate(sub.getDate() + 1); } while (map.has(localDateString(sub)));
+        if (sub.getFullYear() === year) map.set(localDateString(sub), "振替休日");
+      }
+      holidayCache.set(year, map);
+      return map;
+    }
+    function holidayName(dateValue) {
+      return holidaysOf(Number(dateValue.slice(0, 4))).get(dateValue) || "";
+    }
+
+    function daysInMonth(year, month) {
+      return new Date(year, month, 0).getDate();
+    }
+
+    function studentWeekdays(student) {
+      return Array.isArray(student?.weekdays) ? student.weekdays : DEFAULT_WEEKDAYS;
+    }
+
+    function defaultDays(student, year, month) {
+      const days = [];
+      const weekdays = studentWeekdays(student);
+      for (let d = 1; d <= daysInMonth(year, month); d += 1) {
+        const key = `${year}-${pad(month)}-${pad(d)}`;
+        const dow = new Date(year, month - 1, d).getDay();
+        if (weekdays.includes(dow) && !holidayName(key)) days.push(key);
+      }
+      return days;
+    }
+
+    function studentMonthEntries(student, key) {
+      return entries.filter((entry) => entry.studentId === student.id && String(entry.date || "").startsWith(key));
+    }
+
+    // その月の出席日リスト。初めて開いた月だけ作る。
+    // 旧方式（登録した日＝出席日）の記録がある月は、登録日をそのまま出席日にする。
+    // ただし今日以降の日は曜日どおりに入れておく（今月の途中から使い始める場合）。
+    function monthAttendance(student, year, month, create = true) {
+      const key = monthKey(year, month);
+      if (!state.attendance) state.attendance = {};
+      const byStudent = state.attendance[student.id] || (state.attendance[student.id] = {});
+      if (Array.isArray(byStudent[key])) return byStudent[key];
+      if (!create) return null;
+      const existing = studentMonthEntries(student, key);
+      let days;
+      if (existing.length) {
+        const today = localDateString();
+        const set = new Set(existing.filter((entry) => entry.status !== "欠席").map((entry) => entry.date));
+        for (const day of defaultDays(student, year, month)) if (day >= today) set.add(day);
+        days = [...set];
+      } else {
+        days = defaultDays(student, year, month);
+      }
+      byStudent[key] = days.sort();
+      monthAttendance.created = true;
+      return byStudent[key];
+    }
+
+    function setAttendance(student, dateValue, attending) {
+      const [year, month] = dateValue.split("-").map(Number);
+      const list = monthAttendance(student, year, month);
+      const index = list.indexOf(dateValue);
+      if (attending && index < 0) list.push(dateValue);
+      if (!attending && index >= 0) list.splice(index, 1);
+      list.sort();
     }
 
     function pad(value) {
@@ -944,6 +1090,7 @@
       state.activeSchoolId = stored.activeSchoolId || schools[0]?.id || defaultSchool.id;
       state.activeStudentId = stored.activeStudentId || students[0]?.id || defaultStudent.id;
       if (typeof stored.reportGreeting === "string") state.reportGreeting = stored.reportGreeting;
+      if (stored.attendance && typeof stored.attendance === "object") state.attendance = stored.attendance;
       normalizeState();
       return true;
     }
@@ -1135,6 +1282,7 @@
       rosterStudentSelect.value = studentSelect.value;
       studentNameInput.value = activeStudent()?.name || "";
       document.getElementById("deleteStudentBtn").disabled = schoolStudents.length <= 1;
+      renderWeekdayPicks();
     }
 
     function selectedMonthEntries() {
@@ -1158,43 +1306,135 @@
       return `${Number(month)}月${Number(day)}日`;
     }
 
-    function render() {
-      const list = selectedMonthEntries();
+    function entriesByDate(list) {
+      const map = new Map();
+      for (const entry of list) {
+        if (!map.has(entry.date)) map.set(entry.date, []);
+        map.get(entry.date).push(entry);
+      }
+      return map;
+    }
+
+    function hasContent(entry) {
+      return Boolean(formatLearning(entry) || formatActivity(entry));
+    }
+
+    // 出席日ごとの行（記録が無い日は空行1つ）
+    function monthRows() {
+      const year = Number(yearInput.value);
+      const month = Number(monthSelect.value);
+      const student = activeStudent();
+      const days = monthAttendance(student, year, month);
+      const byDate = entriesByDate(selectedMonthEntries());
+      const rows = [];
+      for (const date of days) {
+        const list = byDate.get(date) || [];
+        if (list.length) for (const entry of list) rows.push({ date, entry });
+        else rows.push({ date, entry: null });
+      }
+      return { days, rows, byDate };
+    }
+
+    function renderCalendar(days, byDate) {
+      const year = Number(yearInput.value);
+      const month = Number(monthSelect.value);
+      const set = new Set(days);
+      const today = localDateString();
+      calendarEl.innerHTML = "";
+      DOW.forEach((name, i) => {
+        const el = document.createElement("div");
+        el.className = `cal-dow${i === 0 ? " sun" : i === 6 ? " sat" : ""}`;
+        el.textContent = name;
+        calendarEl.appendChild(el);
+      });
+      const firstDow = new Date(year, month - 1, 1).getDay();
+      for (let i = 0; i < firstDow; i += 1) {
+        const blank = document.createElement("div");
+        blank.className = "cal-blank";
+        calendarEl.appendChild(blank);
+      }
+      for (let d = 1; d <= daysInMonth(year, month); d += 1) {
+        const key = `${year}-${pad(month)}-${pad(d)}`;
+        const holiday = holidayName(key);
+        const filled = (byDate.get(key) || []).some(hasContent);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.day = key;
+        btn.className = ["cal-day", set.has(key) ? "in" : "", holiday ? "holiday" : "", key === today ? "today" : ""].filter(Boolean).join(" ");
+        btn.title = `${month}月${d}日（${weekdayName(key)}）${holiday ? " " + holiday : ""}${set.has(key) ? "：出席" : "：出席なし"}`;
+        btn.innerHTML = `<span>${d}</span><span class="cal-sub">${holiday ? escapeHtml(holiday) : ""}</span>${filled ? '<span class="cal-dot"></span>' : ""}`;
+        calendarEl.appendChild(btn);
+      }
+    }
+
+    function renderPrintSheet(rows, dayCount) {
       const year = Number(yearInput.value);
       const month = Number(monthSelect.value);
       const school = activeSchool();
       const student = activeStudent();
-      document.getElementById("reportTitle").textContent = `${school.name} / ${student.name} / ${year}年${month}月 レポート一覧`;
-      printTitle.textContent = `${school.name}　${student.name}　${year}年${month}月 月次レポート`;
+      const greeting = String(state.reportGreeting || "").trim();
+      const body = rows.map(({ date, entry }) => `
+        <tr>
+          <td class="c-date">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</td>
+          <td class="c-dow">${weekdayName(date)}</td>
+          <td>${entry ? escapeHtml(formatLearning(entry)) : ""}</td>
+          <td class="c-act">${entry ? escapeHtml(formatActivity(entry)) : ""}</td>
+        </tr>`).join("");
+      printSheet.innerHTML = `
+        <header class="ps-head">
+          <div>
+            <p class="ps-org">${escapeHtml(school.name)}</p>
+            <h1 class="ps-title">${year}年${month}月　学習の記録</h1>
+            <p class="ps-student"><strong>${escapeHtml(student.name)}</strong> さん</p>
+          </div>
+          <div class="ps-count">出席日数<strong>${dayCount}日</strong></div>
+        </header>
+        ${greeting ? `<p class="ps-greeting">${escapeHtml(greeting)}</p>` : ""}
+        ${rows.length ? `
+        <table class="ps-table">
+          <thead><tr><th class="c-date">日付</th><th class="c-dow">曜日</th><th>学習内容</th><th class="c-act">活動内容</th></tr></thead>
+          <tbody>${body}</tbody>
+        </table>` : `<p class="ps-empty">この月の出席はありません。</p>`}
+      `;
+    }
 
-      const present = list.filter((entry) => entry.status === "出席").length;
-      const absent = list.filter((entry) => entry.status === "欠席").length;
-      const attendedLike = list.filter((entry) => ["出席", "遅刻", "早退", "振替"].includes(entry.status)).length;
-      const attendedDates = list
-        .filter((entry) => ["出席", "遅刻", "早退", "振替"].includes(entry.status))
-        .map((entry) => shortDate(entry.date));
-      printSubtitle.textContent = `合計日数：${list.length}日`;
-      renderGreeting();
-      document.getElementById("totalCount").textContent = String(list.length);
-      document.getElementById("presentCount").textContent = String(present);
-      document.getElementById("absentCount").textContent = String(absent);
-      document.getElementById("rateCount").textContent = list.length ? `${Math.round((attendedLike / list.length) * 100)}%` : "0%";
+    function render() {
+      const year = Number(yearInput.value);
+      const month = Number(monthSelect.value);
+      const school = activeSchool();
+      const student = activeStudent();
+      monthAttendance.created = false;
+      const { days, rows, byDate } = monthRows();
+      document.getElementById("reportTitle").textContent = `${school.name} / ${student.name} / ${year}年${month}月`;
 
-      emptyState.hidden = list.length > 0;
-      tableWrap.hidden = list.length === 0;
+      const filledDays = days.filter((date) => (byDate.get(date) || []).some(hasContent)).length;
+      document.getElementById("totalCount").textContent = `${days.length}日`;
+      document.getElementById("filledCount").textContent = String(filledDays);
+      document.getElementById("blankCount").textContent = String(days.length - filledDays);
+
+      renderCalendar(days, byDate);
+      renderPrintSheet(rows, days.length);
+
+      emptyState.hidden = rows.length > 0;
+      tableWrap.hidden = rows.length === 0;
       reportBody.innerHTML = "";
 
-      for (const entry of list) {
+      for (const { date, entry } of rows) {
         const tr = document.createElement("tr");
+        const filled = entry && hasContent(entry);
+        if (!filled) tr.className = "no-content";
         tr.innerHTML = `
-          <td class="small">${entry.date}</td>
-          <td class="small">${weekdayName(entry.date)}</td>
-          <td>${escapeHtml(formatLearning(entry))}</td>
-          <td>${escapeHtml(formatActivity(entry))}</td>
-          <td class="small"><button type="button" data-edit="${entry.id}">編集</button></td>
+          <td class="small">${shortDate(date)}</td>
+          <td class="small">${weekdayName(date)}</td>
+          <td>${entry ? escapeHtml(formatLearning(entry)) : "（未記入）"}</td>
+          <td>${entry ? escapeHtml(formatActivity(entry)) : ""}</td>
+          <td class="small">${entry
+            ? `<button type="button" data-edit="${entry.id}">編集</button>`
+            : `<button type="button" data-new-date="${date}">入力</button>`}</td>
         `;
         reportBody.appendChild(tr);
       }
+      if (monthAttendance.created) save();
     }
 
     function escapeHtml(value) {
@@ -1260,14 +1500,14 @@
     }
 
     function exportCsv() {
-      const list = selectedMonthEntries();
+      const { rows } = monthRows();
       const school = activeSchool();
       const student = activeStudent();
-      const rows = [
+      const csvRows = [
         ["学習施設", "生徒", "日にち", "曜日", "学習内容", "活動内容"],
-        ...list.map((entry) => [school.name, student.name, entry.date, weekdayName(entry.date), formatLearning(entry), formatActivity(entry)]),
+        ...rows.map(({ date, entry }) => [school.name, student.name, date, weekdayName(date), entry ? formatLearning(entry) : "", entry ? formatActivity(entry) : ""]),
       ];
-      const csv = rows.map((row) => row.map(toCsvValue).join(",")).join("\n");
+      const csv = csvRows.map((row) => row.map(toCsvValue).join(",")).join("\n");
       const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1275,6 +1515,14 @@
       a.download = `attendance_${school.name}_${student.name}_${yearInput.value}-${pad(monthSelect.value)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    function renderWeekdayPicks() {
+      const student = activeStudent();
+      const weekdays = studentWeekdays(student);
+      weekdayPicks.innerHTML = DOW.map((name, i) =>
+        `<label><input type="checkbox" data-dow="${i}" ${weekdays.includes(i) ? "checked" : ""} />${name}</label>`
+      ).join("");
     }
 
     function restoreSeenData() {
@@ -1388,6 +1636,7 @@
       newStudentNameInput.value = "";
       schoolNameInput.value = activeSchool()?.name || "";
       studentNameInput.value = activeStudent()?.name || "";
+      renderWeekdayPicks();
       document.body.classList.add("roster-mode");
     });
     document.getElementById("closeRosterBtn").addEventListener("click", () => {
@@ -1435,6 +1684,7 @@
     rosterStudentSelect.addEventListener("change", () => {
       studentSelect.value = rosterStudentSelect.value;
       studentNameInput.value = activeStudent()?.name || "";
+      renderWeekdayPicks();
       resetForm();
       save();
       render();
@@ -1546,8 +1796,43 @@
       showToast("生徒を削除しました");
     });
     document.getElementById("a4PreviewBtn").addEventListener("click", () => {
-      document.body.classList.toggle("a4-preview");
-      document.getElementById("a4PreviewBtn").textContent = document.body.classList.contains("a4-preview") ? "入力に戻る" : "レポート確認";
+      render();
+      document.body.classList.add("a4-preview");
+      window.scrollTo(0, 0);
+    });
+    document.getElementById("closePreviewBtn").addEventListener("click", () => {
+      document.body.classList.remove("a4-preview");
+    });
+    window.addEventListener("beforeprint", render);
+    calendarEl.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-day]");
+      if (!btn) return;
+      const student = activeStudent();
+      const date = btn.dataset.day;
+      const year = Number(yearInput.value);
+      const month = Number(monthSelect.value);
+      const attending = monthAttendance(student, year, month).includes(date);
+      setAttendance(student, date, !attending);
+      save();
+      render();
+      showToast(`${shortDate(date)}を${attending ? "外しました" : "出席に戻しました"}`);
+    });
+    document.getElementById("resetMonthBtn").addEventListener("click", () => {
+      const student = activeStudent();
+      const year = Number(yearInput.value);
+      const month = Number(monthSelect.value);
+      const ok = window.confirm(`${year}年${month}月の出席日を、曜日どおり（祝日を除く）に作り直します。入力済みの学習内容は消えません。`);
+      if (!ok) return;
+      state.attendance[student.id][monthKey(year, month)] = defaultDays(student, year, month);
+      save();
+      render();
+    });
+    weekdayPicks.addEventListener("change", () => {
+      const student = activeStudent();
+      student.weekdays = [...weekdayPicks.querySelectorAll("[data-dow]")]
+        .filter((box) => box.checked).map((box) => Number(box.dataset.dow));
+      save();
+      showToast("通う曜日を保存しました（まだ開いていない月から使われます）");
     });
     document.getElementById("printBtn").addEventListener("click", () => {
       render();
@@ -1556,8 +1841,8 @@
     document.getElementById("csvBtn").addEventListener("click", exportCsv);
     greetingInput.addEventListener("input", () => {
       state.reportGreeting = greetingInput.value;
-      renderGreeting();
       save();
+      render();
     });
     document.getElementById("addSubjectBtn").addEventListener("click", () => {
       addSubjectRow();
@@ -1610,6 +1895,7 @@
         entries.push(entry);
       }
 
+      setAttendance(activeStudent(), entry.date, true);
       save();
       syncMonthToDate(entry.date);
       resetForm();
@@ -1632,7 +1918,18 @@
 
     reportBody.addEventListener("click", (event) => {
       const button = event.target.closest("[data-edit]");
-      if (button) editEntry(button.dataset.edit);
+      if (button) {
+        editEntry(button.dataset.edit);
+        return;
+      }
+      const newBtn = event.target.closest("[data-new-date]");
+      if (newBtn) {
+        resetForm();
+        dateInput.value = newBtn.dataset.newDate;
+        updateWeekdayPreview();
+        dateInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        showToast(`${shortDate(newBtn.dataset.newDate)}の内容を入力できます`);
+      }
     });
   </script>
 </body>

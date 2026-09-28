@@ -1,0 +1,56 @@
+== date
+2026年 9月29日 火曜日 01時34分44秒 JST
+== xcode-select
+/Library/Developer/CommandLineTools
+== which python3
+/usr/bin/python3
+/opt/homebrew/bin/python3
+== /usr/bin/python3 --version
+Python 3.9.6
+exit=0
+== bundle
+/Applications/出席簿.app/Contents/MacOS:
+total 8
+drwxr-xr-x  3 yoshiakinagumo  staff   96  6月 30 18:28 .
+drwxr-xr-x  5 yoshiakinagumo  staff  160  6月 30 18:28 ..
+-rwxr-xr-x  1 yoshiakinagumo  staff  537  6月 30 18:49 launch
+
+/Applications/出席簿.app/Contents/Resources:
+total 288
+drwxr-xr-x  6 yoshiakinagumo  staff    192  6月 30 18:49 .
+drwxr-xr-x  5 yoshiakinagumo  staff    160  6月 30 18:28 ..
+-rw-r--r--  1 yoshiakinagumo  staff  53058  7月 15 20:14 attendance_form_report.html
+-rw-r--r--  1 yoshiakinagumo  staff  17140  6月  3 20:01 attendance_icon.png
+-rw-r--r--  1 yoshiakinagumo  staff  68373  6月  3 20:03 attendance.icns
+-rw-r--r--  1 yoshiakinagumo  staff   3594  7月 15 20:14 server.py
+== launch
+#!/bin/sh
+APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+RESOURCES_DIR="$APP_DIR/Resources"
+PORT=8765
+
+if ! curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
+  PID="$(/usr/sbin/lsof -ti tcp:$PORT -sTCP:LISTEN 2>/dev/null)"
+  if [ -n "$PID" ]; then
+    kill $PID >/dev/null 2>&1
+    sleep 0.3
+  fi
+  cd "$RESOURCES_DIR" || exit 1
+  nohup /usr/bin/python3 "$RESOURCES_DIR/server.py" >/tmp/attendance_report_server.log 2>&1 </dev/null &
+  sleep 0.5
+fi
+
+open "http://127.0.0.1:$PORT/attendance_form_report.html?v=$(date +%s)"
+== port
+== data
+total 56
+drwxr-xr-x   4 yoshiakinagumo  staff    128  9月 29 01:30 .
+drwx------+ 83 yoshiakinagumo  staff   2656  9月 28 10:54 ..
+-rw-r--r--   1 yoshiakinagumo  staff  28108  9月 29 01:30 attendance_data.json
+drwxr-xr-x  14 yoshiakinagumo  staff    448  9月 29 01:30 Backups
+== server test (6s)
+{
+  "ok": true
+} curl_exit=0
+-- server log
+127.0.0.1 - - [29/Sep/2026 01:34:50] "GET /api/health HTTP/1.1" 200 -
