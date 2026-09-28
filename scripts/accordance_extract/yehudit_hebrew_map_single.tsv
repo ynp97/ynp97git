@@ -1,0 +1,106 @@
+# Yehudit（Accordanceヘブル語フォント）→ Unicode 変換表（1バイト記号）
+# 字母: a=א b=ב g=ג d=ד h=ה w=ו z=ז j=ח f=ט y=י k=כ K=ך l=ל m=מ M=ם n=נ N=ן s=ס o=ע p=פ P=ף x=צ X=ץ q=ק r=ר c=שׂ v=שׁ t=ת
+# 記号は字母の後ろに並ぶ（語頭の前置記号は最初の字母に付ける）。¿(0xBF)の直後に w が来たら、¿ は w のホーレム（ホーレム・マレー）
+hex	表示(latin1)	結合記号	Unicode名
+23	#	֗	REVIA
+24	$	֔	ZAQEF QATAN
+25	%	֜	GERESH
+26	&	֡	PAZER
+3b	;	ּ	DAGESH OR MAPIQ
+41	A	ַ	PATAH
+42	B	ׄ	HEBREW MARK UPPER DOT
+44	D	ָ	QAMATS
+45	E	ֵ	TSERE
+46	F	ֳ	HATAF QAMATS
+47	G	֗	REVIA
+48	H	֞	GERSHAYIM
+49	I	ִ	HIRIQ
+4a	J	ְ	SHEVA
+4f	O	ֹ	HOLAM
+51	Q	֫	OLE
+52	R	ֶ	SEGOL
+53	S	ֲ	HATAF PATAH
+54	T	ֱ	HATAF SEGOL
+55	U	ֻ	QUBUTS
+56	V	ְ	SHEVA
+57	W	֬	ILUY
+59	Y	֔	ZAQEF QATAN
+5a	Z	֫	OLE
+60	`	ֽ	METEG
+7e	~	֒	SEGOL
+81		ַ	PATAH
+82		֘	ZARQA
+87		ֽ	METEG
+89		֣	MUNAH
+8a		֖	TIPEHA
+8b		֦	MERKHA KEFULA
+8c		ַ	PATAH
+8e		ֵ	TSERE
+90		֣	MUNAH
+91		֖	TIPEHA
+92		ֽ	METEG
+94		ִ	HIRIQ
+96		֥	MERKHA
+97		֑	ETNAHTA
+99		֤	MAHAPAKH
+9a		֛	TEVIR
+9b		֥	MERKHA
+9c		֑	ETNAHTA
+9e		֤	MAHAPAKH
+9f		ֻ	QUBUTS
+a0	 	ֱ	HATAF SEGOL
+a1	¡	֨	QADMA
+a2	¢	֛	TEVIR
+a3	£	֚	YETIV
+a4	¤	֤	MAHAPAKH
+a6	¦	֥	MERKHA
+a7	§	ֲ	HATAF PATAH
+a8	¨	ֶ	SEGOL
+a9	©	֪	YERAH BEN YOMO
+aa	ª	֖	TIPEHA
+ab	«	ֵ	TSERE
+ac	¬	ֻ	QUBUTS
+ae	®	ּ	DAGESH OR MAPIQ
+b0	°	֣	MUNAH
+b4	´	ּ	DAGESH OR MAPIQ
+b5	µ	֧	DARGA
+b6	¶	ָ	QAMATS
+b8	¸	֨	QADMA
+bd	½	ּ	DAGESH OR MAPIQ
+bf	¿	ֹ	HOLAM
+c1	Á	֑	ETNAHTA
+c2	Â	֧	DARGA
+c3	Ã	ְ	SHEVA
+c4	Ä	ֳ	HATAF QAMATS
+c9	É	ּ	DAGESH OR MAPIQ
+ca	Ê		(なし)
+ce	Î	֝	GERESH MUQDAM
+cf	Ï	֭	DEHI
+d1	Ñ		(なし)
+d7	×	ְ	SHEVA
+d8	Ø	֛	TEVIR
+da	Ú	֓	SHALSHELET
+db	Û	֮	ZINOR
+dc	Ü	֙	PASHTA
+dd	Ý	֕	ZAQEF GADOL
+de	Þ	֞	GERSHAYIM
+df	ß	֠	TELISHA GEDOLA
+e0	à	֟	QARNEY PARA
+e1	á	֩	TELISHA QETANA
+e2	â	֨	QADMA
+e3	ã	֘	ZARQA
+e4	ä	ֶ	SEGOL
+e7	ç	֕	ZAQEF GADOL
+ea	ê	ֲ	HATAF PATAH
+eb	ë	ָ	QAMATS
+ec	ì	ֳ	HATAF QAMATS
+ee	î	֡	PAZER
+ef	ï	ָ	QAMATS
+f1	ñ	֟	QARNEY PARA
+f2	ò	ּ	DAGESH OR MAPIQ
+f5	õ	ׄ	HEBREW MARK UPPER DOT
+f6	ö	ִ	HIRIQ
+fa	ú	֪	YERAH BEN YOMO
+fd	ý	֜	GERESH
+fe	þ	֬	ILUY
+ff	ÿ	ֱ	HATAF SEGOL

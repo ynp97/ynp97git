@@ -1,0 +1,72 @@
+# 聖書 ESV（AI内蔵）
+
+> The Holy Bible, English Standard Version (ESV), Text Edition 2016. Copyright © 2001, 2006, 2011, 2016 by Crossway Bibles, a division of Good News Publishers. All rights reserved.
+> Accordanceモジュール ESVS（Version 6.5）から抽出。本文は改変不可。個人利用のみ・再配布しない。
+> 詩篇の表題は英語聖書の慣例どおり節番号なし（このファイルでは `0` と `^章-0` で置く）。ESVが本文から外して脚注にした節（例 Matthew 17:21, Mark 7:16）は欠番のまま。ESVの二重角括弧（［［ ］］）（Mark 16:9–20, John 7:53–8:11）はObsidianのリンクと衝突するため ⟦ ⟧ で表記。LORD/GOD の小型大文字はStrong番号（H3068/H3069/H3050）から復元、出エジプト3:14の I AM WHO I AM は個別に復元。
+
+- [[ESV 創世記]]（Genesis, 50章）
+- [[ESV 出エジプト記]]（Exodus, 40章）
+- [[ESV レビ記]]（Leviticus, 27章）
+- [[ESV 民数記]]（Numbers, 36章）
+- [[ESV 申命記]]（Deuteronomy, 34章）
+- [[ESV ヨシュア記]]（Joshua, 24章）
+- [[ESV 士師記]]（Judges, 21章）
+- [[ESV ルツ記]]（Ruth, 4章）
+- [[ESV サムエル記第一]]（1 Samuel, 31章）
+- [[ESV サムエル記第二]]（2 Samuel, 24章）
+- [[ESV 列王記第一]]（1 Kings, 22章）
+- [[ESV 列王記第二]]（2 Kings, 25章）
+- [[ESV 歴代誌第一]]（1 Chronicles, 29章）
+- [[ESV 歴代誌第二]]（2 Chronicles, 36章）
+- [[ESV エズラ記]]（Ezra, 10章）
+- [[ESV ネヘミヤ記]]（Nehemiah, 13章）
+- [[ESV エステル記]]（Esther, 10章）
+- [[ESV ヨブ記]]（Job, 42章）
+- [[ESV 詩篇]]（Psalms, 150章）
+- [[ESV 箴言]]（Proverbs, 31章）
+- [[ESV 伝道者の書]]（Ecclesiastes, 12章）
+- [[ESV 雅歌]]（Song of Solomon, 8章）
+- [[ESV イザヤ書]]（Isaiah, 66章）
+- [[ESV エレミヤ書]]（Jeremiah, 52章）
+- [[ESV 哀歌]]（Lamentations, 5章）
+- [[ESV エゼキエル書]]（Ezekiel, 48章）
+- [[ESV ダニエル書]]（Daniel, 12章）
+- [[ESV ホセア書]]（Hosea, 14章）
+- [[ESV ヨエル書]]（Joel, 3章）
+- [[ESV アモス書]]（Amos, 9章）
+- [[ESV オバデヤ書]]（Obadiah, 1章）
+- [[ESV ヨナ書]]（Jonah, 4章）
+- [[ESV ミカ書]]（Micah, 7章）
+- [[ESV ナホム書]]（Nahum, 3章）
+- [[ESV ハバクク書]]（Habakkuk, 3章）
+- [[ESV ゼパニヤ書]]（Zephaniah, 3章）
+- [[ESV ハガイ書]]（Haggai, 2章）
+- [[ESV ゼカリヤ書]]（Zechariah, 14章）
+- [[ESV マラキ書]]（Malachi, 4章）
+- [[ESV マタイの福音書]]（Matthew, 28章）
+- [[ESV マルコの福音書]]（Mark, 16章）
+- [[ESV ルカの福音書]]（Luke, 24章）
+- [[ESV ヨハネの福音書]]（John, 21章）
+- [[ESV 使徒の働き]]（Acts, 28章）
+- [[ESV ローマ人への手紙]]（Romans, 16章）
+- [[ESV コリント人への手紙第一]]（1 Corinthians, 16章）
+- [[ESV コリント人への手紙第二]]（2 Corinthians, 13章）
+- [[ESV ガラテヤ人への手紙]]（Galatians, 6章）
+- [[ESV エペソ人への手紙]]（Ephesians, 6章）
+- [[ESV ピリピ人への手紙]]（Philippians, 4章）
+- [[ESV コロサイ人への手紙]]（Colossians, 4章）
+- [[ESV テサロニケ人への手紙第一]]（1 Thessalonians, 5章）
+- [[ESV テサロニケ人への手紙第二]]（2 Thessalonians, 3章）
+- [[ESV テモテへの手紙第一]]（1 Timothy, 6章）
+- [[ESV テモテへの手紙第二]]（2 Timothy, 4章）
+- [[ESV テトスへの手紙]]（Titus, 3章）
+- [[ESV ピレモンへの手紙]]（Philemon, 1章）
+- [[ESV ヘブル人への手紙]]（Hebrews, 13章）
+- [[ESV ヤコブの手紙]]（James, 5章）
+- [[ESV ペテロの手紙第一]]（1 Peter, 5章）
+- [[ESV ペテロの手紙第二]]（2 Peter, 3章）
+- [[ESV ヨハネの手紙第一]]（1 John, 5章）
+- [[ESV ヨハネの手紙第二]]（2 John, 1章）
+- [[ESV ヨハネの手紙第三]]（3 John, 1章）
+- [[ESV ユダの手紙]]（Jude, 1章）
+- [[ESV ヨハネの黙示録]]（Revelation, 22章）
