@@ -1,77 +1,81 @@
 #!/bin/zsh
-# 出席簿アプリ（Dock）を、Vaultの正本HTMLへ反映するスクリプト。
-# ・正本 attendance_form_report.html を /Applications/出席簿.app のResourcesにコピー
-# ・起動ファイル(launch)を、URLにキャッシュ回避パラメータ付きで開く版に更新
-# ・サーバーを再起動し、最新HTMLをブラウザで開く
+# 出席簿アプリ（Dock）を、Vaultの正本へ反映するスクリプト。
+# ・正本 attendance_form_report.html / server.py を /Applications/出席簿.app のResourcesにコピー
+# ・サーバーは launchd（ログイン中は常駐・落ちたら自動再起動）で動かす
+#   （2026-09-29変更：アプリ起動時にnohupで立てる方式では、ページを開いた後にサーバーが消えることがあった）
+# ・起動ファイル(launch)は「サーバーの応答を待ってからブラウザで開く」だけにする
 set -e
 
 VAULT_DIR="$HOME/Documents/Obsidian Vault/アプリ本体/出席簿"
-SRC="$VAULT_DIR/attendance_form_report.html"
-SERVER_SRC="$VAULT_DIR/server.py"
+APP="/Applications/出席簿.app"
+RES="$APP/Contents/Resources"
+LABEL="local.nagumo.attendance"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 PORT=8765
 
-if [ ! -f "$SRC" ]; then
-  echo "正本が見つかりません: $SRC"
-  exit 1
-fi
+for f in attendance_form_report.html server.py; do
+  if [ ! -f "$VAULT_DIR/$f" ]; then echo "正本が見つかりません: $VAULT_DIR/$f"; exit 1; fi
+done
+if [ ! -d "$RES" ]; then echo "アプリが見つかりません: $APP"; exit 1; fi
 
-if [ ! -f "$SERVER_SRC" ]; then
-  echo "サーバー正本が見つかりません: $SERVER_SRC"
-  exit 1
-fi
+cp "$VAULT_DIR/attendance_form_report.html" "$RES/attendance_form_report.html"
+cp "$VAULT_DIR/server.py" "$RES/server.py"
 
-write_launch() {
-  L="$1"
-  cat > "$L" <<'LAUNCH'
+cat > "$APP/Contents/MacOS/launch" <<'LAUNCH'
 #!/bin/sh
-APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-RESOURCES_DIR="$APP_DIR/Resources"
 PORT=8765
-
+LABEL="local.nagumo.attendance"
 if ! curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
-  PID="$(/usr/sbin/lsof -ti tcp:$PORT -sTCP:LISTEN 2>/dev/null)"
-  if [ -n "$PID" ]; then
-    kill $PID >/dev/null 2>&1
-    sleep 0.3
-  fi
-  cd "$RESOURCES_DIR" || exit 1
-  nohup /usr/bin/python3 "$RESOURCES_DIR/server.py" >/tmp/attendance_report_server.log 2>&1 </dev/null &
-  sleep 0.5
+  launchctl kickstart "gui/$(id -u)/$LABEL" >/dev/null 2>&1 \
+    || launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/$LABEL.plist" >/dev/null 2>&1
+  i=0
+  while [ $i -lt 50 ] && ! curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; do
+    sleep 0.2; i=$((i+1))
+  done
 fi
-
 open "http://127.0.0.1:$PORT/attendance_form_report.html?v=$(date +%s)"
 LAUNCH
-  chmod +x "$L"
-}
+chmod +x "$APP/Contents/MacOS/launch"
 
-setup_bundle() {
-  APP="$1"
-  RES="$APP/Contents/Resources"
-  if [ ! -d "$RES" ]; then
-    echo "見つからないので飛ばします: $APP"
-    return
-  fi
-  rm -f "$RES/attendance_form_report.html"
-  cp "$SRC" "$RES/attendance_form_report.html"
-  cp "$SERVER_SRC" "$RES/server.py"
-  write_launch "$APP/Contents/MacOS/launch"
-  echo "反映しました: $APP"
-}
+mkdir -p "$HOME/Library/LaunchAgents"
+cat > "$PLIST" <<PL
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$LABEL</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>$RES/server.py</string>
+  </array>
+  <key>WorkingDirectory</key><string>$RES</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/attendance_report_server.log</string>
+  <key>StandardErrorPath</key><string>/tmp/attendance_report_server.log</string>
+</dict>
+</plist>
+PL
 
-setup_bundle "/Applications/出席簿.app"
-
-# 動いているサーバーを止めて再起動（HTML再読み込みのため）
+# 古い手動起動のサーバーが残っていれば止める
 PID="$(/usr/sbin/lsof -ti tcp:$PORT -sTCP:LISTEN 2>/dev/null || true)"
-if [ -n "$PID" ]; then
-  kill $PID >/dev/null 2>&1 || true
-  sleep 0.3
+[ -n "$PID" ] && kill $PID 2>/dev/null || true
+sleep 0.3
+
+launchctl bootout "gui/$(id -u)/$LABEL" >/dev/null 2>&1 || true
+sleep 0.3
+launchctl bootstrap "gui/$(id -u)" "$PLIST"
+
+i=0
+while [ $i -lt 50 ] && ! curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; do
+  sleep 0.2; i=$((i+1))
+done
+if curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
+  echo "サーバー起動OK（launchd常駐）"
+else
+  echo "サーバーが応答しません。/tmp/attendance_report_server.log を確認してください"; exit 1
 fi
 
-RES="/Applications/出席簿.app/Contents/Resources"
-cd "$RES"
-nohup /usr/bin/python3 "$RES/server.py" >/tmp/attendance_report_server.log 2>&1 </dev/null &
-sleep 0.8
-
 open "http://127.0.0.1:$PORT/attendance_form_report.html?v=$(date +%s)"
-
-echo "完了しました。新しく開いたタブで、レポート欄に挨拶文の入力欄が出るか確認してください。"
+echo "完了しました。"
