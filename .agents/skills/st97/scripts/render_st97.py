@@ -61,6 +61,18 @@ ol,ul{padding-left:6mm}
 .overview{color:#000}
 rt{color:#333}
 .message-section,.overall-section,.apps-section{break-before:page}
+/* 2026-09-28 本人指示：一ページ一聖句。段落の頭はまとめ＋段落の地図だけのページ、ポイントも別ページ */
+@page{margin-top:21mm}
+.verse-unit,.points-block{break-before:page}
+.verse-unit .verse{margin-top:1mm;font-size:21pt;line-height:1.62}
+.verse-unit .verse-label{font-size:13.5pt}
+.notes{font-size:14pt;line-height:1.6}
+.summary-box{font-size:14pt;line-height:1.65;padding:2.5mm 3mm}
+.range{margin:0 0 3mm;color:#59636b;font-size:12pt}
+.pmap{margin:2mm 0 0;padding:0;list-style:none;font-size:11.5pt;line-height:1.4;display:grid;grid-template-columns:1fr 1fr;gap:1mm 2mm}
+.pmap li{margin:0;padding:.8mm 1.5mm;border-left:1mm solid #a8c9dc;background:#f3f7fa;white-space:nowrap;overflow:hidden}
+.pmap b{display:inline-block;min-width:3.2em;color:#006699}
+.points-block .points-heading{margin-top:0}
 .mk{font-size:1pt;color:#fff;line-height:0}
 .toc{margin:0 0 4mm;padding:2mm 3mm;border:.4mm solid #006699;border-radius:1.5mm;font-size:12.5pt}
 .toc b{color:#006699}
@@ -158,26 +170,53 @@ def main() -> int:
     def mk(tag: str) -> str:
         return f'<span class="mk">§{tag}§</span>' if args.ipad else ""
 
+    def verse_no(label: str) -> str:
+        m = re.search(r":\s*(\d+(?:\s*[–〜~\-]\s*\d+)?)\s*$", label)
+        return m.group(1).replace(" ", "") if m else label
+
     section_html = []
     for sec_index, section in enumerate(require(data, "sections"), start=1):
+        if args.ipad:
+            # 2026-09-28 本人指示：段落のまとめを少し厚く（3文以上）。一ページ一聖句（範囲ラベルは系図の日だけ）。
+            n_sent = len([x for x in re.split(r"。", section["summary"].replace("\n", "")) if x.strip()])
+            if n_sent < 3:
+                raise ValueError(f"段落{sec_index}のまとめが{n_sent}文しかない（3文以上：何が起きるか／どこで流れが変わるか／次へどうつながるか）")
+            if not data.get("multi_verse_boxes"):
+                for v in section["verses"]:
+                    if not re.fullmatch(r"\d+", verse_no(v["label"])):
+                        raise ValueError(f"一ページ一聖句：1ボックスに複数節が入っている: {v['label']}（系図の日だけ multi_verse_boxes: true）")
         verse_html = []
-        for verse in section["verses"]:
+        for v_index, verse in enumerate(section["verses"], start=1):
             verse_html.append(
                 '<article class="verse-unit">'
+                f'{mk(f"V{sec_index}_{v_index}")}'
                 f'<p class="verse"><span class="verse-label">{ruby(verse["label"])}</span>'
                 f'<span class="verse-text">{multiline(verse["text"])}</span></p>'
                 '<h3>背景・語句</h3>'
                 f'{bullets(verse["notes"], "notes")}'
                 '</article>'
             )
+        pmap = ""
+        if args.ipad:
+            items = []
+            for verse in section["verses"]:
+                head = re.sub(r"\s+", " ", verse["text"]).strip()
+                head = head if len(head) <= 12 else head[:11] + "…"
+                items.append(f'<li><b>{escape(verse_no(verse["label"]))}節</b>{ruby(head)}</li>')
+            first, last = verse_no(section["verses"][0]["label"]), verse_no(section["verses"][-1]["label"])
+            pmap = f'<p class="range">全{len(section["verses"])}節　節ごとに1ページ</p>'
+            pmap_list = '<h3>段落の地図</h3><ol class="pmap">' + "".join(items) + '</ol>'
         section_html.append(
             '<section class="message-section">'
             f'{mk(f"S{sec_index}")}<h2>{ruby(section["heading"])}</h2>'
+            f'{pmap}'
             '<h3>段落の簡単なまとめ</h3>'
             f'<p class="summary-box">{multiline(section["summary"])}</p>'
+            f'{pmap_list if args.ipad else ""}'
             f'{"".join(verse_html)}'
+            f'<div class="points-block">{mk(f"P{sec_index}")}'
             '<h3 class="points-heading">段落のポイント</h3>'
-            f'{bullets(section["points"], "points")}'
+            f'{bullets(section["points"], "points")}</div>'
             '</section>'
         )
 

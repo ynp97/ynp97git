@@ -73,6 +73,25 @@ def starts(pdf, keys):
         out[k] = hit[0] + 1
     return out, len(texts)
 
+def page_states(pdf):
+    """各ページの先頭の目印（S=段落の頭, V=節, P=ポイント）。目印のないページは直前を引き継ぐ（節の解説があふれた続きのページ）。"""
+    out, cur = [], ("intro",)
+    for pg in PdfReader(str(pdf)).pages:
+        t = re.sub(r"\s", "", pg.extract_text() or "")
+        m = re.search(r"§(S\d+|V\d+_\d+|P\d+|SM|SA)§", t)
+        if m:
+            k = m.group(1)
+            if k.startswith("S") and k[1:].isdigit(): cur = ("S", int(k[1:]))
+            elif k.startswith("V"): a, b = k[1:].split("_"); cur = ("V", int(a), int(b))
+            elif k.startswith("P"): cur = ("P", int(k[1:]))
+            else: cur = (k,)
+        out.append(cur)
+    return out
+
+def verse_no(label):
+    m = re.search(r":\s*(\d+(?:\s*[–〜~\-]\s*\d+)?)\s*$", label)
+    return m.group(1).replace(" ", "") if m else label
+
 def main():
     payload, out = Path(sys.argv[1]), Path(sys.argv[2])
     data = json.loads(payload.read_text(encoding="utf-8"))
@@ -106,6 +125,8 @@ def main():
     labels = ["導入"] + short
     colors = [_rgb(INTRO_C)] + [_rgb(SEC_C[i % len(SEC_C)]) for i in range(len(secs))] + [_rgb(SUM_C), _rgb(APP_C)]
     pdfmetrics.registerFont(TTFont("IPAG", FONT))
+    states = page_states(pdf)
+    vnums = [[verse_no(v["label"]) for v in sec["verses"]] for sec in secs]
     reader = PdfReader(str(pdf)); writer = PdfWriter()
     for i, page in enumerate(reader.pages, start=1):
         W, H = float(page.mediabox.width), float(page.mediabox.height)
@@ -137,6 +158,38 @@ def main():
             c.setFont("IPAG", 6.5); c.drawCentredString((a + b) / 2, y + 1.2 * mm, labels[j])
         px = x0 + span * (i - .5) / n  # いまのページの位置
         c.setFillColorRGB(.85, .2, .1); p = c.beginPath(); p.moveTo(px - 1.6 * mm, y - 1.8 * mm); p.lineTo(px + 1.6 * mm, y - 1.8 * mm); p.lineTo(px, y - .2 * mm); p.close(); c.drawPath(p, stroke=0, fill=1)
+        # 段落の中の位置（2026-09-28 本人指示）：「要」＝まとめ、節番号、「点」＝ポイント。済＝淡色、いま＝濃色、これから＝枠だけ
+        stt = states[i - 1]
+        if stt[0] in ("S", "V", "P"):
+            si = stt[1] - 1; nums = vnums[si]
+            cells = ["要"] + nums + ["点"]
+            cur = 0 if stt[0] == "S" else (len(cells) - 1 if stt[0] == "P" else stt[2])
+            ty, th = H - 19 * mm, 5.6 * mm
+            lab = f"{CIRC[si]} {nums[0].split('–')[0]}〜{re.split(r'[–〜~-]', nums[-1])[-1]}節"
+            c.setFont("IPAG", 10); c.setFillColorRGB(*col); c.drawString(x0, ty + 1.6 * mm, lab)
+            cx = x0 + c.stringWidth(lab, "IPAG", 10) + 2.5 * mm
+            if stt[0] == "V": right = f"{stt[2]} / {len(nums)}節目"
+            elif stt[0] == "S": right = f"全{len(nums)}節"
+            else: right = "段落のおわり"
+            c.setFont("IPAG", 10); rw = c.stringWidth(right, "IPAG", 10)
+            avail = x1 - rw - 2.5 * mm - cx
+            cw = min(11 * mm, avail / len(cells))
+            for j, lab2 in enumerate(cells):
+                a = cx + j * cw
+                if j < cur: c.setFillColorRGB(*pale(col, .6)); c.roundRect(a + .5, ty, cw - 1, th, 1.2, stroke=0, fill=1); tc = (.25, .25, .25)
+                elif j == cur: c.setFillColorRGB(*col); c.roundRect(a + .5, ty - .6 * mm, cw - 1, th + 1.2 * mm, 1.4, stroke=0, fill=1); tc = (1, 1, 1)
+                else: c.setStrokeColorRGB(*col); c.setLineWidth(.6); c.setFillColorRGB(1, 1, 1); c.roundRect(a + .5, ty, cw - 1, th, 1.2, stroke=1, fill=1); tc = col
+                fs = 9 if len(lab2) <= 2 else 7
+                while c.stringWidth(lab2, "IPAG", fs) > cw - 1.5 and fs > 5: fs -= .5
+                c.setFont("IPAG", fs); c.setFillColorRGB(*tc); c.drawCentredString(a + cw / 2, ty + (th - fs * .35 * mm / 1) / 2 + .2 * mm, lab2)
+            c.setFont("IPAG", 10); c.setFillColorRGB(*col); c.drawRightString(x1, ty + 1.6 * mm, right)
+            # 下端の「次へ」案内
+            if stt[0] == "S": nxt = f"次 → {nums[0]}節"
+            elif stt[0] == "V" and stt[2] < len(nums): nxt = f"次 → {nums[stt[2]]}節"
+            elif stt[0] == "V": nxt = f"この節で段落{CIRC[si]}の本文おわり → ポイント"
+            elif si + 1 < len(secs): nxt = f"次 → 段落{CIRC[si + 1]}"
+            else: nxt = "次 → 全体のまとめ"
+            c.setFont("IPAG", 8); c.setFillColorRGB(*col); c.drawRightString(x1, 1.8 * mm, nxt)
         c.setFont("IPAG", 7); c.setFillColorRGB(0, 0, 0); c.drawCentredString(W / 2, 2 * mm, str(i))
         c.save(); buf.seek(0)
         page.merge_page(PdfReader(buf).pages[0]); writer.add_page(page)
