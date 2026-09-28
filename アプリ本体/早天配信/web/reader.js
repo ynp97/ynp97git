@@ -41,8 +41,10 @@ async function showPage(apply=true) {
   const page = await pdf.getPage(pageNumber);
   if(myGeneration !== generation) return;
   const canvas = $('page'), context = canvas.getContext('2d');
-  const available = Math.max(300, Math.min(900, document.querySelector('.sheet').clientWidth-16));
-  const viewport = page.getViewport({scale:Math.min(2,available/page.getViewport({scale:1}).width)*Math.min(devicePixelRatio,2)});
+  // 窓の幅と高さの両方に収まる大きさで描く（スクロールしないで1ページ全体が見える）
+  const sheet = document.querySelector('.sheet'), base = page.getViewport({scale:1});
+  const fit = Math.min((sheet.clientWidth-12)/base.width, (sheet.clientHeight-12)/base.height);
+  const viewport = page.getViewport({scale:Math.max(.2,fit)*Math.min(devicePixelRatio,2)});
   canvas.width = Math.floor(viewport.width); canvas.height = Math.floor(viewport.height);
   canvas.style.width = `${viewport.width/Math.min(devicePixelRatio,2)}px`;
   renderTask = page.render({canvasContext:context,viewport});
@@ -91,6 +93,7 @@ $('pdfFile').onchange = async event => {
   const file = event.target.files[0];
   if(file) await openPdf(new Uint8Array(await file.arrayBuffer()),`${file.name}:${file.size}:${file.lastModified}`,file.name);
 };
+let resizeTimer; window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>showPage(false).catch(e=>status(e.message)),150);});
 $('prev').onclick=()=>go(-1); $('next').onclick=()=>go(1);
 $('nextVerse').onclick=async()=>{try{await send({action:'next'});}catch(e){status(e.message);}};
 $('mapping').onchange=async()=>{

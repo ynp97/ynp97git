@@ -30,6 +30,34 @@ def sync():
                     os.unlink(temp)
             count += 1
     print(f'正本から更新：{count}ファイル')
+    sync_web()
+
+
+def sync_web():
+    """画面（web）はVaultのアプリ本体が正本。表示ファイルだけなのでOBS起動中に差し替えてよい。"""
+    source = VAULT / 'アプリ本体/早天配信/web'
+    target = CACHE.parent / 'web'
+    if not source.is_dir() or not target.is_dir():
+        return
+    count = 0
+    for path in source.rglob('*'):
+        if not path.is_file() or path.name.startswith('.'):
+            continue
+        dest = target / path.relative_to(source)
+        if dest.exists() and dest.read_bytes() == path.read_bytes():
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        fd, temp = tempfile.mkstemp(dir=dest.parent)
+        os.close(fd)
+        try:
+            shutil.copy2(path, temp)
+            os.replace(temp, dest)
+        finally:
+            if os.path.exists(temp):
+                os.unlink(temp)
+        count += 1
+    if count:
+        print(f'画面を更新：{count}ファイル')
 
 if __name__ == '__main__':
     sync()
