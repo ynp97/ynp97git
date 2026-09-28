@@ -299,12 +299,16 @@ def handler(app):
             if url.path == '/api/dates':
                 return self.respond(schedules(app.vault))
             files = {'/': ('index.html', 'text/html'), '/display': ('display.html', 'text/html'),
+                     '/reader': ('reader.html', 'text/html'), '/reader.js': ('reader.js', 'text/javascript'),
+                     '/reader.css': ('reader.css', 'text/css'), '/sample.pdf': ('sample.pdf', 'application/pdf'),
+                     '/vendor/pdf.min.mjs': ('vendor/pdf.min.mjs', 'text/javascript'),
+                     '/vendor/pdf.worker.min.mjs': ('vendor/pdf.worker.min.mjs', 'text/javascript'),
                      '/app.js': ('app.js', 'text/javascript'), '/display.js': ('display.js', 'text/javascript'),
                      '/style.css': ('style.css', 'text/css'), '/display.css': ('display.css', 'text/css')}
             if url.path not in files:
                 return self.respond({'error': 'Not found'}, 404)
             name, mime = files[url.path]
-            self.respond((HERE / 'web' / name).read_bytes(), content_type=mime + '; charset=utf-8')
+            self.respond((HERE / 'web' / name).read_bytes(), content_type=mime + ('' if mime == 'application/pdf' else '; charset=utf-8'))
 
         def do_POST(self):
             allowed = {f'http://127.0.0.1:{self.server.server_port}', f'http://localhost:{self.server.server_port}'}
