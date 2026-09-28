@@ -154,6 +154,32 @@ class Broadcast:
             self.state['mode'] = 'reference'
         except ValueError as error:
             self.state['startupError'] = str(error)
+        self.session_path = self.storage.with_name('session.json') if self.storage else None
+        if self.session_path and self.session_path.exists():
+            try:
+                saved = json.loads(self.session_path.read_text())
+                if saved.get('saved_on') == dt.date.today().isoformat():
+                    data = prepare(vault, saved['date'])
+                    mode = saved['mode']
+                    if mode not in ('reference', 'body', 'hidden', 'prayer', 'lords_prayer', 'extra'):
+                        raise ValueError('invalid saved mode')
+                    self.extra_id = saved.get('extra_id', '')
+                    entry = next((e for e in self.extras.get(saved['date'], []) if e['id'] == self.extra_id), None)
+                    if mode == 'extra' and entry is None:
+                        mode = 'body'
+                    self.extra_page = max(0, min(int(saved.get('extra_page', 0)), len(entry['pages'])-1)) if entry else 0
+                    self.state.update(data, mode=mode, page=max(0, min(int(saved['page']), len(data['pages'])-1)), startupError='')
+            except (ValueError, KeyError, TypeError, OSError):
+                pass
+
+    def save_session(self):
+        if self.session_path:
+            self.session_path.parent.mkdir(parents=True, exist_ok=True)
+            saved = {key: self.state[key] for key in ('date', 'mode', 'page')}
+            saved.update(saved_on=dt.date.today().isoformat(), extra_id=self.extra_id, extra_page=self.extra_page)
+            temporary = self.session_path.with_suffix('.tmp')
+            temporary.write_text(json.dumps(saved, ensure_ascii=False))
+            temporary.replace(self.session_path)
 
     def snapshot(self, obs=False):
         with self.lock:
@@ -228,6 +254,7 @@ class Broadcast:
                     index = int(body['page']) if action == 'page' else self.extra_page + (1 if action == 'next' else -1)
                     self.extra_page = max(0, min(index, len(entry['pages'])-1))
                     self.revision += 1
+                    self.save_session()
                     return self.snapshot()
                 if not self.state['pages']:
                     raise ValueError('先に日付を選んで準備してください。')
@@ -238,6 +265,7 @@ class Broadcast:
             else:
                 raise ValueError('操作を確認してください。')
             self.revision += 1
+            self.save_session()
             return self.snapshot()
 
 

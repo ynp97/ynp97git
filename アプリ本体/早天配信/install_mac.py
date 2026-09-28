@@ -15,6 +15,10 @@ INPUT_NAME = '聖書（日付から自動）'
 
 
 def install():
+    if (Path.home() / 'Library/LaunchAgents/local.ynp97.soten-broadcast.plist').exists():
+        from install_service import install as update_service
+        update_service()
+        return
     DEST.mkdir(parents=True, exist_ok=True)
     for name in ('server.py', 'launch.py', '早天配信.command', 'README.md'):
         if (SOURCE / name).exists():

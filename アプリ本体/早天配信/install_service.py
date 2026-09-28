@@ -14,6 +14,7 @@ import urllib.request
 LABEL = 'local.ynp97.soten-broadcast'
 SOURCE = Path(__file__).resolve().parent
 DEST = Path.home() / 'Desktop/AI関係/早天配信'
+SERVICE = Path.home() / 'Library/Application Support/SotenBroadcast'
 
 def install():
     if subprocess.run(['pgrep', '-x', 'OBS'], capture_output=True).returncode == 0:
@@ -31,23 +32,32 @@ def install():
     pids = set(int(x) for x in found.stdout.split())
     for pid in pids:
         command = subprocess.check_output(['ps', '-p', str(pid), '-o', 'command='], text=True)
-        if str(DEST / 'server.py') not in command:
+        if str(DEST / 'server.py') not in command and str(SERVICE / 'server.py') not in command and 'launchd' not in command:
             raise SystemExit('19797番ポートを別のプロセスが使用しています。変更していません。')
     domain = f'gui/{os.getuid()}'
     subprocess.run(['launchctl', 'bootout', domain + '/' + LABEL], capture_output=True)
     for pid in pids:
         try:
+            if 'launchd' in subprocess.check_output(['ps', '-p', str(pid), '-o', 'command='], text=True):
+                continue
             os.kill(pid, signal.SIGTERM)
-        except ProcessLookupError:
+        except (ProcessLookupError, subprocess.CalledProcessError):
             pass
     for name in ('server.py', 'launch.py'):
         shutil.copy2(SOURCE / name, DEST / name)
-    runtime = DEST / '.runtime'
+    SERVICE.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(SOURCE / 'server.py', SERVICE / 'server.py')
+    shutil.copytree(SOURCE / 'web', SERVICE / 'web', dirs_exist_ok=True)
+    if not (SERVICE / 'user_data').exists() and (DEST / 'user_data').exists():
+        shutil.copytree(DEST / 'user_data', SERVICE / 'user_data')
+    shutil.copy2(SOURCE / 'sync_data.py', DEST / 'sync_data.py')
+    subprocess.run(['/usr/bin/python3', str(DEST / 'sync_data.py')], check=True)
+    runtime = SERVICE / '.runtime'
     runtime.mkdir(exist_ok=True)
     config = {
         'Label': LABEL,
-        'ProgramArguments': ['/usr/bin/python3', str(DEST / 'server.py'), '--launchd'],
-        'WorkingDirectory': str(DEST),
+        'ProgramArguments': ['/usr/bin/python3', str(SERVICE / 'server.py'), '--launchd', '--vault', str(SERVICE / 'vault')],
+        'WorkingDirectory': str(SERVICE),
         'Sockets': {'Listener': {'SockNodeName': '127.0.0.1', 'SockServiceName': '19797',
                                   'SockFamily': 'IPv4', 'SockType': 'stream'}},
         'ThrottleInterval': 2,

@@ -9,12 +9,13 @@ let state = null, revision = null, busy = false, connected = false;
 const modeNames = {reference:'箇所名',body:'本文',hidden:'非表示',prayer:'祈り',lords_prayer:'主の祈り',extra:'説明用のページ'};
 function error(message) { $('error').textContent = message; $('error').hidden = !message; }
 function render(next) {
+  const previousDate = state?.date;
   state = next;
   $('connection').textContent = next.obsConnected ? '● OBS 接続中' : 'OBSの表示待ち';
   $('connection').className = 'status ' + (next.obsConnected ? 'online' : 'offline');
   if (revision === next.revision) return;
   revision = next.revision;
-  if (!$('date').value) $('date').value = next.date || next.today;
+  if (!$('date').value || $('date').value === previousDate) $('date').value = next.date || next.today;
   $('reference').textContent = next.reference || '日付を選んでください';
   $('dateLabel').textContent = next.date ? new Date(next.date+'T12:00:00').toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'}) : '';
   $('modeLabel').textContent = modeNames[next.mode];

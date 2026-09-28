@@ -2,6 +2,21 @@
 
 最終確認：2026-09-28 / Codex
 
+## 現行の起動方式（2026-09-28 根本修正）
+
+この節が下記の旧実装記録に優先する。最終確認：2026-09-28 / Codex。
+
+- 原因となる構造：OBSがHTTPサーバーより先に開くとブラウザ本体が接続失敗ページになり、ページ内の再試行コードも読み込まれない。単発のサーバー起動とURL再読込は暫定復旧だった。
+- `~/Library/LaunchAgents/local.ynp97.soten-broadcast.plist` が127.0.0.1:19797のソケットを保持。アクセス時にlaunchdがサーバーを起動し、プロセス停止中も接続口を維持する。サーバーはlaunch_activate_socketでソケットを受け取る。公開範囲・Origin制限は従来どおり。
+- 実行本体：`~/Library/Application Support/SotenBroadcast/`。Desktopからlaunchdで直接Pythonを動かすとmacOSが読込を拒否するため標準保存場所へ移した。権限緩和なし。
+- 毎朝は従来のDesktop/AI関係/早天配信/早天配信.appを開く。Terminal経由でsync_data.pyがVaultの聖書・月間一覧を利用用キャッシュへ同期し、launch.pyが今日を準備してOBSを開く。OBSを直接開いてもサービスは起動するが、最新Vault同期と当日準備のため通常はアプリアイコンを使う。
+- 正本はVault。キャッシュは上記本体内のvault/。書き換えるのは正本だけ。月間予定更新後はアプリアイコンを開き直す。自動Web取得は無し。
+- 追加ページの現在の保存先は本体内user_data/extra_pages.json。旧Desktop側から初回移行済み。以後Desktop側を正本として上書きしない。
+- user_data/session.jsonで同日中の表示モード・日付・本文ページ・追加ページ選択を保存。異常終了から同じページへ復帰。前日に保存した状態や壊れた状態ファイルは復元しない。
+- 更新：OBS終了後、Vault側install_service.pyを実行。install_mac.pyも既存サービスがあればこの経路へ渡す。控えはDesktop実配置/設定控え/service_日時/。撤去はlaunchctl bootout gui/UID/local.ynp97.soten-broadcast後、plistを控えへ移し、通常起動方式へ戻す。LaunchAgentを外す前にサーバーを二重起動しない。
+- 検証：既存9件＋復元2件の11テスト通過。サーバー停止→OBSのみ起動でパネルと映像が出ることを目視確認。16:8の2/16表示でSIGKILL後、APIの自動復帰・ページ保持・OBS接続を確認。通常アイコン起動後も2/16を目視確認し、「次へ」で映像・操作盤とも16:9の3/16へ同期。配信・録画・仮想カメラは停止。Macの実ログアウト・再起動は未実施。
+- 設計根拠：Apple Creating Launch Daemons and Agents、および端末のman launch_activate_socket。ログは本体内.runtime/service.logとservice-error.log。
+
 ## 本人の要望・採用した構成
 
 このMacでOBSとPowerPointを毎朝開き、聖書箇所を転記してウインドウキャプチャしていた。全体を見直し、日付指定だけで準備したい。本文のページ送りも希望。将来は配信端末を変更する可能性あり。OBSブラウザソース＋ローカル操作画面での作成・実機確認まで本人了承済み。

@@ -50,6 +50,8 @@ def start():
 
 
 if __name__ == '__main__':
+    if (HERE / 'sync_data.py').exists():
+        subprocess.run([sys.executable, str(HERE / 'sync_data.py')], check=True)
     start()
     if '--no-open' not in sys.argv:
         request = urllib.request.Request(URL + '/api/action', data=b'{"action":"open_today"}',

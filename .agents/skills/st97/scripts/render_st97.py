@@ -183,6 +183,16 @@ def main() -> int:
 
     applications = []
     app_data = require(data, "applications")
+    # 適用の段は分野ではなく深さ（2026-09-28 本人指示）。固定の分野名ラベルに戻ったら止める。
+    OLD_FIXED = ("生活と行動", "心の診断と福音の構造", "キリスト論・終末論", "三位一体論・観想", "説教者自身の生")
+    for i, application in enumerate(app_data, 1):
+        label = application["label"]
+        if not label.startswith(f"{i}．"):
+            raise ValueError(f"適用{i}段目のlabelが「{i}．」で始まっていない: {label}")
+        if label[len(f"{i}．"):].strip() in OLD_FIXED:
+            raise ValueError(f"適用{i}段目のlabelが旧来の固定分野名のまま: {label}")
+    if len(app_data) < 5:
+        raise ValueError(f"適用が{len(app_data)}段しかない（5段目まで掘る）")
     for index, application in enumerate(app_data):
         check = (
             '<span class="check-inline">ハルシネーションチェック：再確認済み</span>'
