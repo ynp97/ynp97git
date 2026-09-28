@@ -10,3 +10,7 @@ nav button,nav select{padding:7px 9px}
 nav label{flex:1;min-width:60px}
 .sheet{flex:1;min-height:0;padding:6px;overflow:hidden;align-items:center}
 @media(max-width:680px){nav{flex-wrap:nowrap}nav label{order:0;flex-basis:auto}#nextVerse{margin-left:0}}
+
+/* 2026-09-29 自分だけが見る時計（配信には出ない） */
+#clock{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;color:#fff;white-space:nowrap;line-height:1}
+#clock small{font-size:18px;color:#c9d8ce;margin-left:2px}

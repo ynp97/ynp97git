@@ -120,3 +120,10 @@ async function openToday() {
   await openFromUrl('/today.pdf', `${info.name}:${info.size}:${info.mtime}`, info.name);
 }
 openToday().catch(e=>status(e.message));
+
+function tick() {
+  const now = new Date(), p = n => String(n).padStart(2,'0');
+  $('clock').innerHTML = `${p(now.getHours())}:${p(now.getMinutes())}<small>:${p(now.getSeconds())}</small>`;
+  setTimeout(tick, 1000 - now.getMilliseconds());
+}
+tick();
