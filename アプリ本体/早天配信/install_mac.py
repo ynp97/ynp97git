@@ -29,7 +29,11 @@ def install():
     with (bundle / 'Info.plist').open('wb') as output:
         plistlib.dump({'CFBundleIdentifier':'local.ynp97.soten-broadcast', 'CFBundleName':'早天配信',
                       'CFBundleDisplayName':'早天配信', 'CFBundleExecutable':'start',
-                      'CFBundlePackageType':'APPL', 'CFBundleVersion':'1.0', 'LSUIElement':True}, output)
+                      'CFBundlePackageType':'APPL', 'CFBundleVersion':'1.0', 'LSUIElement':True,
+                      'CFBundleIconFile':'AppIcon'}, output)
+    (bundle / 'Resources').mkdir(exist_ok=True)
+    if (SOURCE / 'AppIcon.icns').exists():
+        shutil.copy2(SOURCE / 'AppIcon.icns', bundle / 'Resources/AppIcon.icns')
     executable = bundle / 'MacOS/start'
     executable.write_text('#!/bin/zsh\nAPP_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"\nexec /usr/bin/open -a Terminal "$APP_DIR/早天配信.command"\n')
     executable.chmod(0o755)
