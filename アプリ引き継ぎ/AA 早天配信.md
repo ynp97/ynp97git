@@ -11,6 +11,14 @@
 - 次回の確認手順：`早天配信.app` を開く→原稿の「次 →」で2/15→OBSに16:7、次に3/15→16:9、表紙へ戻して箇所名を確認。Zoom会議中だけ「参加者」パネル左上のメニューからポップアウトし、OBS側の隅へ配置。配置と読みやすさはまだ実地確認していない。
 - 原稿のページ対応は開いたブラウザのローカル保存領域に保持され、別ブラウザや別Macには自動移行しない。自動候補には誤判定の可能性があるため、新しい原稿は配信前に各ページの候補を点検する。
 
+## 2026-09-28 夜：今日のPDFの自動読込と画面の自動配置（Claude）
+
+- 起動時に `launch.py` → `morning.py` が、ファイル名に今日のYYYYMMDDを含むPDFを `~/Downloads` と Vault `output/pdf/` から探す（iPad版優先、同格なら新しい方）。見つけたPDFはサービス側 `user_data/today.pdf`＋`today.json` へ複写し、原稿画面は `/api/today-pdf` → `/today.pdf` を自動で開く。見つからない日は前日の分を消し、画面に「今日のPDFが見つかりません」と表示する。旧来の「9/28だけ同梱PDF」は廃止（`/reader?sample` で試作PDFは開ける）。
+- 画面配置：メニューバーのある画面の使える範囲（Dock・メニューバー除く）を測り、左45%に原稿、右55%にOBS。OBSは終了中に限り `user.ini` の [BasicWindow] geometry 行だけを書き換えてから起動（DockState等は触らない。初回の控えは実配置の 設定控え/user_before_layout.ini）。起動中のOBSは動かさない。
+- 原稿画面は普段使いのChromeではなく、専用設定フォルダ（`~/Library/Application Support/SotenBroadcast/reader-chrome`）のChromeをアプリ窓（タブ・アドレスバーなし）で開く。起動のたびに前回の原稿窓を閉じて、位置・大きさを指定して開き直す。★普段のChromeにAppleScriptで窓を作らせる方式は、窓0枚のときにプロファイル選択ができず「プロファイルを開くときに問題が発生しました」が出たため廃止（本人の「専用アプリの方が早いのでは」を受けて切替）。原稿ページと聖句の対応の保存も、この専用フォルダ側になる（前の9/28分の対応は引き継がれない）。
+- 実機確認：アイコン起動でOBS終了中→右へ配置、Vaultの9/28 iPad PDFを自動表示。Downloadsに試験PDFを置いた起動でそちらを選択（試験PDFはゴミ箱へ）。専用窓で2回続けて起動し、同じ位置に1枚だけ出ることを確認。テスト17件通過。★未確認：翌朝5時の実ファイルでの読込、Zoomの配置（今回は対象外）。
+- 更新手順：OBS終了後に Vault `アプリ本体/早天配信/更新（OBS終了後）.command` を開く（install_service.py を実行。morning.py も実配置へ複写する）。
+
 ## 2026-09-28 夜：アイコンとドック登録（Claude）
 
 - 本人依頼で、アイコンを茶色の角丸に白字の「配」にした。本体 `早天配信.app/Contents/Resources/AppIcon.icns`、Info.plistに `CFBundleIconFile=AppIcon` を追加。Vault控えにも `アプリ本体/早天配信/AppIcon.icns` を置き、`install_mac.py` が再作成時にアイコンを付けるよう修正。変更前の本体は実配置 `設定控え/早天配信_before_icon_*.app.bak`。
