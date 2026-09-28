@@ -49,6 +49,31 @@ def start():
     raise SystemExit('起動できませんでした。早天配信/.runtime/server.log を確認してください。')
 
 
+def morning_setup():
+    """今日のPDFの受け渡しと画面配置。ここで失敗しても配信は起動する。"""
+    try:
+        import morning
+    except ImportError:
+        return None, None
+    agent = Path.home() / 'Library/LaunchAgents/local.ynp97.soten-broadcast.plist'
+    target = (morning.SERVICE if agent.exists() else HERE) / 'user_data'
+    try:
+        source = morning.stage_today_pdf(target)
+        print('今日のPDF：', source if source else '見つかりません（ダウンロード・Vaultのoutput/pdf）')
+    except Exception as error:
+        print('今日のPDFを渡せませんでした：', error)
+    try:
+        layout = morning.plan(morning.screen_frame())
+    except Exception as error:
+        print('画面の大きさを取得できませんでした：', error)
+        return morning, None
+    if not morning.obs_running():
+        note = morning.set_obs_geometry(layout['obs'], backup_dir=HERE / '設定控え')
+        if note:
+            print(note)
+    return morning, layout
+
+
 if __name__ == '__main__':
     if (HERE / 'sync_data.py').exists():
         subprocess.run([sys.executable, str(HERE / 'sync_data.py')], check=True)
@@ -59,8 +84,17 @@ if __name__ == '__main__':
         with urllib.request.urlopen(request, timeout=5) as response:
             response.read()
         if sys.platform == 'darwin':
+            morning, layout = morning_setup()
             subprocess.run(['open', '-a', 'OBS'], check=False)
-            subprocess.run(['open', '-a', 'Google Chrome', URL + '/reader'], check=False)
+            opened = False
+            if layout:
+                try:
+                    morning.open_reader(URL + '/reader', layout['reader'])
+                    opened = True
+                except Exception as error:
+                    print('原稿画面を配置できませんでした：', getattr(error, 'stderr', '') or error)
+            if not opened:
+                subprocess.run(['open', '-a', 'Google Chrome', URL + '/reader'], check=False)
         else:
             import webbrowser
             webbrowser.open(URL)

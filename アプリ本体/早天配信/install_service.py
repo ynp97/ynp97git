@@ -22,8 +22,9 @@ def install():
     stamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
     backup = DEST / '設定控え' / ('service_' + stamp)
     backup.mkdir(parents=True)
-    for name in ('server.py', 'launch.py'):
-        shutil.copy2(DEST / name, backup / name)
+    for name in ('server.py', 'launch.py', 'morning.py'):
+        if (DEST / name).exists():
+            shutil.copy2(DEST / name, backup / name)
     agent = Path.home() / 'Library/LaunchAgents' / (LABEL + '.plist')
     if agent.exists():
         shutil.copy2(agent, backup / agent.name)
@@ -43,7 +44,7 @@ def install():
             os.kill(pid, signal.SIGTERM)
         except (ProcessLookupError, subprocess.CalledProcessError):
             pass
-    for name in ('server.py', 'launch.py'):
+    for name in ('server.py', 'launch.py', 'morning.py'):
         shutil.copy2(SOURCE / name, DEST / name)
     SERVICE.mkdir(parents=True, exist_ok=True)
     shutil.copy2(SOURCE / 'server.py', SERVICE / 'server.py')

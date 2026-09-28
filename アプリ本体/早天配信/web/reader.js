@@ -103,11 +103,17 @@ document.addEventListener('keydown',event=>{
   if(event.key==='ArrowRight'||event.key==='PageDown'){event.preventDefault();go(1);}
   if(event.key==='ArrowLeft'||event.key==='PageUp'){event.preventDefault();go(-1);}
 });
-if(new Date().toLocaleDateString('sv-SE') === '2026-09-28' || new URLSearchParams(location.search).has('sample')) {
-  fetch('/sample.pdf').then(async response=>{
-    if(!response.ok) throw new Error('試作用PDFが見つかりません');
-    await openPdf(new Uint8Array(await response.arrayBuffer()),'sample-20260928','20260928の原稿（試作）');
-  }).catch(e=>status(e.message));
-} else {
-  status('今日のPDFを選んでください');
+async function openFromUrl(url, identity, name) {
+  const response = await fetch(url, {cache:'no-store'});
+  if(!response.ok) throw new Error('PDFを読み込めません');
+  await openPdf(new Uint8Array(await response.arrayBuffer()), identity, name);
 }
+async function openToday() {
+  if(new URLSearchParams(location.search).has('sample'))
+    return openFromUrl('/sample.pdf','sample-20260928','20260928の原稿（試作）');
+  const response = await fetch('/api/today-pdf', {cache:'no-store'});
+  const info = response.ok ? (await response.json()).pdf : null;
+  if(!info) return status('今日のPDFが見つかりません。「PDFを選ぶ」から開いてください');
+  await openFromUrl('/today.pdf', `${info.name}:${info.size}:${info.mtime}`, info.name);
+}
+openToday().catch(e=>status(e.message));

@@ -298,6 +298,20 @@ def handler(app):
                 return self.respond({'app': 'soten-broadcast', 'version': 1})
             if url.path == '/api/dates':
                 return self.respond(schedules(app.vault))
+            if url.path == '/api/today-pdf':
+                meta = HERE / 'user_data/today.json'
+                try:
+                    info = json.loads(meta.read_text())
+                except (OSError, ValueError):
+                    info = None
+                if not info or info.get('date') != dt.date.today().isoformat() or not (HERE / 'user_data/today.pdf').exists():
+                    info = None
+                return self.respond({'pdf': info})
+            if url.path == '/today.pdf':
+                path = HERE / 'user_data/today.pdf'
+                if not path.exists():
+                    return self.respond({'error': 'Not found'}, 404)
+                return self.respond(path.read_bytes(), content_type='application/pdf')
             files = {'/': ('index.html', 'text/html'), '/display': ('display.html', 'text/html'),
                      '/reader': ('reader.html', 'text/html'), '/reader.js': ('reader.js', 'text/javascript'),
                      '/reader.css': ('reader.css', 'text/css'), '/sample.pdf': ('sample.pdf', 'application/pdf'),

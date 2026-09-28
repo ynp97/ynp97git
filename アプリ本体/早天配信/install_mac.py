@@ -20,7 +20,7 @@ def install():
         update_service()
         return
     DEST.mkdir(parents=True, exist_ok=True)
-    for name in ('server.py', 'launch.py', '早天配信.command', 'README.md'):
+    for name in ('server.py', 'launch.py', 'morning.py', '早天配信.command', 'README.md'):
         if (SOURCE / name).exists():
             shutil.copy2(SOURCE / name, DEST / name)
     shutil.copytree(SOURCE / 'web', DEST / 'web', dirs_exist_ok=True)
