@@ -7,7 +7,7 @@ ROOTS=[ # label, scan dir (local), real path prefix, local prefix, cloud?
  ("BENJAMIN（外付けSSD）", loc("/Volumes/BENJAMIN", H+"/mnt/BENJAMIN"), "/Volumes/BENJAMIN", False,
    ["_移行データ"]),
  ("OneDrive", loc(U+"/Library/CloudStorage/OneDrive-個人用", H+"/mnt/CloudStorage/OneDrive-個人用"), U+"/Library/CloudStorage/OneDrive-個人用", True,
-   ["!!!!!!ONEDRIVER/！ＤＴＭ", "."]),
+   ["."]),
  ("iCloud Drive", loc(U+"/Library/Mobile Documents/com~apple~CloudDocs", H+"/mnt/com~apple~CloudDocs"), U+"/Library/Mobile Documents/com~apple~CloudDocs", True,
    ["Desktop", "Documents"]),
 ]
@@ -15,7 +15,7 @@ AUD=('.wav','.mp3','.aif','.aiff','.m4a','.flac')
 MID=('.mid','.midi')
 SKIPD={'Audio','Edits','Images','FREEVSTS','06_書籍・マンガ','Final Cut Original Media','Freeze','Auto Saves','superwhisper',
  'Native Instruments','BFD Drums','IK Multimedia','iZotope','Steinberg','Universal Audio','SYNTHS','Excite Audio','Evabeat','Crow Hill',
- 'W.A.Production','ToneEmpire','SoundeviceDigital','PSPaudioware.com','Safari Pedals','Pro Tools','Accordance Files','Adobe','Codex','steinberg download','Track Pictures'}
+ 'W.A.Production','ToneEmpire','SoundeviceDigital','PSPaudioware.com','Safari Pedals','Pro Tools','Accordance Files','Adobe','Codex','steinberg download','Track Pictures','MP3_1','放送大学','！ＤＴＭ　ＳＯＦＴ＿楽器系','！！本','COMICS','!!!!!!!!MOVIES','WB Games','!!PROG','ビートルズマイナス','AUてんこ盛り','Adobe Premiere Pro Audio Previews','Adobe Premiere Pro Video Previews'}
 STEM=re.compile(r' - \d{4} - ')
 def d(t): return datetime.datetime.fromtimestamp(t).strftime('%Y-%m-%d')
 def dur(p):
@@ -31,7 +31,7 @@ for label,root,real,cloud,subs in ROOTS:
     songs=collections.defaultdict(lambda:{'prj':[],'mix':[],'mid':[]})
     for sub in subs:
         base=os.path.join(root,sub)
-        top_only = (sub==".")
+        top_only = False
         for dp,dn,fn in os.walk(base):
             prj_dirs=[x for x in dn if x.lower().endswith('.logicx')]
             for x in prj_dirs:
@@ -45,7 +45,8 @@ for label,root,real,cloud,subs in ROOTS:
                 continue
             for f in fn:
                 l=f.lower(); p=os.path.join(dp,f)
-                if l.endswith('.cpr'): key,kind=dp,'prj'
+                if l.startswith('y2mate'): continue
+                if l.endswith(('.cpr','.npr')): key,kind=dp,'prj'
                 elif l.endswith(AUD): key,kind=(os.path.dirname(dp) if os.path.basename(dp)=='Mixdown' else dp),'mix'
                 elif l.endswith(MID): key,kind=dp,'mid'
                 else: continue
@@ -87,7 +88,7 @@ for label,root,real,cloud,subs in ROOTS:
 now=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 out.append(f"---\n種別: 音楽制作環境 / 作品台帳\n更新: {now}\n---\n\n# 🎵 作品台帳\n")
 out.append(f"> [!info] 読み方\n> 自作曲がどこにあるかを、場所ごと・曲（保存フォルダ）ごとにまとめた一覧。表は更新日の新しい順、曲名は最新のCubase／Logicプロジェクト名。**「場所」のリンクを押すとFinderでそのフォルダが開く**。「パラ」はCubaseのトラック別書き出し。\n> 生成: {now}（このMacから見えた分）／ 作り直し: ターミナルで `python3 ~/Documents/\"Obsidian Vault\"/資料/音楽/作品台帳スキャン.py`\n")
-out.append("## 場所ごとの件数\n"+"\n".join(summary)+"\n\n対象外にしたもの: OneDriveの市販CD音源（MP3_1）・放送大学・音源ソフトのサンプル、iCloudのプラグイン類フォルダ、各プロジェクトの `Audio` 素材フォルダ。\n")
+out.append("## 場所ごとの件数\n"+"\n".join(summary)+"\n\n対象外にしたもの: OneDriveの市販CD音源（MP3_1・ビートルズマイナス・y2mate）・放送大学・本・音源ソフトのサンプル・AUてんこ盛り、iCloudのプラグイン類フォルダ、各プロジェクトの `Audio` 素材フォルダ。\n")
 out+=body
 V=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 open(os.path.join(V,"🎵 作品台帳.md"),'w').write("\n".join(out))
