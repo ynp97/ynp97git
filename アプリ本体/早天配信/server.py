@@ -342,7 +342,11 @@ def handler(app):
                      '/vendor/pdf.min.mjs': ('vendor/pdf.min.mjs', 'text/javascript'),
                      '/vendor/pdf.worker.min.mjs': ('vendor/pdf.worker.min.mjs', 'text/javascript'),
                      '/app.js': ('app.js', 'text/javascript'), '/display.js': ('display.js', 'text/javascript'),
-                     '/style.css': ('style.css', 'text/css'), '/display.css': ('display.css', 'text/css')}
+                     '/style.css': ('style.css', 'text/css'), '/display.css': ('display.css', 'text/css'),
+                     '/thumbnail': ('thumbnail/index.html', 'text/html'),
+                     '/thumbnail/': ('thumbnail/index.html', 'text/html'),
+                     '/thumbnail/passages.js': ('thumbnail/passages.js', 'text/javascript'),
+                     '/thumbnail/thumbnail.js': ('thumbnail/thumbnail.js', 'text/javascript')}
             if url.path not in files:
                 return self.respond({'error': 'Not found'}, 404)
             name, mime = files[url.path]

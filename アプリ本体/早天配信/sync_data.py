@@ -56,6 +56,24 @@ def sync_web():
             if os.path.exists(temp):
                 os.unlink(temp)
         count += 1
+    thumbnail_source = VAULT / 'アプリ本体/早天サムネ'
+    for name in ('index.html', 'passages.js', 'thumbnail.js'):
+        path = thumbnail_source / name
+        if not path.is_file():
+            raise SystemExit('サムネ画面が見つかりません：' + str(path))
+        dest = target / 'thumbnail' / name
+        if dest.exists() and dest.read_bytes() == path.read_bytes():
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        fd, temp = tempfile.mkstemp(dir=dest.parent)
+        os.close(fd)
+        try:
+            shutil.copy2(path, temp)
+            os.replace(temp, dest)
+        finally:
+            if os.path.exists(temp):
+                os.unlink(temp)
+        count += 1
     if count:
         print(f'画面を更新：{count}ファイル')
 
