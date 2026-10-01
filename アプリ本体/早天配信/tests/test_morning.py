@@ -65,12 +65,10 @@ class MorningTests(unittest.TestCase):
             self.assertNotEqual(lines[4], 'geometry=' + original)
             self.assertTrue((Path(tmp) / 'bk/user_before_layout.ini').exists())
 
-    def test_reader_uses_own_profile_and_position(self):
-        cmd = morning.reader_command('http://127.0.0.1:19797/reader', (32, 25, 635, 888), Path('/x/reader-chrome'))
-        self.assertIn('--user-data-dir=/x/reader-chrome', cmd)
-        self.assertIn('--app=http://127.0.0.1:19797/reader', cmd)
-        self.assertIn('--window-position=32,25', cmd)
-        self.assertIn('--window-size=603,863', cmd)
+    def test_reader_uses_dedicated_app_and_position(self):
+        cmd = morning.reader_command('http://127.0.0.1:19797/reader', (32, 25, 635, 888), Path('/x/早天原稿.app'))
+        self.assertEqual(cmd, ['/x/早天原稿.app/Contents/MacOS/soten-reader',
+                               'http://127.0.0.1:19797/reader', '32', '25', '603', '863'])
 
 if __name__ == '__main__':
     unittest.main()

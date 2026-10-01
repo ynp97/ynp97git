@@ -5,7 +5,7 @@ main{margin:18px auto}h1{margin:0 0 6px}main>p{margin:6px 0 12px}section{padding
 <main><h1>早天サムネ</h1><p>日付を選ぶと、その日の聖書箇所でサムネイルを作ります。</p>
 <section><div class="controls"><button id="today">本日</button><label for="date">対象日</label><input id="date" type="date" required><button id="make" class="primary">サムネを作る</button></div><div id="passage"></div><div id="status" role="status"></div><p id="copyText" style="overflow-wrap:anywhere"></p><div class="controls"><button id="copy">タイトルをコピー</button><button id="studio">動画のアップロード画面を開く</button></div><p style="font-size:14px">YouTubeで現在選択しているチャンネルの投稿画面が開きます。何日分も投稿するときは、日付を変えてタイトルをコピーし、開いているStudioに貼り付けてください。</p></section>
 <section id="preview" hidden><canvas id="canvas" width="1280" height="720" aria-label="サムネイルのプレビュー"></canvas><p id="filename"></p><button id="save" class="primary">PNG画像を保存</button></section>
-<footer>画像はこのMac内で生成します。AI・Canvaへの通信はありません。<br>聖書箇所：登録済みのリビングライフ月間一覧。未登録の日は生成しません。<br>9月分はツラノ公式月間一覧から取得。日本語版との月間照合は未実施です。</footer></main>
+<footer>画像はこのMac内で生成します。AI・Canvaへの通信はありません。<br>聖書箇所：登録済みのリビングライフ月間一覧。未登録の日は生成しません。<br>月間一覧はツラノ公式から取得し、照合状況はVaultの月間表に記録します。</footer></main>
 <script src="passages.js"></script><script>
 const date=document.querySelector('#date'),status=document.querySelector('#status'),passage=document.querySelector('#passage'),preview=document.querySelector('#preview'),canvas=document.querySelector('#canvas'),ctx=canvas.getContext('2d');let filename='',valid=false;
 function today(){const p=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());date.value=p;refresh()}

@@ -6,13 +6,27 @@ import datetime as dt
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from server import Broadcast, find_vault, prepare, read_range, schedules, split_text
+from server import Broadcast, find_vault, prepare, read_range, reference_from_pdf_name, schedules, split_text
 
 
 class BroadcastTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.vault = find_vault()
+
+    def test_pdf_passage_recovers_a_day_missing_from_monthly_schedule(self):
+        name = '20261001_歴代誌第一17章1-15節_早天_iPad.pdf'
+        self.assertEqual(reference_from_pdf_name('2026-10-01', name), '歴代誌第一17:1-15')
+        self.assertIsNone(reference_from_pdf_name('2026-10-02', name))
+        with patch('server.schedules', return_value={}):
+            prepared = prepare(self.vault, '2026-10-01', name)
+            self.assertEqual(prepared['verseCount'], 15)
+            self.assertTrue(prepared['warnings'])
+            with patch('server.dt.date') as date, patch('server.staged_pdf_name', return_value=name):
+                date.today.return_value = dt.datetime(2026, 10, 1).date()
+                date.fromisoformat.side_effect = lambda value: dt.datetime.strptime(value, '%Y-%m-%d').date()
+                app = Broadcast(self.vault)
+                self.assertEqual(app.action({'action':'open_today'})['verseCount'], 15)
 
     def test_all_registered_dates_preserve_every_verse_character(self):
         for date, reference in schedules(self.vault).items():

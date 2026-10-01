@@ -1,3 +1,4 @@
 #!/bin/zsh
 APP_DIR="${0:A:h:h:h:h}"
+/usr/bin/python3 "$APP_DIR/月間データ更新.py"
 exec /usr/bin/open -a "Google Chrome" "$APP_DIR/index.html"

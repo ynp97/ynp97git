@@ -143,31 +143,29 @@ def set_obs_geometry(bounds, ini=OBS_INI, backup_dir=None):
     return None
 
 
-READER_PROFILE = SERVICE / 'reader-chrome'
+READER_APP = Path(__file__).resolve().parent / '早天原稿.app'
 
 
-def reader_command(url, bounds, profile=READER_PROFILE):
+def reader_command(url, bounds, app=READER_APP):
     left, top, right, bottom = bounds
-    return ['open', '-na', 'Google Chrome', '--args',
-            f'--user-data-dir={profile}', f'--app={url}',
-            f'--window-position={left},{top}', f'--window-size={right - left},{bottom - top}',
-            '--no-first-run', '--no-default-browser-check']
+    return [str(app / 'Contents/MacOS/soten-reader'), url,
+            str(left), str(top), str(right - left), str(bottom - top)]
 
 
-def open_reader(url, bounds, profile=READER_PROFILE):
-    """原稿画面を専用の1枚窓で開く。
-
-    普段使いのChromeとは別の設定フォルダで動かすので、普段のタブやプロファイルに触れない
-    （2026-09-28、普段のChromeへAppleScriptで窓を作らせてプロファイルエラーが出たため切替）。
-    位置と大きさは起動時にしか効かないため、前回の原稿窓が残っていれば閉じてから開く。"""
-    pattern = f'--user-data-dir={profile}'
-    subprocess.run(['pkill', '-f', pattern], capture_output=True)
+def open_reader(url, bounds, app=READER_APP):
+    """Chromeのログイン状態から独立した原稿専用窓を開く。"""
+    if not (app / 'Contents/MacOS/soten-reader').exists():
+        raise FileNotFoundError(f'早天原稿.app がありません: {app}')
+    subprocess.run(['pkill', '-x', 'soten-reader'], capture_output=True)
     for _ in range(50):
-        if subprocess.run(['pgrep', '-f', pattern], capture_output=True).returncode != 0:
+        if subprocess.run(['pgrep', '-x', 'soten-reader'], capture_output=True).returncode != 0:
             break
         time.sleep(0.1)
-    profile.mkdir(parents=True, exist_ok=True)
-    subprocess.run(reader_command(url, bounds, profile), check=True)
+    process = subprocess.Popen(reader_command(url, bounds, app),
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(0.2)
+    if process.poll() is not None:
+        raise RuntimeError('早天原稿.app を起動できませんでした')
 
 
 def obs_running():

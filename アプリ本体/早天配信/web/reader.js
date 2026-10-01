@@ -3,7 +3,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.mjs';
 const $ = id => document.getElementById(id);
 let pdf, pageNumber = 1, mappings = [], state, key = '', renderTask, generation = 0;
 
-function status(message) { $('status').textContent = message; }
+function status(message, failed=false) { $('status').textContent = message; $('status').classList.toggle('error',failed); }
 function normalized(s) { return s.normalize('NFKC').replace(/\s+/g, ''); }
 function save() { if(key) localStorage.setItem(key, JSON.stringify(mappings)); }
 async function getState() {
@@ -75,19 +75,25 @@ async function openPdf(data,identity,name) {
   try {
     status('PDFを読み込み中…');
     await getState();
+    let setupError = '';
     const dateToken = name.match(/(?:^|\D)(20\d{6})(?:\D|$)/)?.[1] || identity.match(/(?:^|\D)(20\d{6})(?:\D|$)/)?.[1];
     if(dateToken) {
       const date = `${dateToken.slice(0,4)}-${dateToken.slice(4,6)}-${dateToken.slice(6,8)}`;
-      if(state.date !== date) await send({action:'prepare',date});
+      if(state.date !== date || !state.pages.length) {
+        try { await send({action:'prepare',date,pdfName:name}); }
+        catch(e) { setupError = e.message; }
+      }
     }
+    if(!state.pages.length) setupError ||= state.startupError || '聖書の本文が準備されていません';
     pdf = await pdfjsLib.getDocument({data}).promise;
     key = 'soten-reader:'+identity+':'+state.date;
     const saved = localStorage.getItem(key);
-    mappings = saved ? JSON.parse(saved) : await suggestMappings();
-    if(mappings.length !== pdf.numPages) mappings = await suggestMappings();
+    mappings = saved ? JSON.parse(saved) : state.pages.length ? await suggestMappings() : Array(pdf.numPages).fill('keep');
+    if(mappings.length !== pdf.numPages) mappings = state.pages.length ? await suggestMappings() : Array(pdf.numPages).fill('keep');
     pageNumber = 1; $('filename').textContent = name;
-    await showPage();
-  } catch(e) { status(e.message); }
+    await showPage(!setupError);
+    if(setupError) status(`聖書連動停止：${setupError}`,true);
+  } catch(e) { status(e.message,true); }
 }
 $('pdfFile').onchange = async event => {
   const file = event.target.files[0];

@@ -40,6 +40,24 @@ def schedules(vault):
     return result
 
 
+def reference_from_pdf_name(date, name):
+    """Use a dated manuscript filename only when its date and passage are explicit."""
+    token = date.replace('-', '')
+    match = re.match(r'^(\d{8})_(.+?)(\d+)章(\d+)[-–—](\d+)節(?:_|\.|$)', name)
+    if not match or match.group(1) != token:
+        return None
+    _, book, chapter, first, last = match.groups()
+    return f'{book}{chapter}:{first}-{last}'
+
+
+def staged_pdf_name(date):
+    try:
+        data = json.loads((HERE / 'user_data/today.json').read_text())
+    except (OSError, ValueError):
+        return None
+    return data.get('name') if data.get('date') == date else None
+
+
 def read_range(vault, reference):
     normalized = unicodedata.normalize('NFKC', reference)
     normalized = re.sub(r'[–—−〜～]', '-', normalized).replace(' ', '')
@@ -116,11 +134,15 @@ def split_text(text, limit=104):
     return parts
 
 
-def prepare(vault, date):
+def prepare(vault, date, pdf_name=None):
     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', date):
         raise ValueError('日付を選んでください。')
     dt.date.fromisoformat(date)
     reference = schedules(vault).get(date)
+    from_pdf = False
+    if not reference:
+        reference = reference_from_pdf_name(date, pdf_name or staged_pdf_name(date) or '')
+        from_pdf = bool(reference)
     if not reference:
         raise ValueError(f'{date[:7]}の予定、または指定日の箇所が未登録です。st97の月間一覧を追加すると使えます。表示中の箇所は変更していません。')
     verses = read_range(vault, reference)
@@ -131,6 +153,8 @@ def prepare(vault, date):
             pages.append({'label': verse['label'], 'text': text,
                           'part': f'{i + 1}/{len(parts)}' if len(parts) > 1 else ''})
     warnings = []
+    if from_pdf:
+        warnings.append('月間予定が未登録のため、当日のPDFファイル名に記載された聖書箇所を使っています。')
     if any(v['label'] == '歴代誌第一 15:10' for v in verses):
         warnings.append('本文データの要確認箇所：歴代誌第一15:10の人数。st97の記録に誤記の疑いがあります。本文はVaultの原文のままです。')
     return {'date': date, 'reference': reference, 'pages': pages,
@@ -235,14 +259,14 @@ class Broadcast:
                     temporary.replace(self.storage)
             elif action == 'open_today':
                 today = dt.date.today().isoformat()
-                if self.state['date'] != today:
+                if self.state['date'] != today or not self.state['pages']:
                     try:
                         self.state.update(prepare(self.vault, today), mode='reference', page=0, startupError='')
                     except ValueError as error:
                         self.state.update(date=today, reference='', pages=[], verseCount=0,
                                           warnings=[], mode='hidden', page=0, startupError=str(error))
             elif action == 'prepare':
-                data = prepare(self.vault, body.get('date', ''))
+                data = prepare(self.vault, body.get('date', ''), body.get('pdfName'))
                 self.state.update(data, mode='reference', page=0, startupError='')
             elif action == 'mode' and body.get('mode') in ('reference', 'body', 'hidden', 'prayer', 'lords_prayer'):
                 if not self.state['pages'] and body['mode'] in ('reference', 'body'):

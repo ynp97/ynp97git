@@ -79,12 +79,13 @@ if __name__ == '__main__':
         subprocess.run([sys.executable, str(HERE / 'sync_data.py')], check=True)
     start()
     if '--no-open' not in sys.argv:
+        if sys.platform == 'darwin':
+            morning, layout = morning_setup()
         request = urllib.request.Request(URL + '/api/action', data=b'{"action":"open_today"}',
                                          headers={'Content-Type':'application/json','Origin':URL})
         with urllib.request.urlopen(request, timeout=5) as response:
             response.read()
         if sys.platform == 'darwin':
-            morning, layout = morning_setup()
             subprocess.run(['open', '-a', 'OBS'], check=False)
             opened = False
             if layout:
@@ -94,7 +95,7 @@ if __name__ == '__main__':
                 except Exception as error:
                     print('原稿画面を配置できませんでした：', getattr(error, 'stderr', '') or error)
             if not opened:
-                subprocess.run(['open', '-a', 'Google Chrome', URL + '/reader'], check=False)
+                subprocess.run(['open', '-a', 'Safari', URL + '/reader'], check=False)
         else:
             import webbrowser
             webbrowser.open(URL)

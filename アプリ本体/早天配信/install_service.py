@@ -25,6 +25,8 @@ def install():
     for name in ('server.py', 'launch.py', 'morning.py'):
         if (DEST / name).exists():
             shutil.copy2(DEST / name, backup / name)
+    if (DEST / '早天原稿.app').exists():
+        shutil.copytree(DEST / '早天原稿.app', backup / '早天原稿.app')
     agent = Path.home() / 'Library/LaunchAgents' / (LABEL + '.plist')
     if agent.exists():
         shutil.copy2(agent, backup / agent.name)
@@ -46,6 +48,7 @@ def install():
             pass
     for name in ('server.py', 'launch.py', 'morning.py'):
         shutil.copy2(SOURCE / name, DEST / name)
+    shutil.copytree(SOURCE / 'reader_app/早天原稿.app', DEST / '早天原稿.app', dirs_exist_ok=True)
     SERVICE.mkdir(parents=True, exist_ok=True)
     shutil.copy2(SOURCE / 'server.py', SERVICE / 'server.py')
     shutil.copytree(SOURCE / 'web', SERVICE / 'web', dirs_exist_ok=True)

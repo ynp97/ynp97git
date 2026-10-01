@@ -14,3 +14,4 @@ nav label{flex:1;min-width:60px}
 /* 2026-09-29 自分だけが見る時計（配信には出ない） */
 #clock{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;color:#fff;white-space:nowrap;line-height:1}
 #clock small{font-size:18px;color:#c9d8ce;margin-left:2px}
+#status.error{color:#ffd2c9;white-space:normal;font-weight:700}

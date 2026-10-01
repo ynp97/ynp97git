@@ -24,6 +24,7 @@ def install():
         if (SOURCE / name).exists():
             shutil.copy2(SOURCE / name, DEST / name)
     shutil.copytree(SOURCE / 'web', DEST / 'web', dirs_exist_ok=True)
+    shutil.copytree(SOURCE / 'reader_app/早天原稿.app', DEST / '早天原稿.app', dirs_exist_ok=True)
     bundle = DEST / '早天配信.app/Contents'
     (bundle / 'MacOS').mkdir(parents=True, exist_ok=True)
     with (bundle / 'Info.plist').open('wb') as output:
