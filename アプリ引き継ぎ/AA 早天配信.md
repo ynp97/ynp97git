@@ -2,6 +2,14 @@
 
 最終確認：2026-10-01 / Codex
 
+## 2026-10-01 Chromeログイン混線を解消
+
+- 原稿用の別Chrome（`reader-chrome`）が通常のChrome起動先に割り込んでいた。サムネの「動画のアップロード画面を開く」からGoogleログイン画面へ飛ぶことを実機で再現した。
+- 原稿窓を専用のWebKitアプリ `早天原稿.app` に変更。Vault控えは `アプリ本体/早天配信/reader_app/`、実配置は `~/Desktop/AI関係/早天配信/早天原稿.app`。`morning.py` が左45%へ起動し、OBSは右55%の従来配置を使う。旧Chromeの保存フォルダは削除していない。起動に失敗した場合の原稿表示先はSafari。
+- 実配置の `morning.py` と `launch.py` を更新し、変更前を `設定控え/reader_before_login_fix_20261001_071919/` に保存。早天配信.appの実起動で当日PDFの1/25ページを確認し、3/25ページで原稿表示が「歴代誌第一17:1」に変わり、ローカルサービスも `mode=body,page=0` を返した。配信・録画は開始していない。18テスト通過。
+- Chrome側は起動時のプロファイル選択画面の「起動時に表示する」をオフにし、投稿できる `Nagumo` を選択した。サムネを再起動すると `Google Chrome - Nagumo` で開き、投稿ボタンからYouTube Studioの「動画のアップロード／ファイルを選択」まで到達した。再起動後の長期ログイン保持は次回使用時に確認する。
+- `reader_app/main.swift` を変更した場合はアプリ内バイナリを再ビルドする。今回のMacでは既定のmacOS 27 SDKとSwiftコンパイラの版が合わず、`MacOSX26.5.sdk` と `/private/tmp` のClangキャッシュ指定でビルドした。通常の更新（OBS終了後）は保存済みアプリ一式を実配置へ複写する。
+
 ## 2026-10-01 10月の月間予定を追加
 
 - ツラノ公式の[2026年10月号本文一覧](https://www.duranno.com/qt/view/notice_detail.asp?sn=22428&page=notice&pg=1)から31日分を `.agents/skills/st97/references/2026-10.md` に保存。1〜23日は歴代誌第一、24〜31日は雅歌。全31日の範囲がVault内の聖書本文から欠けなく読めることを確認した。
